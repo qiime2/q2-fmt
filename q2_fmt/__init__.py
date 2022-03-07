@@ -8,5 +8,9 @@
 
 from ._version import get_versions
 
+from ._format import TSVFileFormat
+
 __version__ = get_versions()['version']
 del get_versions
+
+__all__ = ['TSVFileFormat']
