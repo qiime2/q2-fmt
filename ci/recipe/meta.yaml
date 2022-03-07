@@ -1,0 +1,45 @@
+{% set data = load_setup_py_data() %}
+{% set version = data.get('version') or 'placehold' %}
+
+package:
+  name: q2-fmt
+  version: {{ version }}
+
+source:
+  path: ../..
+
+build:
+  script: make install
+
+requirements:
+  build:
+    # nodejs is only necessary in the build phase - our build script needs it
+    # in order to render out transpiled js assets for various visualizations.
+    # once rendered, node is no longer necessary. don't set this in host reqs.
+    - nodejs
+
+  host:
+    - python {{ python }}
+    - setuptools
+
+  run:
+    - python {{ python }}
+    - qiime2 {{ qiime2_epoch }}.*
+    - q2templates {{ qiime2_epoch }}.*
+    - q2-types {{ qiime2_epoch }}.*
+
+test:
+  requires:
+    - qiime2 >={{ qiime2 }}
+    - q2templates >={{ q2templates }}
+    - q2-types >={{ q2_types }}
+    - pytest
+
+  imports:
+    - q2_fmt
+    - qiime2.plugins.fmt
+
+about:
+  home: https://qiime2.org
+  license: BSD-3-Clause
+  license_family: BSD
