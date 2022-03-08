@@ -8,10 +8,10 @@
 
 from qiime2.plugin import Plugin
 
-import q2_fmt
+from q2_types.sample_data import SampleData
 
-# from q2_fmt.format_types import (
-    # Formats go here )
+import q2_fmt
+from q2_fmt import TSVFileFormat, TSVFileDirFmt, ModelTests
 
 plugin = Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -20,13 +20,7 @@ plugin = Plugin(name='fmt',
                 description='This QIIME 2 plugin supports FMT analyses.',
                 short_description='Plugin for analyzing FMT data.')
 
-# plugin.register_formats(
-#     # Formats go here
-# )
-
-# plugin.register_semantic_types(
-#     # Semantic types go here
-# )
-# plugin.register_semantic_type_to_format(
-#     # Semantic types and formats go here
-# )
+plugin.register_formats(TSVFileFormat, TSVFileDirFmt)
+plugin.register_semantic_types(ModelTests)
+plugin.register_semantic_type_to_format(
+    SampleData[ModelTests], TSVFileDirFmt)

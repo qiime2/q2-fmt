@@ -7,10 +7,10 @@
 # ----------------------------------------------------------------------------
 
 from ._version import get_versions
-
 from ._format import TSVFileFormat
+from ._type import ModelTests
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['TSVFileFormat']
+__all__ = ['TSVFileFormat', 'TSVFileDirFmt', 'ModelTests']

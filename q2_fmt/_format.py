@@ -6,7 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import qiime2.plugin.model as model
+from qiime2.plugin import model
+
 
 class TSVFileFormat(model.TextFileFormat):
     """Format for TSV file.
@@ -14,3 +15,7 @@ class TSVFileFormat(model.TextFileFormat):
     More to be added on this later.
 
     """
+
+
+TSVFileDirFmt = model.SingleFileDirectoryFormat(
+    'TSVFileFormat', 'file.tsv', TSVFileFormat)
