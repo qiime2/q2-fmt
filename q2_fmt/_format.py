@@ -17,5 +17,5 @@ class TSVFileFormat(model.TextFileFormat):
     """
 
 
-TSVFileDirFmt = model.SingleFileDirectoryFormat(
-    'TSVFileFormat', 'file.tsv', TSVFileFormat)
+# TSVFileDirFmt = model.SingleFileDirectoryFormat(
+#     'TSVFileFormat', 'file.tsv', TSVFileFormat)

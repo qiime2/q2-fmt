@@ -8,9 +8,10 @@
 
 from ._version import get_versions
 from ._format import TSVFileFormat
-from ._type import ModelTests
+from ._engraftment import tsv_to_dataframe
+# from ._type import ModelTests
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['TSVFileFormat', 'TSVFileDirFmt', 'ModelTests']
+__all__ = ['TSVFileFormat', 'tsv_to_dataframe']
