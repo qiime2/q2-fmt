@@ -6,13 +6,16 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from tokenize import String
 import pandas as pd
+import importlib
 
 import qiime2.plugin
 # from q2_types.sample_data import SampleData
 
 import q2_fmt
 from q2_fmt import TSVFileFormat
+from q2_fmt._engraftment import dataframe_adds_blank_column
 
 plugin = qiime2.plugin.Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -27,16 +30,21 @@ plugin.register_formats(TSVFileFormat)
 #    SampleData[ModelTests], TSVFileDirFmt)
 
 plugin.methods.register_function(
-    function=q2_fmt.tsv_to_dataframe,
-    inputs={'tsv_filepath': TSVFileFormat},
-    parameters={},
-    outputs={'dataframe': pd.DataFrame},
+    function=dataframe_adds_blank_column,
+    inputs={'input_dataframe': pd.DataFrame},
+    parameters={'column_name': str},
+    outputs={'output_dataframe': pd.DataFrame},
     input_descriptions={
-        'tsv_filepath': ('The TSV file to be transformed into a dataframe.')
+        'input_dataframe': ('The original dataframe to be modified.')
+    },
+    parameter_descriptions={
+        'column_name': ('The name of the blank column to be added to the dataframe.')
     },
     output_descriptions={
         'dataframe': ('The resulting dataframe.')
     },
-    name='Transform a TSV file into a dataframe',
-    description=('This method transforms a TSV file into a dataframe.')
+    name='Modifies a dataframe with a specified blank column',
+    description=('This method adds a named blank column to an existing dataframe.')
 )
+
+importlib.import_module('q2_fmt._transformer')

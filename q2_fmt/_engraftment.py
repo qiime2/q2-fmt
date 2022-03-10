@@ -7,10 +7,10 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
-# import qiime2
 
 from q2_fmt._format import TSVFileFormat
 
+# TSV to dataframe
 def _tsv_to_dataframe(tsv_filepath):
     df = pd.read_csv(tsv_filepath, sep='\t', skip_blank_lines=True,
                      header=None, dtype=object)
@@ -21,3 +21,13 @@ def _tsv_to_dataframe(tsv_filepath):
 
 def tsv_to_dataframe(tsv_filepath: TSVFileFormat) -> (pd.DataFrame):
     return _tsv_to_dataframe(tsv_filepath=tsv_filepath)
+
+# Dataframe does something basic
+def _dataframe_adds_blank_column(input_dataframe, column_name):
+    input_dataframe = tsv_to_dataframe(tsv_filepath=TSVFileFormat)
+    input_dataframe[column_name] = ''
+
+    return input_dataframe
+
+def dataframe_adds_blank_column(dataframe: pd.DataFrame) -> (pd.DataFrame):
+    return _dataframe_adds_blank_column(input_dataframe=dataframe)

@@ -12,6 +12,7 @@ import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_fmt import tsv_to_dataframe
+from q2_fmt._format import TSVFileFormat
 
 class TestTsvToDataframe(TestPluginBase):
     package = 'q2_fmt.tests'
@@ -23,6 +24,6 @@ class TestTsvToDataframe(TestPluginBase):
             columns=['sample-id', 'barcode-sequence', 'body-site', 'year'],
             dtype=object)
 
-        obs = tsv_to_dataframe('data/test_metadata.tsv')
+        obs = tsv_to_dataframe(TSVFileFormat('data/test_metadata.tsv'))
 
         self.assertEqual(exp, obs)
