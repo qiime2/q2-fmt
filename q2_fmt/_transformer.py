@@ -6,10 +6,11 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from os import sep
 import pandas as pd
 import qiime2
 
-from ..plugin_setup import plugin
+from q2_fmt.plugin_setup import plugin
 from . import TSVFileFormat
 
 def _tsv_format_to_dataframe(filepath, has_header=None):
@@ -41,3 +42,10 @@ def _tsv_format_to_dataframe(filepath, has_header=None):
 @plugin.register_transformer
 def _1(ff: TSVFileFormat) -> pd.DataFrame:
     return _tsv_format_to_dataframe(str(ff), has_header=None)
+
+
+@plugin.register_transformer
+def _2(obj: pd.DataFrame) -> TSVFileFormat:
+    ff = TSVFileFormat()
+    obj.to_csv(str(ff), sep='\t')
+    return ff

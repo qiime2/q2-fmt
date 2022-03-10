@@ -15,7 +15,8 @@ class TSVFileFormat(model.TextFileFormat):
     More to be added on this later.
 
     """
+    def _validate_(self, level):
+        pass
 
-
-# TSVFileDirFmt = model.SingleFileDirectoryFormat(
-#     'TSVFileFormat', 'file.tsv', TSVFileFormat)
+TSVFileDirFmt = model.SingleFileDirectoryFormat(
+    'TSVFileDirFormat', 'file.tsv', TSVFileFormat)

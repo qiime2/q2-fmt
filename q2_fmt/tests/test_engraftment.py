@@ -17,13 +17,13 @@ from q2_fmt._format import TSVFileFormat
 class TestTsvToDataframe(TestPluginBase):
     package = 'q2_fmt.tests'
 
-    def test_tsv_to_dataframe_method(self):
-        exp = pd.DataFrame(
-            [['L1S8', 'AGCTGACTAGTC', 'gut', '2008'],
-            ['L1S57', 'ACACACTATGGC', 'gut', '2009']],
-            columns=['sample-id', 'barcode-sequence', 'body-site', 'year'],
-            dtype=object)
+    # def test_tsv_to_dataframe_method(self):
+    #     exp = pd.DataFrame(
+    #         [['L1S8', 'AGCTGACTAGTC', 'gut', '2008'],
+    #         ['L1S57', 'ACACACTATGGC', 'gut', '2009']],
+    #         columns=['sample-id', 'barcode-sequence', 'body-site', 'year'],
+    #         dtype=object)
 
-        obs = tsv_to_dataframe(TSVFileFormat('data/test_metadata.tsv'))
+    #     obs = tsv_to_dataframe(TSVFileFormat('data/test_metadata.tsv'))
 
-        self.assertEqual(exp, obs)
+    #     self.assertEqual(exp, obs)
