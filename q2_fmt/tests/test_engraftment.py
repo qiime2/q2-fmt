@@ -6,24 +6,22 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import unittest
 import pandas as pd
 
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_fmt import tsv_to_dataframe
 from q2_fmt._format import TSVFileFormat
 
-class TestTsvToDataframe(TestPluginBase):
+class TestEngraftment(TestPluginBase):
     package = 'q2_fmt.tests'
 
-    # def test_tsv_to_dataframe_method(self):
-    #     exp = pd.DataFrame(
-    #         [['L1S8', 'AGCTGACTAGTC', 'gut', '2008'],
-    #         ['L1S57', 'ACACACTATGGC', 'gut', '2009']],
-    #         columns=['sample-id', 'barcode-sequence', 'body-site', 'year'],
-    #         dtype=object)
+    def dataframe_adds_blank_column(self):
+        exp = pd.DataFrame(
+                [['L1S8', 'AGCTGACTAGTC', 'gut', '2008', ''],
+                ['L1S57', 'ACACACTATGGC', 'gut', '2009', '']],
+                columns=['sample-id', 'barcode-sequence', 'body-site', 'year', 'ziggy'],
+                dtype=object)
 
-    #     obs = tsv_to_dataframe(TSVFileFormat('data/test_metadata.tsv'))
+        obs = (TSVFileFormat('data/test_metadata.tsv'))
 
-    #     self.assertEqual(exp, obs)
+        self.assertEqual(exp, obs)
