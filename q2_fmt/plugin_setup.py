@@ -15,6 +15,7 @@ import q2_fmt
 from q2_fmt import TSVFileFormat, ModelTests
 from q2_fmt._engraftment import dataframe_adds_blank_column
 from q2_fmt._format import TSVFileDirFmt
+from q2_fmt._visualizer import hello_world
 
 plugin = qiime2.plugin.Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -34,16 +35,26 @@ plugin.methods.register_function(
     parameters={'column_name': qiime2.plugin.Str},
     outputs=[('output_dataframe', SampleData[ModelTests])],
     input_descriptions={
-        'dataframe': ('The original dataframe to be modified.')
+        'dataframe': 'The original dataframe to be modified.'
     },
     parameter_descriptions={
-        'column_name': ('The name of the blank column to be added to the dataframe.')
+        'column_name': 'The name of the blank column to be added to the dataframe.'
     },
     output_descriptions={
-        'output_dataframe': ('The resulting dataframe.')
+        'output_dataframe': 'The resulting dataframe.'
     },
     name='Modifies a dataframe with a specified blank column',
-    description=('This method adds a named blank column to an existing dataframe.')
+    description='This method adds a named blank column to an existing dataframe.'
+)
+
+plugin.visualizers.register_function(
+    function=hello_world,
+    inputs={},
+    parameters={},
+    input_descriptions={},
+    parameter_descriptions={},
+    name='Hello World Viz',
+    description='Placeholder visualizer that outputs hello world.'
 )
 
 importlib.import_module('q2_fmt._transformer')
