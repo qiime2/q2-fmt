@@ -14,7 +14,10 @@ setup(
     name='q2-fmt',
     version=versioneer.get_version(),
     packages=find_packages(),
-    package_data={},
+    package_data={
+        'q2_fmt': ['assets/*'],
+        'q2_fmt.tests': ['data/*'],
+    },
     author='Liz Gehret',
     author_email='elizabeth.gehret@nau.edu',
     description='QIIME 2 Plugin used for FMT analyses.',

@@ -7,7 +7,10 @@
 # ----------------------------------------------------------------------------
 
 import os
+import pkg_resources
 
 def hello_world(output_dir: str):
     with open(os.path.join(output_dir, 'index.html'), 'w') as fh:
         fh.write('hello world')
+
+    template = pkg_resources.resource_filename('q2_fmt', os.path.join('assets', 'index.html.jinja2'))

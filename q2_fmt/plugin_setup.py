@@ -16,6 +16,7 @@ from q2_fmt import TSVFileFormat, ModelTests
 from q2_fmt._engraftment import dataframe_adds_blank_column
 from q2_fmt._format import TSVFileDirFmt
 from q2_fmt._visualizer import hello_world
+from q2_fmt._type import GroupDist, Ordinal, Nominal
 
 plugin = qiime2.plugin.Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -25,9 +26,9 @@ plugin = qiime2.plugin.Plugin(name='fmt',
                 short_description='Plugin for analyzing FMT data.')
 
 plugin.register_formats(TSVFileFormat, TSVFileDirFmt)
-plugin.register_semantic_types(ModelTests)
+plugin.register_semantic_types(ModelTests, GroupDist, Ordinal, Nominal)
 plugin.register_semantic_type_to_format(
-    SampleData[ModelTests], TSVFileDirFmt)
+    SampleData[ModelTests], TSVFileDirFmt, GroupDist[Ordinal | Nominal])
 
 plugin.methods.register_function(
     function=dataframe_adds_blank_column,
