@@ -16,3 +16,5 @@ def _dataframe_adds_blank_column(input_dataframe, column_name):
 
 def dataframe_adds_blank_column(dataframe: pd.DataFrame, column_name: str) -> (pd.DataFrame):
     return _dataframe_adds_blank_column(input_dataframe=dataframe, column_name=column_name)
+
+# Group timepoints - combines beta div & metadata based on groups & specified metric

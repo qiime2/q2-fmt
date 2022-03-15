@@ -8,9 +8,9 @@
 
 from ._version import get_versions
 from ._format import TSVFileFormat
-from ._type import ModelTests
+from ._type import ModelTests, GroupDist, Ordinal, Nominal
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['TSVFileFormat', 'ModelTests', 'tsv_to_dataframe']
+__all__ = ['TSVFileFormat', 'ModelTests', 'tsv_to_dataframe', 'GroupDist', 'Ordinal', 'Nominal']
