@@ -18,3 +18,14 @@ def dataframe_adds_blank_column(dataframe: pd.DataFrame, column_name: str) -> (p
     return _dataframe_adds_blank_column(input_dataframe=dataframe, column_name=column_name)
 
 # Group timepoints - combines beta div & metadata based on groups & specified metric
+def _group_timepoints(dist_matrix):
+    group_dict = dict()
+    for row in dist_matrix.index:
+        for col in dist_matrix.columns:
+            k = frozenset([row, col])
+            v = dist_matrix.loc[row, col]
+            if k not in group_dict and len(k) == 2:
+                group_dict[k] = v
+
+# def group_timepoints() -> ():
+#     return _group_timepoints()
