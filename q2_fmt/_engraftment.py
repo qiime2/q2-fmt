@@ -43,5 +43,5 @@ def _group_timepoints(dist_matrix, metadata, group_column):
             # Appending each row that contains the sample pairing & group value to the output DF
             output_df = output_df.append(row)
 
-# def group_timepoints(pd.DataFrame) -> (pd.DataFrame):
-#     return _group_timepoints()
+def group_timepoints(dist_matrix: pd.DataFrame, metadata: pd.DataFrame, column_name: str) -> (pd.DataFrame):
+    return _group_timepoints(dist_matrix=dist_matrix, metadata=metadata, column_name=column_name)
