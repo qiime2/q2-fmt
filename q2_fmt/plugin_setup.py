@@ -49,16 +49,11 @@ plugin.methods.register_function(
     description='This method adds a named blank column to an existing dataframe.'
 )
 
-T_input, T_ref, _ = TypeMap({
-    (DistanceMatrix, Str): Visualization,
-    (SampleData[AlphaDiversity], Bool % Choices(False)): Visualization,
-})
-
 plugin.methods.register_function(
     function=group_timepoints,
-    inputs={'diversity_measure': T_input},
+    inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity] },
     parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': T_ref, 'subject_column': Str, 'control_column': Str},
+                'reference_column': Str, 'subject_column': Str, 'control_column': Str},
     outputs=[('timepoint_dists', GroupDist[Ordinal]),
              ('reference_dists', GroupDist[Nominal])],
     parameter_descriptions={
