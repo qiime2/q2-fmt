@@ -13,5 +13,5 @@ ModelTests = SemanticType('ModelTests', variant_of=SampleData.field['type'])
 
 GroupDist = SemanticType('GroupDist', field_names='content')
 
-Ordinal = SemanticType('Ordinal', variant_of=GroupDist.field['content'])
-Nominal = SemanticType('Nominal', variant_of=GroupDist.field['content'])
+Gordinal =  SemanticType('Gordinal', variant_of=GroupDist.field['content'])
+Gnominal = SemanticType('Gnominal', variant_of=GroupDist.field['content'])

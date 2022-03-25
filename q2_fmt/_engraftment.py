@@ -8,6 +8,10 @@
 
 import pandas as pd
 import itertools
+import typing
+import skbio
+
+import qiime2
 
 # Dataframe does something basic
 def _dataframe_adds_blank_column(input_dataframe, column_name):
@@ -43,5 +47,52 @@ def _group_timepoints(dist_matrix, metadata, group_column):
             # Appending each row that contains the sample pairing & group value to the output DF
             output_df = output_df.append(row)
 
-def group_timepoints(dist_matrix: pd.DataFrame, metadata: pd.DataFrame, column_name: str) -> (pd.DataFrame):
-    return _group_timepoints(dist_matrix=dist_matrix, metadata=metadata, column_name=column_name)
+# def group_timepoints(dist_matrix: pd.DataFrame, metadata: pd.DataFrame, column_name: str) -> (pd.DataFrame):
+#     return _group_timepoints(dist_matrix=dist_matrix, metadata=metadata, column_name=column_name)
+
+
+def group_timepoints(
+        diversity_measure: typing.Union[skbio.DistanceMatrix, pd.Series],
+        metadata: qiime2.Metadata, time_column: str, reference_column: str,
+        subject_column: str = None, control_column: str = None
+        ) -> (pd.DataFrame, pd.DataFrame):
+
+    # Data filtering
+    if isinstance(diversity_measure, skbio.DistanceMatrix):
+        is_beta = True
+        ids_with_data = list(diversity_measure.ids)
+        diversity_measure = diversity_measure.to_series()
+    else:
+        is_beta = False
+        ids_with_data = list(diversity_measure.index)
+
+    metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
+    time_col = metadata.get_column(time_column).to_series()
+    reference_col = metadata.get_column(reference_column).to_series()
+    if subject_column is not None:
+        subject_col = metadata.get_column(subject_column).to_series()
+    if control_column is not None:
+        control_col = metadata.get_column(control_column).to_series()
+
+    used_references = reference_col[~time_col.isna()]
+
+    # GroupDists[Ordinal]
+    diversity_measure.name = 'measure'
+    if is_beta:
+        idx = pd.MultiIndex.from_frame(
+            used_references.to_frame().reset_index())
+        idx.names = ['id', 'reference']
+    else:
+        idx = used_references.index
+        idx.name = 'id'
+
+    sliced_df = diversity_measure[idx].to_frame().reset_index().set_index('id')
+    ordinal_df = sliced_df[['measure']]
+    ordinal_df['group'] = time_col
+    if subject_column is not None:
+        ordinal_df['subject'] = subject_col
+
+    # GroupDists[Nominal]
+    nominal_df = pd.DataFrame()
+
+    return ordinal_df, nominal_df

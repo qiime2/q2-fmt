@@ -17,7 +17,7 @@ from q2_fmt import TSVFileFormat, ModelTests
 from q2_fmt._engraftment import dataframe_adds_blank_column, group_timepoints
 from q2_fmt._format import TSVFileDirFmt
 from q2_fmt._visualizer import hello_world
-from q2_fmt._type import GroupDist, Ordinal, Nominal
+from q2_fmt._type import GroupDist, Gordinal, Gnominal
 
 plugin = Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -27,9 +27,9 @@ plugin = Plugin(name='fmt',
                 short_description='Plugin for analyzing FMT data.')
 
 plugin.register_formats(TSVFileFormat, TSVFileDirFmt)
-plugin.register_semantic_types(ModelTests, GroupDist, Ordinal, Nominal)
+plugin.register_semantic_types(ModelTests, GroupDist, Gordinal, Gnominal)
 plugin.register_semantic_type_to_format(
-    SampleData[ModelTests], TSVFileDirFmt, GroupDist[Ordinal | Nominal])
+    GroupDist[Gordinal | Gnominal], TSVFileDirFmt, )
 
 plugin.methods.register_function(
     function=dataframe_adds_blank_column,
@@ -54,8 +54,8 @@ plugin.methods.register_function(
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity] },
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': Str, 'control_column': Str},
-    outputs=[('timepoint_dists', GroupDist[Ordinal]),
-             ('reference_dists', GroupDist[Nominal])],
+    outputs=[('timepoint_dists', GroupDist[Gordinal]),
+             ('reference_dists', GroupDist[Gnominal])],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the `diversity_measure` should be grouped by.'
@@ -75,6 +75,8 @@ plugin.methods.register_function(
                         #    ' When control and reference are provided, this will be the distribution of the'
                         #    ' median distance from each control to all references.'
     },
+    name='',
+    description=''
 )
 
 plugin.visualizers.register_function(
