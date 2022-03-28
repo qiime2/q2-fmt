@@ -106,14 +106,9 @@ def group_timepoints(
             grouped_md = metadata.to_dataframe().loc[used_controls.index].groupby(used_controls)
             ctrl_list = list()
             for group_id, grouped_ctrls in grouped_md:
-                print(group_id)
-                print('......')
-                print(grouped_ctrls)
-                print('......')
                 if len(grouped_ctrls.index) < 2:
                     continue
                 ctrl_combos = list(itertools.combinations(grouped_ctrls.index, 2))
-                print(ctrl_combos)
                 ctrl_idx = pd.MultiIndex.from_tuples(ctrl_combos)
                 ctrl_series = pd.Series(group_id, index=ctrl_idx)
                 ctrl_list.append(ctrl_series)
@@ -138,6 +133,9 @@ def group_timepoints(
         nominal_df = nominal_df.reset_index(drop=True)
 
     nominal_df.index.name = 'id'
+
+    if 'A' in nominal_df.columns:
+        nominal_df = nominal_df[['measure', 'group', 'A', 'B']]
 
 
     return ordinal_df, nominal_df
