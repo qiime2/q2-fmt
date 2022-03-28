@@ -70,10 +70,9 @@ plugin.methods.register_function(
     output_descriptions={
         'timepoint_dists': 'The distributions for the `diversity_measure`, grouped by the selected `time_column`.'
                            ' May also contain subject IDs, if `subject_column` is provided in the `metadata`.',
-        'reference_dists': ' When control is provided, this will be the control distribution (for Alpha Diversity)'
-                           ' Or the pairwise control distances (for Beta Diversity).'
-                        #    ' When control and reference are provided, this will be the distribution of the'
-                        #    ' median distance from each control to all references.'
+        'reference_dists': 'The inter-group reference and inter-group control (when provided) distributions.'
+                           ' When `diversity_measure` is DistanceMatrix, the inter-group calculations will be all pairwise comparisons within a group.'
+                           ' Otherwise, these are just the per-sample measurements of alpha-diversity.'
     },
     name='',
     description=''

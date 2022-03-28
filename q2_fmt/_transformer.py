@@ -7,9 +7,12 @@
 # ----------------------------------------------------------------------------
 
 from os import sep
-import pandas as pd
-import qiime2
 
+import pandas as pd
+
+import qiime2
+import skbio
+from q2_types.distance_matrix import LSMatFormat
 from q2_fmt.plugin_setup import plugin
 from . import TSVFileFormat
 
@@ -49,3 +52,9 @@ def _2(obj: pd.DataFrame) -> TSVFileFormat:
     ff = TSVFileFormat()
     obj.to_csv(str(ff), sep='\t')
     return ff
+
+
+@plugin.register_transformer
+def _3(ff: LSMatFormat) -> pd.Series:
+    dm = skbio.DistanceMatrix.read(str(ff), format='lsmat', verify=False)
+    return dm.to_series()
