@@ -22,7 +22,7 @@ from q2_fmt._type import GroupDist, Gordinal, Gnominal
 plugin = Plugin(name='fmt',
                 version=q2_fmt.__version__,
                 website='https://github.com/qiime2/q2-fmt',
-                package='q2_diversity',
+                package='q2_fmt',
                 description='This QIIME 2 plugin supports FMT analyses.',
                 short_description='Plugin for analyzing FMT data.')
 
