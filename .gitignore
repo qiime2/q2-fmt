@@ -68,8 +68,8 @@ target/
 .vscode/
 
 # qiime
-*.qza
-*.qzv
+# *.qza
+# *.qzv
 
 # other
 .DS_Store
