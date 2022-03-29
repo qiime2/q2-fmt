@@ -14,7 +14,7 @@ from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
 from q2_fmt import TSVFileFormat, ModelTests
-from q2_fmt._engraftment import dataframe_adds_blank_column, group_timepoints
+from q2_fmt._engraftment import group_timepoints
 from q2_fmt._format import TSVFileDirFmt
 from q2_fmt._visualizer import hello_world
 from q2_fmt._type import GroupDist, Gordinal, Gnominal
@@ -30,24 +30,6 @@ plugin.register_formats(TSVFileFormat, TSVFileDirFmt)
 plugin.register_semantic_types(ModelTests, GroupDist, Gordinal, Gnominal)
 plugin.register_semantic_type_to_format(
     GroupDist[Gordinal | Gnominal], TSVFileDirFmt, )
-
-plugin.methods.register_function(
-    function=dataframe_adds_blank_column,
-    inputs={'dataframe': SampleData[ModelTests]},
-    parameters={'column_name': Str},
-    outputs=[('output_dataframe', SampleData[ModelTests])],
-    input_descriptions={
-        'dataframe': 'The original dataframe to be modified.'
-    },
-    parameter_descriptions={
-        'column_name': 'The name of the blank column to be added to the dataframe.'
-    },
-    output_descriptions={
-        'output_dataframe': 'The resulting dataframe.'
-    },
-    name='Modifies a dataframe with a specified blank column',
-    description='This method adds a named blank column to an existing dataframe.'
-)
 
 plugin.methods.register_function(
     function=group_timepoints,

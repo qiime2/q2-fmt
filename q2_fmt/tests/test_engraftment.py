@@ -13,15 +13,16 @@ from qiime2.plugin.testing import TestPluginBase
 from q2_fmt._format import TSVFileFormat
 
 class TestEngraftment(TestPluginBase):
-    package = 'q2_fmt.tests'
+    pass
+    # package = 'q2_fmt.tests'
 
-    def dataframe_adds_blank_column(self):
-        exp = pd.DataFrame(
-                [['L1S8', 'AGCTGACTAGTC', 'gut', '2008', ''],
-                ['L1S57', 'ACACACTATGGC', 'gut', '2009', '']],
-                columns=['sample-id', 'barcode-sequence', 'body-site', 'year', 'ziggy'],
-                dtype=object)
+    # def dataframe_adds_blank_column(self):
+    #     exp = pd.DataFrame(
+    #             [['L1S8', 'AGCTGACTAGTC', 'gut', '2008', ''],
+    #             ['L1S57', 'ACACACTATGGC', 'gut', '2009', '']],
+    #             columns=['sample-id', 'barcode-sequence', 'body-site', 'year', 'ziggy'],
+    #             dtype=object)
 
-        obs = (TSVFileFormat('data/test_metadata.tsv'))
+    #     obs = (TSVFileFormat('data/test_metadata.tsv'))
 
-        self.assertEqual(exp, obs)
+    #     self.assertEqual(exp, obs)
