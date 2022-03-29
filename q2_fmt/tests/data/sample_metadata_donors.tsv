@@ -1,0 +1,10 @@
+sample_name	barcode	patient_id	relevant_donor	control	days_post_transplant
+sampleA	GGTCTTAGCACC	135	donor1		7
+sampleB	ATTTACAATTGA	249	donor1	control1	7
+sampleC	GCATTCGGCGTT	336	donor2	control1	9
+sampleD	ACCAGTGACTCA	971	donor3	control1	11
+sampleE	GACCCGTTTCGC	680	donor2	control2	11
+donor1	ATTGCCTTGATT	771			
+donor2	TTAGGATTCTAT	472			
+donor3	GTTTATCTTAAG	394			
+zz	GTTTATCTTAAG	666		control2	14
