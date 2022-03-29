@@ -93,10 +93,10 @@ def group_timepoints(
         nominal_df = pd.concat([nominal_df, ctrl_group])
         nominal_df = nominal_df.reset_index(drop=True)
 
-    nominal_df.index.name = 'id'
-
     if 'A' in nominal_df.columns:
-        nominal_df = nominal_df[['measure', 'group', 'A', 'B']]
-        nominal_df['A..B'] = nominal_df[['A', 'B']].agg('..'.join, axis=1)
+        nominal_df['id'] = nominal_df[['A', 'B']].agg('..'.join, axis=1)
+        nominal_df = nominal_df[['id', 'measure', 'group', 'A', 'B']]
+
+    nominal_df = nominal_df.set_index('id')
 
     return ordinal_df, nominal_df
