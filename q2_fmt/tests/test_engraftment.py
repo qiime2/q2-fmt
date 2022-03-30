@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import unittest
-from numpy import float64
+from numpy import float64, int64
 import pandas as pd
 from skbio.stats.distance import DistanceMatrix
 
@@ -26,7 +26,7 @@ class TestGroupTimepoints(TestPluginBase):
         self.md_alpha = Metadata.load(self.get_data_path('sample_metadata_alpha_div.tsv'))
 
         self.dm = DistanceMatrix.read(self.get_data_path('dist_matrix_donors.tsv')).to_series()
-        self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0)
+        self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
     def test_beta_dists_with_donors_controls(self):
         exp_time_df = pd.DataFrame(
@@ -67,7 +67,7 @@ class TestGroupTimepoints(TestPluginBase):
             ['sampleF', '17', '9'],
             ['sampleG', '29', '7']],
             columns=['id', 'measure', 'group'],
-            dtype=float64).set_index('id')
+            dtype=int64).set_index('id')
 
         exp_ref_df = pd.DataFrame(
             [['donor1', '32', 'reference'],
@@ -75,13 +75,8 @@ class TestGroupTimepoints(TestPluginBase):
             ['donor4', '19', 'reference'],
             ['donor3', '3', 'reference']],
             columns=['id', 'measure', 'group'],
-            dtype=float64).set_index('id')
+            dtype=int64).set_index('id')
 
-        print(self.dm)
-        print('.......')
-        print(self.alpha)
-        print('.......')
-        print(self.md_alpha.to_dataframe())
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                metadata=self.md_alpha,
@@ -90,7 +85,7 @@ class TestGroupTimepoints(TestPluginBase):
                                control_column='control')
 
         print(time_df)
-        print('..........')
+        print('.......')
         print(ref_df)
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
