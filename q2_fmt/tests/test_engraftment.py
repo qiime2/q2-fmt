@@ -59,22 +59,26 @@ class TestGroupTimepoints(TestPluginBase):
 
     def test_alpha_dists_with_donors_controls(self):
         exp_time_df = pd.DataFrame(
-            [['sampleA', '24', '7'],
-            ['sampleB', '37', '7'],
-            ['sampleC', '15', '9'],
-            ['sampleD', '6', '11'],
-            ['sampleE', '44', '11'],
-            ['sampleF', '17', '9'],
-            ['sampleG', '29', '7']],
+            [['sampleA', '24', '7.0'],
+            ['sampleB', '37', '7.0'],
+            ['sampleC', '15', '9.0'],
+            ['sampleD', '6', '11.0'],
+            ['sampleE', '44', '11.0'],
+            ['sampleF', '17', '9.0'],
+            ['sampleG', '29', '7.0']],
             columns=['id', 'measure', 'group'],
             dtype=int64).set_index('id')
 
         exp_ref_df = pd.DataFrame(
-            [['donor1', '32', 'reference'],
-            ['donor2', '51', 'reference'],
-            ['donor4', '19', 'reference'],
-            ['donor3', '3', 'reference']],
-            columns=['id', 'measure', 'group'],
+            [['donor1', '32', 'reference', 'NaN'],
+            ['donor2', '51', 'reference', 'NaN'],
+            ['donor4', '19', 'reference', 'NaN'],
+            ['donor3', '3', 'reference', 'NaN'],
+            ['NaN', '15', 'control1', 'sampleC'],
+            ['NaN', '6', 'control1', 'sampleD'],
+            ['NaN', '44', 'control2', 'sampleE'],
+            ['NaN', '17', 'control2', 'sampleF']],
+            columns=['id', 'measure', 'group', 'sample_name'],
             dtype=int64).set_index('id')
 
 
@@ -86,7 +90,11 @@ class TestGroupTimepoints(TestPluginBase):
 
         print(time_df)
         print('.......')
+        print(exp_time_df)
+        print('.......')
         print(ref_df)
+        print('.......')
+        print(exp_ref_df)
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
