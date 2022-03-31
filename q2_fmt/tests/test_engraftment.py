@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from importlib_metadata import metadata
 import pandas as pd
 from skbio.stats.distance import DistanceMatrix
 
@@ -26,6 +27,7 @@ class TestGroupTimepoints(TestPluginBase):
         self.dm = DistanceMatrix.read(self.get_data_path('dist_matrix_donors.tsv')).to_series()
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
+    # Beta Diversity (Distance Matrix) Test Cases
     def test_beta_dists_with_donors_controls(self):
         exp_time_df = pd.DataFrame({
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
@@ -43,14 +45,24 @@ class TestGroupTimepoints(TestPluginBase):
         }).set_index('id')
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
-                               metadata=self.md_beta,
-                               time_column='days_post_transplant',
-                               reference_column='relevant_donor',
-                               control_column='control')
+                                           metadata=self.md_beta,
+                                           time_column='days_post_transplant',
+                                           reference_column='relevant_donor',
+                                           control_column='control')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    def test_beta_dists_with_non_numeric_time_column(self):
+        with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
+            group_timepoints(diversity_measure=self.dm,
+                             metadata=self.md_beta,
+                             time_column='non_numeric_time_column',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
+
+    # Alpha Diversity (Series) Test Cases
     def test_alpha_dists_with_donors_controls(self):
         exp_time_df = pd.DataFrame({
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
@@ -68,19 +80,28 @@ class TestGroupTimepoints(TestPluginBase):
         }).set_index('id')
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
-                               metadata=self.md_alpha,
-                               time_column='days_post_transplant',
-                               reference_column='relevant_donor',
-                               control_column='control')
+                                           metadata=self.md_alpha,
+                                           time_column='days_post_transplant',
+                                           reference_column='relevant_donor',
+                                           control_column='control')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    def test_alpha_dists_with_non_numeric_time_column(self):
+        with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha,
+                             time_column='non_numeric_time_column',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
 #TODO: edge cases
-# subject vs. no subject column
-# control vs. no control
+
+# no subject column
+# no control
 # control only 1 vs. more
-# how can NaN behavior fail: providing time column as non-numeric
+# how can NaN behavior fail
 # sometimes ref won't refer to samples - what if those values aren't in the table? (present in both id and ref cols)
 # column param input not present in metadata
 # ref/control param provided doesn't contain relevant data

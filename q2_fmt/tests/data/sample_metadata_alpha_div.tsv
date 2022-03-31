@@ -1,12 +1,12 @@
-sample_name	barcode	patient_id	relevant_donor	control	days_post_transplant
-sampleA	GGTCTTAGCACC	135	donor1		7
-sampleB	ATTTACAATTGA	249	donor1		7
-sampleC	GCATTCGGCGTT	336	donor2	control1	9
-sampleD	ACCAGTGACTCA	971	donor4	control1	11
-sampleE	GACCCGTTTCGC	680	donor2	control2	11
-sampleF	ATTGCCTTGATT	771	donor3	control2	9
-sampleG	TTAGGATTCTAT	472	donor3		7
-donor1	GCATTCGGCGTT	643			
-donor2	ACCAGTGACTCA	221			
-donor3	GACCCGTTTCGC	103			
-donor4	ATTGCCTTGATT	656			
+sample_name	barcode	patient_id	relevant_donor	control	days_post_transplant	non_numeric_time_column	invalid_ref_control
+sampleA	GGTCTTAGCACC	135	donor1		7	seven	foo
+sampleB	ATTTACAATTGA	249	donor1		7	seven	bar
+sampleC	GCATTCGGCGTT	336	donor2	control1	9	nine	baz
+sampleD	ACCAGTGACTCA	971	donor4	control1	11	eleven	foo
+sampleE	GACCCGTTTCGC	680	donor2	control2	11	eleven	bar
+sampleF	ATTGCCTTGATT	771	donor3	control2	9	nine	baz
+sampleG	TTAGGATTCTAT	472	donor3		7	seven	foo
+donor1	GCATTCGGCGTT	643					
+donor2	ACCAGTGACTCA	221					
+donor3	GACCCGTTTCGC	103					
+donor4	ATTGCCTTGATT	656					

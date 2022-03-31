@@ -27,7 +27,13 @@ def group_timepoints(
         ids_with_data = diversity_measure.index
 
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
-    time_col = metadata.get_column(time_column).to_series()
+    time_col = metadata.get_column(time_column)
+
+    if not isinstance(time_col, qiime2.NumericMetadataColumn):
+        raise TypeError('Non-numeric characters detected in time_column.')
+    else:
+        time_col = time_col.to_series()
+
     reference_col = metadata.get_column(reference_column).to_series()
     used_references = reference_col[~time_col.isna()]
 
