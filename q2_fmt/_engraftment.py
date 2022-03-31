@@ -82,6 +82,7 @@ def group_timepoints(
         ref_idx = list(unique_references)
         if control_column is not None:
             ctrl_series = used_controls
+            ctrl_series.index.name = 'id'
 
     nominal_df = diversity_measure[ref_idx].to_frame().reset_index()
     nominal_df['group'] = 'reference'

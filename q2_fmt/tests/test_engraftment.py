@@ -6,8 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import unittest
-from numpy import float64, int64
 import pandas as pd
 from skbio.stats.distance import DistanceMatrix
 
@@ -29,24 +27,20 @@ class TestGroupTimepoints(TestPluginBase):
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
     def test_beta_dists_with_donors_controls(self):
-        exp_time_df = pd.DataFrame(
-            [['sampleA', '0.45', '7.0'],
-            ['sampleB', '0.40', '7.0'],
-            ['sampleC', '0.28', '9.0'],
-            ['sampleD', '0.78', '11.0'],
-            ['sampleE', '0.66', '11.0']],
-            columns=['id', 'measure', 'group'],
-            dtype=float64).set_index('id')
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
+            'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
+            'group': [7.0, 7.0, 9.0, 11.0, 11.0]
+        }).set_index('id')
 
-        exp_ref_df = pd.DataFrame(
-            [['donor1..donor2', '0.24', 'reference', 'donor1', 'donor2'],
-            ['donor1..donor3', '0.41', 'reference', 'donor1', 'donor3'],
-            ['donor2..donor3', '0.74', 'reference', 'donor2', 'donor3'],
-            ['sampleB..sampleC', '0.37', 'control1', 'sampleB', 'sampleC'],
-            ['sampleB..sampleD', '0.44', 'control1', 'sampleB', 'sampleD'],
-            ['sampleC..sampleD', '0.31', 'control1', 'sampleC', 'sampleD']],
-            columns=['id', 'measure', 'group', 'A', 'B'],
-            dtype=float64).set_index('id')
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
+                   'sampleB..sampleC', 'sampleB..sampleD', 'sampleC..sampleD'],
+            'measure': [0.24, 0.41, 0.74, 0.37, 0.44, 0.31],
+            'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
+            'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
+            'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
+        }).set_index('id')
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                metadata=self.md_beta,
@@ -58,29 +52,20 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_alpha_dists_with_donors_controls(self):
-        exp_time_df = pd.DataFrame(
-            [['sampleA', '24', '7.0'],
-            ['sampleB', '37', '7.0'],
-            ['sampleC', '15', '9.0'],
-            ['sampleD', '6', '11.0'],
-            ['sampleE', '44', '11.0'],
-            ['sampleF', '17', '9.0'],
-            ['sampleG', '29', '7.0']],
-            columns=['id', 'measure', 'group'],
-            dtype=int64).set_index('id')
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
+                   'sampleE', 'sampleF', 'sampleG'],
+            'measure': [24, 37, 15, 6, 44, 17, 29],
+            'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
+        }).set_index('id')
 
-        exp_ref_df = pd.DataFrame(
-            [['donor1', '32', 'reference', 'NaN'],
-            ['donor2', '51', 'reference', 'NaN'],
-            ['donor4', '19', 'reference', 'NaN'],
-            ['donor3', '3', 'reference', 'NaN'],
-            ['NaN', '15', 'control1', 'sampleC'],
-            ['NaN', '6', 'control1', 'sampleD'],
-            ['NaN', '44', 'control2', 'sampleE'],
-            ['NaN', '17', 'control2', 'sampleF']],
-            columns=['id', 'measure', 'group', 'sample_name'],
-            dtype=int64).set_index('id')
-
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+                   'sampleC', 'sampleD', 'sampleE', 'sampleF'],
+            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'group': ['reference', 'reference', 'reference', 'reference',
+                      'control1', 'control1', 'control2', 'control2']
+        }).set_index('id')
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                metadata=self.md_alpha,
@@ -88,13 +73,16 @@ class TestGroupTimepoints(TestPluginBase):
                                reference_column='relevant_donor',
                                control_column='control')
 
-        print(time_df)
-        print('.......')
-        print(exp_time_df)
-        print('.......')
-        print(ref_df)
-        print('.......')
-        print(exp_ref_df)
-
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+#TODO: edge cases
+# subject vs. no subject column
+# control vs. no control
+# control only 1 vs. more
+# how can NaN behavior fail: providing time column as non-numeric
+# sometimes ref won't refer to samples - what if those values aren't in the table? (present in both id and ref cols)
+# column param input not present in metadata
+# ref/control param provided doesn't contain relevant data
+# when samples are present in diversity but not metadata (error) & vice versa (ignored)
+# when diversity series is empty (error)
