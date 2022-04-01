@@ -27,20 +27,37 @@ def group_timepoints(
         ids_with_data = diversity_measure.index
 
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
-    time_col = metadata.get_column(time_column)
+
+    try:
+        time_col = metadata.get_column(time_column)
+    except:
+        raise ValueError('time_column provided not present within the metadata')
 
     if not isinstance(time_col, qiime2.NumericMetadataColumn):
         raise TypeError('Non-numeric characters detected in time_column.')
     else:
         time_col = time_col.to_series()
 
-    reference_col = metadata.get_column(reference_column).to_series()
+    try:
+        reference_col = metadata.get_column(reference_column)
+    except:
+        raise ValueError('reference_column provided not present within the metadata')
+    reference_col = reference_col.to_series()
     used_references = reference_col[~time_col.isna()]
 
     if subject_column is not None:
-        subject_col = metadata.get_column(subject_column).to_series()
+        try:
+            subject_col = metadata.get_column(subject_column)
+        except:
+            raise ValueError('subject_column provided not present within the metadata')
+        subject_col = subject_col.to_series()
+
     if control_column is not None:
-        control_col = metadata.get_column(control_column).to_series()
+        try:
+            control_col = metadata.get_column(control_column)
+        except:
+            raise ValueError('control_column provided not present within the metadata')
+        control_col = control_col.to_series()
         used_controls = control_col[~control_col.isna()]
 
     diversity_measure.name = 'measure'

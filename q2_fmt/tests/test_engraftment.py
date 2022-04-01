@@ -6,7 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from importlib_metadata import metadata
 import pandas as pd
 from skbio.stats.distance import DistanceMatrix
 
@@ -28,7 +27,7 @@ class TestGroupTimepoints(TestPluginBase):
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
     # Beta Diversity (Distance Matrix) Test Cases
-    def test_beta_dists_with_donors_controls(self):
+    def test_beta_dists_with_donors_and_controls(self):
         exp_time_df = pd.DataFrame({
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
@@ -53,6 +52,15 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    def test_beta_dists_with_donors_no_controls(self):
+        pass
+
+    def test_beta_dists_no_donors_with_controls(self):
+        pass
+
+    def test_beta_dists_without_donors_or_controls(self):
+        pass
+
     def test_beta_dists_with_non_numeric_time_column(self):
         with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
             group_timepoints(diversity_measure=self.dm,
@@ -61,6 +69,32 @@ class TestGroupTimepoints(TestPluginBase):
                              reference_column='relevant_donor',
                              control_column='control')
 
+    def test_beta_dists_with_time_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'time_column provided not present within the metadata'):
+            group_timepoints(diversity_measure=self.dm,
+                             metadata=self.md_beta,
+                             time_column='foo',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
+    def test_beta_dists_with_reference_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'reference_column provided not present within the metadata'):
+            group_timepoints(diversity_measure=self.dm,
+                             metadata=self.md_beta,
+                             time_column='days_post_transplant',
+                             reference_column='foo',
+                             control_column='control')
+
+    def test_beta_dists_with_control_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'control_column provided not present within the metadata'):
+            group_timepoints(diversity_measure=self.dm,
+                             metadata=self.md_beta,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='foo')
+
+    def test_beta_dists_with_empty_diversity_series(self):
+        pass
 
     # Alpha Diversity (Series) Test Cases
     def test_alpha_dists_with_donors_controls(self):
@@ -88,6 +122,15 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    def test_alpha_dists_with_donors_no_controls(self):
+        pass
+
+    def test_alpha_dists_no_donors_with_controls(self):
+        pass
+
+    def test_alpha_dists_without_donors_or_controls(self):
+        pass
+
     def test_alpha_dists_with_non_numeric_time_column(self):
         with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
             group_timepoints(diversity_measure=self.alpha,
@@ -96,14 +139,37 @@ class TestGroupTimepoints(TestPluginBase):
                              reference_column='relevant_donor',
                              control_column='control')
 
+    def test_alpha_dists_with_time_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'time_column provided not present within the metadata'):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha,
+                             time_column='foo',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
+    def test_alpha_dists_with_reference_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'reference_column provided not present within the metadata'):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha,
+                             time_column='days_post_transplant',
+                             reference_column='foo',
+                             control_column='control')
+
+    def test_alpha_dists_with_control_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'control_column provided not present within the metadata'):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='foo')
+
+    def test_alpha_dists_with_empty_diversity_series(self):
+        pass
+
 #TODO: edge cases
 
-# no subject column
-# no control
 # control only 1 vs. more
 # how can NaN behavior fail
 # sometimes ref won't refer to samples - what if those values aren't in the table? (present in both id and ref cols)
-# column param input not present in metadata
 # ref/control param provided doesn't contain relevant data
 # when samples are present in diversity but not metadata (error) & vice versa (ignored)
-# when diversity series is empty (error)
