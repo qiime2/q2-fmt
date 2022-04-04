@@ -102,13 +102,13 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
-    # def test_beta_dists_no_donors_with_controls(self):
-    #     with self.assertRaisesRegex(TypeError, "group_timepoints() missing 1 required positional argument: "
-    #                                 "'reference_column'"):
-    #         group_timepoints(diversity_measure=self.dm,
-    #                          metadata=self.md_beta,
-    #                          time_column='days_post_transplant',
-    #                          control_column='control')
+    def test_beta_dists_no_donors_with_controls(self):
+        with self.assertRaisesRegex(TypeError, r"group_timepoints\(\) missing 1 required positional argument: "
+                                    "'reference_column'"):
+            group_timepoints(diversity_measure=self.dm,
+                             metadata=self.md_beta,
+                             time_column='days_post_transplant',
+                             control_column='control')
 
     def test_beta_dists_with_non_numeric_time_column(self):
         with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
@@ -141,6 +141,14 @@ class TestGroupTimepoints(TestPluginBase):
                              time_column='days_post_transplant',
                              reference_column='relevant_donor',
                              control_column='foo')
+
+    def test_beta_dists_with_invalid_ref_column(self):
+        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+            group_timepoints(diversity_measure=self.dm,
+                             metadata=self.md_beta,
+                             time_column='days_post_transplant',
+                             reference_column='invalid_ref_control',
+                             control_column='control')
 
     def test_beta_dists_with_empty_diversity_series(self):
         empty_beta_series = pd.Series()
@@ -238,13 +246,13 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
-    # def test_alpha_dists_no_donors_with_controls(self):
-    #     with self.assertRaisesRegex(TypeError, "group_timepoints() missing 1 required positional argument: "
-    #                                 "'reference_column'"):
-    #         group_timepoints(diversity_measure=self.alpha,
-    #                          metadata=self.md_alpha,
-    #                          time_column='days_post_transplant',
-    #                          control_column='control')
+    def test_alpha_dists_no_donors_with_controls(self):
+        with self.assertRaisesRegex(TypeError, r"group_timepoints\(\) missing 1 required positional argument: "
+                                    "'reference_column'"):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha,
+                             time_column='days_post_transplant',
+                             control_column='control')
 
     def test_alpha_dists_with_non_numeric_time_column(self):
         with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
@@ -278,6 +286,14 @@ class TestGroupTimepoints(TestPluginBase):
                              reference_column='relevant_donor',
                              control_column='foo')
 
+    def test_alpha_dists_with_invalid_ref_column(self):
+        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha,
+                             time_column='days_post_transplant',
+                             reference_column='invalid_ref_control',
+                             control_column='control')
+
     def test_alpha_dists_with_empty_diversity_series(self):
         empty_alpha_series = pd.Series()
 
@@ -290,6 +306,5 @@ class TestGroupTimepoints(TestPluginBase):
 
 #TODO: edge cases
 
-# sometimes ref won't refer to samples - what if those values aren't in the table? (present in both id and ref cols)
-# ref/control param provided doesn't contain relevant data
 # when samples are present in diversity but not metadata (error) & vice versa (ignored)
+# beta div - what happens when all (or a majority of) samples are associated with a single donor class (comparwisesons of a single donor)

@@ -32,9 +32,10 @@ def group_timepoints(
 
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
 
+    # TODO: refactor with a function that contains a single try/except for all columns
     try:
         time_col = metadata.get_column(time_column)
-    except:
+    except ValueError:
         raise ValueError('time_column provided not present within the metadata')
 
     if not isinstance(time_col, qiime2.NumericMetadataColumn):
@@ -42,9 +43,10 @@ def group_timepoints(
     else:
         time_col = time_col.to_series()
 
+    # TODO: add a requirement for all samples that contain timepoint data to also contain donor data
     try:
         reference_col = metadata.get_column(reference_column)
-    except:
+    except ValueError:
         raise ValueError('reference_column provided not present within the metadata')
     reference_col = reference_col.to_series()
     used_references = reference_col[~time_col.isna()]
@@ -52,14 +54,14 @@ def group_timepoints(
     if subject_column is not None:
         try:
             subject_col = metadata.get_column(subject_column)
-        except:
+        except ValueError:
             raise ValueError('subject_column provided not present within the metadata')
         subject_col = subject_col.to_series()
 
     if control_column is not None:
         try:
             control_col = metadata.get_column(control_column)
-        except:
+        except ValueError:
             raise ValueError('control_column provided not present within the metadata')
         control_col = control_col.to_series()
         used_controls = control_col[~control_col.isna()]
@@ -76,7 +78,13 @@ def group_timepoints(
         idx = used_references.index
         idx.name = 'id'
 
-    sliced_df = diversity_measure[idx].to_frame().reset_index().set_index('id')
+    try:
+        sliced_df = diversity_measure[idx].to_frame().reset_index().set_index('id')
+    except KeyError:
+        raise KeyError('Pairwise comparisons were unsuccessful. Please double check that your'
+        ' chosen reference column contains values that are also present in the ID column for'
+        ' the associated metadata.')
+
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
     if subject_column is not None:
@@ -111,7 +119,13 @@ def group_timepoints(
             ctrl_series = used_controls
             ctrl_series.index.name = 'id'
 
-    nominal_df = diversity_measure[ref_idx].to_frame().reset_index()
+    try:
+        nominal_df = diversity_measure[ref_idx].to_frame().reset_index()
+    except KeyError:
+        raise KeyError('Pairwise comparisons were unsuccessful. Please double check that your'
+        ' chosen reference column contains values that are also present in the ID column for'
+        ' the associated metadata.')
+
     nominal_df['group'] = 'reference'
 
     if control_column is not None:
