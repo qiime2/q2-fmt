@@ -18,6 +18,10 @@ def group_timepoints(
         control_column: str = None) -> (pd.DataFrame, pd.DataFrame):
 
     # Data filtering
+    if diversity_measure.empty:
+        raise ValueError('Empty diversity measure detected.'
+                         ' Please make sure your diversity measure contains data.')
+
     if isinstance(diversity_measure.index, pd.MultiIndex):
         is_beta = True
         ids_with_data = set(itertools.chain.from_iterable(

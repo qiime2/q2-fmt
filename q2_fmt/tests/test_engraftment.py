@@ -52,6 +52,33 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    # def test_beta_dists_with_one_donor_and_controls(self):
+    #     exp_time_df = pd.DataFrame({
+    #         'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
+    #         'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
+    #         'group': [7.0, 7.0, 9.0, 11.0, 11.0]
+    #     }).set_index('id')
+
+    #     exp_ref_df = pd.DataFrame({
+    #         'id': ['sampleB..sampleC', 'sampleB..sampleD', 'sampleC..sampleD'],
+    #         'measure': [0.37, 0.44, 0.31],
+    #         'group': ['control1', 'control1', 'control1'],
+    #         'A': ['sampleB', 'sampleB', 'sampleC'],
+    #         'B': ['sampleC', 'sampleD', 'sampleD']
+    #     }).set_index('id')
+
+    #     time_df, ref_df = group_timepoints(diversity_measure=self.dm,
+    #                                        metadata=self.md_beta,
+    #                                        time_column='days_post_transplant',
+    #                                        reference_column='single_donor',
+    #                                        control_column='control')
+
+    #     pd.testing.assert_frame_equal(time_df, exp_time_df)
+    #     pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    def test_beta_dists_with_donors_and_one_control(self):
+        pass
+
     def test_beta_dists_with_donors_no_controls(self):
         exp_time_df = pd.DataFrame({
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
@@ -75,13 +102,13 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
-    def test_beta_dists_no_donors_with_controls(self):
-        with self.assertRaisesRegex(TypeError, "group_timepoints() missing 1 required positional argument: "
-                                    "'reference_column'"):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             control_column='control')
+    # def test_beta_dists_no_donors_with_controls(self):
+    #     with self.assertRaisesRegex(TypeError, "group_timepoints() missing 1 required positional argument: "
+    #                                 "'reference_column'"):
+    #         group_timepoints(diversity_measure=self.dm,
+    #                          metadata=self.md_beta,
+    #                          time_column='days_post_transplant',
+    #                          control_column='control')
 
     def test_beta_dists_with_non_numeric_time_column(self):
         with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
@@ -116,7 +143,14 @@ class TestGroupTimepoints(TestPluginBase):
                              control_column='foo')
 
     def test_beta_dists_with_empty_diversity_series(self):
-        pass
+        empty_beta_series = pd.Series()
+
+        with self.assertRaisesRegex(ValueError, 'Empty diversity measure detected'):
+            group_timepoints(diversity_measure=empty_beta_series,
+                             metadata=self.md_beta,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='control')
 
     # Alpha Diversity (Series) Test Cases
     def test_alpha_dists_with_donors_controls(self):
@@ -144,6 +178,44 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    # def test_alpha_dists_with_one_donor_and_controls(self):
+    #     exp_time_df = pd.DataFrame({
+    #         'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
+    #                'sampleE', 'sampleF', 'sampleG'],
+    #         'measure': [24, 37, 15, 6, 44, 17, 29],
+    #         'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
+    #     }).set_index('id')
+
+    #     exp_ref_df = pd.DataFrame({
+    #         'id': ['sampleC', 'sampleD', 'sampleE', 'sampleF'],
+    #         'measure': [15, 6, 44, 17],
+    #         'group': ['control1', 'control1', 'control2', 'control2']
+    #     }).set_index('id')
+
+    #     time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
+    #                                        metadata=self.md_alpha,
+    #                                        time_column='days_post_transplant',
+    #                                        reference_column='single_donor',
+    #                                        control_column='control')
+
+    #     print(ref_df)
+    #     pd.testing.assert_frame_equal(time_df, exp_time_df)
+    #     pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    # def test_alpha_dists_with_donors_and_one_control(self):
+    #     exp_time_df = pd.DataFrame({})
+
+    #     exp_ref_df = pd.DataFrame({})
+
+    #     time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
+    #                                        metadata=self.md_alpha,
+    #                                        time_column='days_post_transplant',
+    #                                        reference_column='relevant_donor',
+    #                                        control_column='single_control')
+
+    #     pd.testing.assert_frame_equal(time_df, exp_time_df)
+    #     pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
     def test_alpha_dists_with_donors_no_controls(self):
         exp_time_df = pd.DataFrame({
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
@@ -166,13 +238,13 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
-    def test_alpha_dists_no_donors_with_controls(self):
-        with self.assertRaisesRegex(TypeError, "group_timepoints() missing 1 required positional argument: "
-                                    "'reference_column'"):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             control_column='control')
+    # def test_alpha_dists_no_donors_with_controls(self):
+    #     with self.assertRaisesRegex(TypeError, "group_timepoints() missing 1 required positional argument: "
+    #                                 "'reference_column'"):
+    #         group_timepoints(diversity_measure=self.alpha,
+    #                          metadata=self.md_alpha,
+    #                          time_column='days_post_transplant',
+    #                          control_column='control')
 
     def test_alpha_dists_with_non_numeric_time_column(self):
         with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
@@ -207,12 +279,17 @@ class TestGroupTimepoints(TestPluginBase):
                              control_column='foo')
 
     def test_alpha_dists_with_empty_diversity_series(self):
-        pass
+        empty_alpha_series = pd.Series()
+
+        with self.assertRaisesRegex(ValueError, 'Empty diversity measure detected'):
+            group_timepoints(diversity_measure=empty_alpha_series,
+                             metadata=self.md_alpha,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='control')
 
 #TODO: edge cases
 
-# control only 1 vs. more
-# how can NaN behavior fail
 # sometimes ref won't refer to samples - what if those values aren't in the table? (present in both id and ref cols)
 # ref/control param provided doesn't contain relevant data
 # when samples are present in diversity but not metadata (error) & vice versa (ignored)
