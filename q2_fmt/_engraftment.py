@@ -153,7 +153,3 @@ def group_timepoints(
     nominal_df = nominal_df.set_index('id')
 
     return ordinal_df, nominal_df
-
-# TODO: Add in significance testing for group_timepoints()
-def is_significant():
-    pass
