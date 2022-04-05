@@ -51,6 +51,12 @@ def group_timepoints(
     reference_col = reference_col.to_series()
     used_references = reference_col[~time_col.isna()]
 
+    if used_references.isna().any():
+        nan_references = used_references.index[used_references.isna()]
+        raise KeyError('Missing references for the associated sample data. Please make sure'
+                       ' that all samples with a timepoint value have an associated reference.'
+                       ' IDs where missing references were found: %s' % (tuple(nan_references),))
+
     if subject_column is not None:
         try:
             subject_col = metadata.get_column(subject_column)
@@ -147,3 +153,7 @@ def group_timepoints(
     nominal_df = nominal_df.set_index('id')
 
     return ordinal_df, nominal_df
+
+# TODO: Add in significance testing for group_timepoints()
+def is_significant():
+    pass

@@ -53,7 +53,7 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_beta_dists_with_one_donor_and_controls(self):
-        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+        with self.assertRaisesRegex(KeyError, 'Missing references for the associated sample data'):
             group_timepoints(diversity_measure=self.dm,
                            metadata=self.md_beta,
                            time_column='days_post_transplant',
@@ -176,7 +176,7 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_alpha_dists_with_one_donor_and_controls(self):
-        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+        with self.assertRaisesRegex(ValueError, 'Missing references for the associated sample data'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
                              time_column='days_post_transplant',
