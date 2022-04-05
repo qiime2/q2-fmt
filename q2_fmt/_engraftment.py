@@ -109,7 +109,12 @@ def group_timepoints(
                 ctrl_series = pd.Series(group_id, index=ctrl_idx)
                 ctrl_list.append(ctrl_series)
 
-            ctrl_series = pd.concat(ctrl_list)
+            try:
+                ctrl_series = pd.concat(ctrl_list)
+            except ValueError:
+                raise ValueError('One or less controls detected. When including controls in your data,'
+                                 ' please include more than one for successful grouping.')
+
             ctrl_series.name = 'group'
             ctrl_series.index.names = ['A', 'B']
 

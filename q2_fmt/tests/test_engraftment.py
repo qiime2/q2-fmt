@@ -52,32 +52,21 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
-    # def test_beta_dists_with_one_donor_and_controls(self):
-    #     exp_time_df = pd.DataFrame({
-    #         'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
-    #         'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
-    #         'group': [7.0, 7.0, 9.0, 11.0, 11.0]
-    #     }).set_index('id')
-
-    #     exp_ref_df = pd.DataFrame({
-    #         'id': ['sampleB..sampleC', 'sampleB..sampleD', 'sampleC..sampleD'],
-    #         'measure': [0.37, 0.44, 0.31],
-    #         'group': ['control1', 'control1', 'control1'],
-    #         'A': ['sampleB', 'sampleB', 'sampleC'],
-    #         'B': ['sampleC', 'sampleD', 'sampleD']
-    #     }).set_index('id')
-
-    #     time_df, ref_df = group_timepoints(diversity_measure=self.dm,
-    #                                        metadata=self.md_beta,
-    #                                        time_column='days_post_transplant',
-    #                                        reference_column='single_donor',
-    #                                        control_column='control')
-
-    #     pd.testing.assert_frame_equal(time_df, exp_time_df)
-    #     pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+    def test_beta_dists_with_one_donor_and_controls(self):
+        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+            group_timepoints(diversity_measure=self.dm,
+                           metadata=self.md_beta,
+                           time_column='days_post_transplant',
+                           reference_column='single_donor',
+                           control_column='control')
 
     def test_beta_dists_with_donors_and_one_control(self):
-        pass
+        with self.assertRaisesRegex(ValueError, 'One or less controls detected'):
+            group_timepoints(diversity_measure=self.dm,
+                           metadata=self.md_beta,
+                           time_column='days_post_transplant',
+                           reference_column='relevant_donor',
+                           control_column='single_control')
 
     def test_beta_dists_with_donors_no_controls(self):
         exp_time_df = pd.DataFrame({
@@ -186,43 +175,36 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
-    # def test_alpha_dists_with_one_donor_and_controls(self):
-    #     exp_time_df = pd.DataFrame({
-    #         'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
-    #                'sampleE', 'sampleF', 'sampleG'],
-    #         'measure': [24, 37, 15, 6, 44, 17, 29],
-    #         'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-    #     }).set_index('id')
+    def test_alpha_dists_with_one_donor_and_controls(self):
+        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha,
+                             time_column='days_post_transplant',
+                             reference_column='single_donor',
+                             control_column='control')
 
-    #     exp_ref_df = pd.DataFrame({
-    #         'id': ['sampleC', 'sampleD', 'sampleE', 'sampleF'],
-    #         'measure': [15, 6, 44, 17],
-    #         'group': ['control1', 'control1', 'control2', 'control2']
-    #     }).set_index('id')
+    def test_alpha_dists_with_donors_and_one_control(self):
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
+                   'sampleE', 'sampleF', 'sampleG'],
+            'measure': [24, 37, 15, 6, 44, 17, 29],
+            'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0]
+        }).set_index('id')
 
-    #     time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
-    #                                        metadata=self.md_alpha,
-    #                                        time_column='days_post_transplant',
-    #                                        reference_column='single_donor',
-    #                                        control_column='control')
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1', 'donor2', 'donor4', 'donor3', 'sampleB'],
+            'measure': [32, 51, 19, 3, 37],
+            'group': ['reference', 'reference', 'reference', 'reference', 'control1']
+        }).set_index('id')
 
-    #     print(ref_df)
-    #     pd.testing.assert_frame_equal(time_df, exp_time_df)
-    #     pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='single_control')
 
-    # def test_alpha_dists_with_donors_and_one_control(self):
-    #     exp_time_df = pd.DataFrame({})
-
-    #     exp_ref_df = pd.DataFrame({})
-
-    #     time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
-    #                                        metadata=self.md_alpha,
-    #                                        time_column='days_post_transplant',
-    #                                        reference_column='relevant_donor',
-    #                                        control_column='single_control')
-
-    #     pd.testing.assert_frame_equal(time_df, exp_time_df)
-    #     pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_alpha_dists_with_donors_no_controls(self):
         exp_time_df = pd.DataFrame({
