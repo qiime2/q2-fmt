@@ -100,8 +100,13 @@ def group_timepoints(
     unique_references = used_references.unique()
 
     if is_beta:
-        ref_idx = pd.MultiIndex.from_tuples(
-            itertools.combinations(unique_references, 2))
+        try:
+            ref_idx = pd.MultiIndex.from_tuples(
+                itertools.combinations(unique_references, 2))
+        except TypeError:
+            raise TypeError('Single reference value detected. More than one unique reference must be'
+                            ' provided for successful grouping.')
+
         ref_idx.names = ['A', 'B']
 
         if control_column is not None:

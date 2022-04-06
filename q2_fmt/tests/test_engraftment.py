@@ -52,6 +52,14 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    def test_beta_dists_with_same_donor_for_all_samples(self):
+        with self.assertRaisesRegex(TypeError, 'Single reference value detected'):
+            group_timepoints(diversity_measure=self.dm,
+                             metadata=self.md_beta,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor_all',
+                             control_column='control')
+
     def test_beta_dists_with_one_donor_and_controls(self):
         with self.assertRaisesRegex(KeyError, 'Missing references for the associated sample data'):
             group_timepoints(diversity_measure=self.dm,
@@ -149,6 +157,43 @@ class TestGroupTimepoints(TestPluginBase):
                              reference_column='relevant_donor',
                              control_column='control')
 
+    def test_beta_dists_with_extra_samples_in_metadata_not_in_diversity(self):
+        extra_md = Metadata.load(self.get_data_path('sample_metadata_donors_missing.tsv'))
+
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
+            'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
+            'group': [7.0, 7.0, 9.0, 11.0, 11.0]
+        }).set_index('id')
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
+                   'sampleB..sampleC', 'sampleB..sampleD', 'sampleC..sampleD'],
+            'measure': [0.24, 0.41, 0.74, 0.37, 0.44, 0.31],
+            'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
+            'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
+            'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
+        }).set_index('id')
+
+        time_df, ref_df = group_timepoints(diversity_measure=self.dm,
+                                           metadata=extra_md,
+                                           time_column='days_post_transplant',
+                                           reference_column='relevant_donor',
+                                           control_column='control')
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    def test_beta_dists_with_extra_samples_in_diversity_not_in_metadata(self):
+        extra_dm = DistanceMatrix.read(self.get_data_path('dist_matrix_donors_missing.tsv')).to_series()
+
+        with self.assertRaisesRegex(ValueError, 'The following IDs are not present in the metadata'):
+            group_timepoints(diversity_measure=extra_dm,
+                             metadata=self.md_beta,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
     # Alpha Diversity (Series) Test Cases
     def test_alpha_dists_with_donors_controls(self):
         exp_time_df = pd.DataFrame({
@@ -175,8 +220,31 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    def test_alpha_dists_with_same_donor_for_all_samples(self):
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
+                   'sampleE', 'sampleF', 'sampleG'],
+            'measure': [24, 37, 15, 6, 44, 17, 29],
+            'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
+        }).set_index('id')
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1', 'sampleC', 'sampleD', 'sampleE', 'sampleF'],
+            'measure': [32, 15, 6, 44, 17],
+            'group': ['reference', 'control1', 'control1', 'control2', 'control2']
+        }).set_index('id')
+
+        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
+                                           metadata=self.md_alpha,
+                                           time_column='days_post_transplant',
+                                           reference_column='relevant_donor_all',
+                                           control_column='control')
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
     def test_alpha_dists_with_one_donor_and_controls(self):
-        with self.assertRaisesRegex(ValueError, 'Missing references for the associated sample data'):
+        with self.assertRaisesRegex(KeyError, 'Missing references for the associated sample data'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
                              time_column='days_post_transplant',
@@ -286,7 +354,39 @@ class TestGroupTimepoints(TestPluginBase):
                              reference_column='relevant_donor',
                              control_column='control')
 
-#TODO: edge cases
+    def test_alpha_dists_with_extra_samples_in_metadata_not_in_diversity(self):
+        extra_md = Metadata.load(self.get_data_path('sample_metadata_alpha_div_missing.tsv'))
 
-# when samples are present in diversity but not metadata (error) & vice versa (ignored)
-# beta div - what happens when all (or a majority of) samples are associated with a single donor class (comparwisesons of a single donor)
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
+                   'sampleE', 'sampleF', 'sampleG'],
+            'measure': [24, 37, 15, 6, 44, 17, 29],
+            'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
+        }).set_index('id')
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+                   'sampleC', 'sampleD', 'sampleE', 'sampleF'],
+            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'group': ['reference', 'reference', 'reference', 'reference',
+                      'control1', 'control1', 'control2', 'control2']
+        }).set_index('id')
+
+        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
+                                           metadata=extra_md,
+                                           time_column='days_post_transplant',
+                                           reference_column='relevant_donor',
+                                           control_column='control')
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    def test_alpha_dists_with_extra_samples_in_diversity_not_in_metadata(self):
+        extra_alpha = pd.read_csv(self.get_data_path('alpha_div_missing.tsv'), sep='\t', index_col=0, squeeze=True)
+
+        with self.assertRaisesRegex(ValueError, 'The following IDs are not present in the metadata'):
+            group_timepoints(diversity_measure=extra_alpha,
+                             metadata=self.md_alpha,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='control')
