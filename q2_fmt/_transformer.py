@@ -14,7 +14,7 @@ import qiime2
 import skbio
 from q2_types.distance_matrix import LSMatFormat
 from q2_fmt.plugin_setup import plugin
-from . import TSVFileFormat
+from . import TSVFileFormat, AnnotatedTSVDirFmt
 
 def _tsv_format_to_dataframe(filepath, has_header=None):
     """Read a TSV file into a dataframe.
@@ -58,3 +58,30 @@ def _2(obj: pd.DataFrame) -> TSVFileFormat:
 def _3(ff: LSMatFormat) -> pd.Series:
     dm = skbio.DistanceMatrix.read(str(ff), format='lsmat', verify=False)
     return dm.to_series()
+
+@plugin.register_transformer
+def _4(df: AnnotatedTSVDirFmt) -> pd.DataFrame:
+    data = df.data.view(pd.DataFrame)
+    metadata = df.metadata.view(pd.DataFrame)
+
+    for column in data.columns:
+        # not sure what the semantics are, so do our best
+        data[column].attrs.update(metadata.loc[column].to_dict())
+
+    return data
+
+@plugin.register_transformer
+def _5(obj: pd.DataFrame) -> AnnotatedTSVDirFmt:
+    metadata = []
+    for col in obj.columns:
+        metadata.append(obj[col].attrs)
+
+    metadata_df = pd.DataFrame(metadata, index=obj.columns)
+    metadata_df.index.name = 'column'
+
+    dir_fmt = AnnotatedTSVDirFmt()
+
+    dir_fmt.data.write_data(obj, pd.DataFrame)
+    dir_fmt.metadata.write_data(metadata_df, pd.DataFrame)
+
+    return dir_fmt

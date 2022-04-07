@@ -16,7 +16,7 @@ import q2_fmt
 from q2_fmt import TSVFileFormat, ModelTests
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
-from q2_fmt._format import TSVFileDirFmt
+from q2_fmt._format import AnnotatedTSVDirFmt
 from q2_fmt._visualizer import hello_world
 from q2_fmt._type import GroupDist, Matched, Independent, Ordered, Unordered
 
@@ -27,11 +27,11 @@ plugin = Plugin(name='fmt',
                 description='This QIIME 2 plugin supports FMT analyses.',
                 short_description='Plugin for analyzing FMT data.')
 
-plugin.register_formats(TSVFileFormat, TSVFileDirFmt)
+plugin.register_formats(TSVFileFormat, AnnotatedTSVDirFmt)
 plugin.register_semantic_types(ModelTests, GroupDist, Matched, Independent,
                                Ordered, Unordered)
 plugin.register_semantic_type_to_format(
-    GroupDist[Ordered | Unordered, Matched | Independent], TSVFileDirFmt)
+    GroupDist[Ordered | Unordered, Matched | Independent], AnnotatedTSVDirFmt)
 
 T_subject, T_dependence = TypeMap({
     Bool % Choices(False): Independent,

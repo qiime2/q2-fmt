@@ -17,7 +17,24 @@ def group_timepoints(
         time_column: str, reference_column: str, subject_column: str = False,
         control_column: str = None) -> (pd.DataFrame, pd.DataFrame):
 
-    # Data filtering
+    is_beta, used_references, time_col, subject_col, used_controls = \
+        _data_filtering(diversity_measure, metadata, time_column,
+                        reference_column, subject_column, control_column)
+
+    ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
+                                time_col, subject_col)
+
+    independent_df = _independent_dists(diversity_measure, metadata,
+                                        used_references, is_beta, used_controls)
+
+
+    return ordered_df, independent_df
+
+# HELPER FUNCTION FOR DATA FILTERING
+def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
+        time_column: str, reference_column: str, subject_column: str = False,
+        control_column: str = None):
+
     if diversity_measure.empty:
         raise ValueError('Empty diversity measure detected.'
                          ' Please make sure your diversity measure contains data.')
@@ -31,7 +48,6 @@ def group_timepoints(
         ids_with_data = diversity_measure.index
 
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
-
     # TODO: refactor with a function that contains a single try/except for all columns
     try:
         time_col = metadata.get_column(time_column)
@@ -57,6 +73,7 @@ def group_timepoints(
                        ' that all samples with a timepoint value have an associated reference.'
                        ' IDs where missing references were found: %s' % (tuple(nan_references),))
 
+    subject_col = None
     if subject_column:
         try:
             subject_col = metadata.get_column(subject_column)
@@ -64,6 +81,7 @@ def group_timepoints(
             raise ValueError('subject_column provided not present within the metadata')
         subject_col = subject_col.to_series()
 
+    used_controls = None
     if control_column is not None:
         try:
             control_col = metadata.get_column(control_column)
@@ -75,7 +93,10 @@ def group_timepoints(
     diversity_measure.name = 'measure'
     diversity_measure.index.name = 'id'
 
-    # GroupDists[Ordered, Matched | Independent]
+    return is_beta, used_references, time_col, subject_col, used_controls
+
+# HELPER FUNCTION FOR GroupDists[Ordered, Matched | Independent]
+def _ordered_dists(diversity_measure: pd.Series, is_beta, used_references, time_col, subject_col):
     if is_beta:
         idx = pd.MultiIndex.from_frame(
             used_references.to_frame().reset_index())
@@ -93,10 +114,13 @@ def group_timepoints(
 
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
-    if subject_column:
+    if subject_col is not None:
         ordinal_df['subject'] = subject_col
 
-    # GroupDists[Unordered, Independent]
+    return ordinal_df
+
+# HELPER FUNCTION FOR GroupDists[Unordered, Independent]
+def _independent_dists(diversity_measure, metadata, used_references, is_beta, used_controls):
     unique_references = used_references.unique()
 
     if is_beta:
@@ -109,7 +133,7 @@ def group_timepoints(
 
         ref_idx.names = ['A', 'B']
 
-        if control_column is not None:
+        if used_controls is not None:
             grouped_md = metadata.to_dataframe().loc[used_controls.index].groupby(used_controls)
             ctrl_list = list()
             for group_id, grouped_ctrls in grouped_md:
@@ -131,7 +155,7 @@ def group_timepoints(
 
     else:
         ref_idx = list(unique_references)
-        if control_column is not None:
+        if used_controls is not None:
             ctrl_series = used_controls
             ctrl_series.index.name = 'id'
 
@@ -144,7 +168,7 @@ def group_timepoints(
 
     nominal_df['group'] = 'reference'
 
-    if control_column is not None:
+    if used_controls is not None:
         ctrl_group = diversity_measure[ctrl_series.index].to_frame()
         ctrl_group['group'] = ctrl_series
         ctrl_group = ctrl_group.reset_index()
@@ -157,4 +181,4 @@ def group_timepoints(
 
     nominal_df = nominal_df.set_index('id')
 
-    return ordinal_df, nominal_df
+    return nominal_df
