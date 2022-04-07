@@ -52,6 +52,33 @@ class TestGroupTimepoints(TestPluginBase):
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
+    def test_beta_dists_with_donors_controls_and_subjects(self):
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
+            'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
+            'group': [7.0, 7.0, 9.0, 11.0, 11.0],
+            'subject': ['subject1', 'subject1', 'subject1', 'subject2', 'subject2']
+        }).set_index('id')
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
+                   'sampleB..sampleC', 'sampleB..sampleD', 'sampleC..sampleD'],
+            'measure': [0.24, 0.41, 0.74, 0.37, 0.44, 0.31],
+            'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
+            'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
+            'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
+        }).set_index('id')
+
+        time_df, ref_df = group_timepoints(diversity_measure=self.dm,
+                                           metadata=self.md_beta,
+                                           time_column='days_post_transplant',
+                                           reference_column='relevant_donor',
+                                           control_column='control',
+                                           subject_column='subject')
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
     def test_beta_dists_with_same_donor_for_all_samples(self):
         with self.assertRaisesRegex(TypeError, 'Single reference value detected'):
             group_timepoints(diversity_measure=self.dm,
@@ -216,6 +243,34 @@ class TestGroupTimepoints(TestPluginBase):
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor',
                                            control_column='control')
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    def test_alpha_dists_with_donors_controls_and_subjects(self):
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD',
+                   'sampleE', 'sampleF', 'sampleG'],
+            'measure': [24, 37, 15, 6, 44, 17, 29],
+            'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
+            'subject': ['subject1', 'subject1', 'subject2',
+                        'subject1', 'subject2', 'subject2', 'subject1']
+        }).set_index('id')
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+                   'sampleC', 'sampleD', 'sampleE', 'sampleF'],
+            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'group': ['reference', 'reference', 'reference', 'reference',
+                      'control1', 'control1', 'control2', 'control2']
+        }).set_index('id')
+
+        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
+                                           metadata=self.md_alpha,
+                                           time_column='days_post_transplant',
+                                           reference_column='relevant_donor',
+                                           control_column='control',
+                                           subject_column='subject')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
