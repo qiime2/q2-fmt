@@ -74,8 +74,15 @@ plugin.methods.register_function(
     parameters={'hypothesis': Str % Choices('reference', 'all-pairwise'),
                 'reference_group': Str},
     outputs=[('stats', ModelTests)],
-    parameter_descriptions={},
-    output_descriptions={},
+    parameter_descriptions={
+        'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
+                      ' Either `reference` or `all-pairwise` must be selected.',
+        'reference_group': 'If `reference` is the selected hypothesis, this is the column that will be used'
+                           ' to compare all samples against.',
+    },
+    output_descriptions={
+        'stats': 'The Mann-Whitney U distribution for either the `reference` or `all-pairwise` hypothesis.',
+    },
     name='Mann-Whitney U Test',
     description=''
 )
@@ -86,12 +93,20 @@ plugin.methods.register_function(
     parameters={'hypothesis': Str % Choices('baseline', 'consecutive'),
                 'baseline_group': Str},
     outputs=[('stats', ModelTests)],
-    parameter_descriptions={},
-    output_descriptions={},
+    parameter_descriptions={
+        'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
+                      ' Either `baseline` or `consecutive` must be selected.',
+        'baseline_group': 'If `baseline` is the selected hypothesis, this is the column that will be used'
+                          ' to compare all samples against.',
+    },
+    output_descriptions={
+        'stats': 'The Wilcoxon SRT distribution for either the `baseline` or `consecutive` hypothesis.',
+    },
     name='Wilcoxon Signed Rank Test',
     description=''
 )
 
+# Dummy Visualizer
 plugin.visualizers.register_function(
     function=hello_world,
     inputs={},
