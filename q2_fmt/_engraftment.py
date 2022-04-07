@@ -14,7 +14,7 @@ import qiime2
 
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,
-        time_column: str, reference_column: str, subject_column: str = None,
+        time_column: str, reference_column: str, subject_column: str = False,
         control_column: str = None) -> (pd.DataFrame, pd.DataFrame):
 
     # Data filtering
@@ -57,7 +57,7 @@ def group_timepoints(
                        ' that all samples with a timepoint value have an associated reference.'
                        ' IDs where missing references were found: %s' % (tuple(nan_references),))
 
-    if subject_column is not None:
+    if subject_column:
         try:
             subject_col = metadata.get_column(subject_column)
         except ValueError:
@@ -75,7 +75,7 @@ def group_timepoints(
     diversity_measure.name = 'measure'
     diversity_measure.index.name = 'id'
 
-    # GroupDists[Gordinal]
+    # GroupDists[Ordered, Matched | Independent]
     if is_beta:
         idx = pd.MultiIndex.from_frame(
             used_references.to_frame().reset_index())
@@ -93,10 +93,10 @@ def group_timepoints(
 
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
-    if subject_column is not None:
+    if subject_column:
         ordinal_df['subject'] = subject_col
 
-    # GroupDists[Gnominal]
+    # GroupDists[Unordered, Independent]
     unique_references = used_references.unique()
 
     if is_beta:

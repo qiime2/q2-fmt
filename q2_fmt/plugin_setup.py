@@ -8,16 +8,17 @@
 
 import importlib
 
-from qiime2.plugin import Str, Plugin, Metadata, TypeMap, Visualization, Bool, Choices
+from qiime2.plugin import Str, Plugin, Metadata, TypeMap, Bool, Choices
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
 from q2_fmt import TSVFileFormat, ModelTests
 from q2_fmt._engraftment import group_timepoints
+from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
 from q2_fmt._format import TSVFileDirFmt
 from q2_fmt._visualizer import hello_world
-from q2_fmt._type import GroupDist, Gordinal, Gnominal
+from q2_fmt._type import GroupDist, Matched, Independent, Ordered, Unordered
 
 plugin = Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -27,17 +28,23 @@ plugin = Plugin(name='fmt',
                 short_description='Plugin for analyzing FMT data.')
 
 plugin.register_formats(TSVFileFormat, TSVFileDirFmt)
-plugin.register_semantic_types(ModelTests, GroupDist, Gordinal, Gnominal)
+plugin.register_semantic_types(ModelTests, GroupDist, Matched, Independent,
+                               Ordered, Unordered)
 plugin.register_semantic_type_to_format(
-    GroupDist[Gordinal | Gnominal], TSVFileDirFmt, )
+    GroupDist[Ordered | Unordered, Matched | Independent], TSVFileDirFmt)
+
+T_subject, T_dependence = TypeMap({
+    Bool % Choices(False): Independent,
+    Str: Matched
+})
 
 plugin.methods.register_function(
     function=group_timepoints,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity] },
     parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': Str, 'control_column': Str},
-    outputs=[('timepoint_dists', GroupDist[Gordinal]),
-             ('reference_dists', GroupDist[Gnominal])],
+                'reference_column': Str, 'subject_column': T_subject, 'control_column': Str},
+    outputs=[('timepoint_dists', GroupDist[Ordered, T_dependence]),
+             ('reference_dists', GroupDist[Unordered, Independent])],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the `diversity_measure` should be grouped by.'
@@ -57,6 +64,31 @@ plugin.methods.register_function(
                            ' Otherwise, these are just the per-sample measurements of alpha-diversity.'
     },
     name='',
+    description=''
+)
+
+plugin.methods.register_function(
+    function=mann_whitney_u,
+    inputs={'distribution': GroupDist[Unordered | Ordered, Independent],
+            'against_each': GroupDist[Unordered | Ordered, Matched | Independent]},
+    parameters={'hypothesis': Str % Choices('reference', 'all-pairwise'),
+                'reference_group': Str},
+    outputs=[('stats', ModelTests)],
+    parameter_descriptions={},
+    output_descriptions={},
+    name='Mann-Whitney U Test',
+    description=''
+)
+
+plugin.methods.register_function(
+    function=wilcoxon_srt,
+    inputs={'distribution': GroupDist[Ordered, Matched]},
+    parameters={'hypothesis': Str % Choices('baseline', 'consecutive'),
+                'baseline_group': Str},
+    outputs=[('stats', ModelTests)],
+    parameter_descriptions={},
+    output_descriptions={},
+    name='Wilcoxon Signed Rank Test',
     description=''
 )
 
