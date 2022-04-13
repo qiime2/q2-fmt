@@ -122,7 +122,7 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta, used_references, time_
     if subject_col is not None:
         ordinal_df['subject'] = subject_col
 
-    return ordinal_df
+    return ordinal_df.reset_index()
 
 # HELPER FUNCTION FOR GroupDists[Unordered, Independent]
 def _independent_dists(diversity_measure, metadata, used_references, is_beta, used_controls):
@@ -183,7 +183,5 @@ def _independent_dists(diversity_measure, metadata, used_references, is_beta, us
     if 'A' in nominal_df.columns:
         nominal_df['id'] = nominal_df[['A', 'B']].agg('..'.join, axis=1)
         nominal_df = nominal_df[['id', 'measure', 'group', 'A', 'B']]
-
-    nominal_df = nominal_df.set_index('id')
 
     return nominal_df

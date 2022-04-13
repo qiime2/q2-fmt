@@ -11,8 +11,11 @@ from qiime2.plugin import model
 import pandas as pd
 
 
-class TSVFileFormat(model.TextFileFormat):
+class RecordTSVFileFormat(model.TextFileFormat):
     """Format for TSV file.
+
+    first line is headers
+
 
     More to be added on this later.
 
@@ -22,14 +25,14 @@ class TSVFileFormat(model.TextFileFormat):
 
 
 class AnnotatedTSVDirFmt(model.DirectoryFormat):
-    data = model.File('data.tsv', format=TSVFileFormat)
-    metadata = model.File('metadata.tsv', format=TSVFileFormat)
+    data = model.File('data.tsv', format=RecordTSVFileFormat)
+    metadata = model.File('metadata.tsv', format=RecordTSVFileFormat)
 
     def _validate_(self, level='min'):
         data = self.data.view(pd.DataFrame)
         metadata = self.metadata.view(pd.DataFrame)
 
-        if data.column != metadata.index:
+        if list(data.columns) != list(metadata['column']):
             raise model.ValidationError(
                 'The metadata TSV does not completely describe the data TSV'
                 ' columns.')

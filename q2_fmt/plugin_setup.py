@@ -13,12 +13,13 @@ from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
-from q2_fmt import TSVFileFormat, ModelTests
+from q2_fmt import RecordTSVFileFormat, ModelTests
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
 from q2_fmt._format import AnnotatedTSVDirFmt
 from q2_fmt._visualizer import hello_world
 from q2_fmt._type import GroupDist, Matched, Independent, Ordered, Unordered
+import q2_fmt._examples as ex
 
 plugin = Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -27,7 +28,7 @@ plugin = Plugin(name='fmt',
                 description='This QIIME 2 plugin supports FMT analyses.',
                 short_description='Plugin for analyzing FMT data.')
 
-plugin.register_formats(TSVFileFormat, AnnotatedTSVDirFmt)
+plugin.register_formats(RecordTSVFileFormat, AnnotatedTSVDirFmt)
 plugin.register_semantic_types(ModelTests, GroupDist, Matched, Independent,
                                Ordered, Unordered)
 plugin.register_semantic_type_to_format(
@@ -64,7 +65,11 @@ plugin.methods.register_function(
                            ' Otherwise, these are just the per-sample measurements of alpha-diversity.'
     },
     name='',
-    description=''
+    description='',
+    examples={
+        'group_timepoints_alpha_ind': ex.group_timepoints_alpha_independent,
+        'group_timepoints_beta': ex.group_timepoints_beta
+    }
 )
 
 plugin.methods.register_function(

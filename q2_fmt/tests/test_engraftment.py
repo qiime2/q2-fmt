@@ -80,7 +80,7 @@ class TestGroupTimepoints(TestBase):
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0]
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
@@ -89,7 +89,7 @@ class TestGroupTimepoints(TestBase):
             'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
             'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
             'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
@@ -106,7 +106,7 @@ class TestGroupTimepoints(TestBase):
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0],
             'subject': ['subject1', 'subject1', 'subject1', 'subject2', 'subject2']
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
@@ -115,7 +115,7 @@ class TestGroupTimepoints(TestBase):
             'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
             'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
             'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
@@ -156,7 +156,7 @@ class TestGroupTimepoints(TestBase):
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0]
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3'],
@@ -164,7 +164,7 @@ class TestGroupTimepoints(TestBase):
             'group': ['reference', 'reference', 'reference'],
             'A': ['donor1', 'donor1', 'donor2'],
             'B': ['donor2', 'donor3', 'donor3']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
@@ -207,7 +207,7 @@ class TestGroupTimepoints(TestBase):
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0]
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
@@ -216,7 +216,7 @@ class TestGroupTimepoints(TestBase):
             'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
             'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
             'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=extra_md,
@@ -244,7 +244,7 @@ class TestGroupTimepoints(TestBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1', 'donor2', 'donor4', 'donor3',
@@ -252,7 +252,7 @@ class TestGroupTimepoints(TestBase):
             'measure': [32, 51, 19, 3, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
@@ -271,7 +271,7 @@ class TestGroupTimepoints(TestBase):
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
             'subject': ['subject1', 'subject1', 'subject2',
                         'subject1', 'subject2', 'subject2', 'subject1']
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1', 'donor2', 'donor4', 'donor3',
@@ -279,7 +279,7 @@ class TestGroupTimepoints(TestBase):
             'measure': [32, 51, 19, 3, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
@@ -297,13 +297,13 @@ class TestGroupTimepoints(TestBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1', 'sampleC', 'sampleD', 'sampleE', 'sampleF'],
             'measure': [32, 15, 6, 44, 17],
             'group': ['reference', 'control1', 'control1', 'control2', 'control2']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
@@ -328,13 +328,13 @@ class TestGroupTimepoints(TestBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0]
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1', 'donor2', 'donor4', 'donor3', 'sampleB'],
             'measure': [32, 51, 19, 3, 37],
             'group': ['reference', 'reference', 'reference', 'reference', 'control1']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
@@ -351,13 +351,13 @@ class TestGroupTimepoints(TestBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1', 'donor2', 'donor4', 'donor3'],
             'measure': [32, 51, 19, 3],
             'group': ['reference', 'reference', 'reference', 'reference']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
@@ -401,7 +401,7 @@ class TestGroupTimepoints(TestBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1', 'donor2', 'donor4', 'donor3',
@@ -409,7 +409,7 @@ class TestGroupTimepoints(TestBase):
             'measure': [32, 51, 19, 3, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=extra_md,
@@ -429,3 +429,6 @@ class TestGroupTimepoints(TestBase):
                              time_column='days_post_transplant',
                              reference_column='relevant_donor',
                              control_column='control')
+
+    def test_examples(self):
+        self.execute_examples()

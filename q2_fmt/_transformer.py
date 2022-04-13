@@ -6,51 +6,25 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from os import sep
-
 import pandas as pd
 
-import qiime2
 import skbio
 from q2_types.distance_matrix import LSMatFormat
 from q2_fmt.plugin_setup import plugin
-from . import TSVFileFormat, AnnotatedTSVDirFmt
+from . import RecordTSVFileFormat, AnnotatedTSVDirFmt
 
-def _tsv_format_to_dataframe(filepath, has_header=None):
-    """Read a TSV file into a dataframe.
 
-    Parameters
-    ----------
-    filepath : str
-        The TSV file to be read.
-    has_header : bool, optional
-        If `None`, autodetect the header: only `TBD - PLACEHOLDER` is
-        recognized, optionally followed by other columns. If `True`, the file
-        must have the expected header described above otherwise an error is
-        raised. If `False`, the file is read without assuming a header.
-
-    Returns
-    -------
-    pd.DataFrame
-        Dataframe containing parsed contents of the TSV file.
-
-    """
-    df = pd.read_csv(filepath, sep='\t', skip_blank_lines=True,
-                     header=None, dtype=object)
-
-    df.set_index(df.columns[0], drop=True, append=False, inplace=True)
-
+@plugin.register_transformer
+def _1(ff: RecordTSVFileFormat) -> pd.DataFrame:
+    df = pd.read_csv(str(ff), sep='\t', skip_blank_lines=True,
+                     header=0, dtype=object)
     return df
 
-@plugin.register_transformer
-def _1(ff: TSVFileFormat) -> pd.DataFrame:
-    return _tsv_format_to_dataframe(str(ff), has_header=None)
-
 
 @plugin.register_transformer
-def _2(obj: pd.DataFrame) -> TSVFileFormat:
-    ff = TSVFileFormat()
-    obj.to_csv(str(ff), sep='\t')
+def _2(obj: pd.DataFrame) -> RecordTSVFileFormat:
+    ff = RecordTSVFileFormat()
+    obj.to_csv(str(ff), sep='\t', index=False)
     return ff
 
 
@@ -76,8 +50,14 @@ def _5(obj: pd.DataFrame) -> AnnotatedTSVDirFmt:
     for col in obj.columns:
         metadata.append(obj[col].attrs)
 
-    metadata_df = pd.DataFrame(metadata, index=obj.columns)
+    print(obj)
+
+    metadata_df = pd.DataFrame(metadata, index=obj.columns.copy())
     metadata_df.index.name = 'column'
+    metadata_df = metadata_df.reset_index()
+
+    print(obj)
+    print(metadata_df)
 
     dir_fmt = AnnotatedTSVDirFmt()
 
