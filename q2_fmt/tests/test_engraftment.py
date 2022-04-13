@@ -14,8 +14,8 @@ from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
 
-class TestGroupTimepoints(TestPluginBase):
-    package = 'q2_fmt.tests'
+class TestBase(TestPluginBase):
+    package='q2_fmt.tests'
 
     def setUp(self):
         super().setUp()
@@ -26,6 +26,54 @@ class TestGroupTimepoints(TestPluginBase):
         self.dm = DistanceMatrix.read(self.get_data_path('dist_matrix_donors.tsv')).to_series()
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
+class ErrorMixins:
+    def test_with_time_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'time_column.*foo.*metadata'):
+            group_timepoints(diversity_measure=self.div,
+                             metadata=self.md,
+                             time_column='foo',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
+    def test_with_reference_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'reference_column.*foo.*metadata'):
+            group_timepoints(diversity_measure=self.div,
+                             metadata=self.md,
+                             time_column='days_post_transplant',
+                             reference_column='foo',
+                             control_column='control')
+
+    def test_with_control_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'control_column.*foo.*metadata'):
+            group_timepoints(diversity_measure=self.div,
+                             metadata=self.md,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='foo')
+
+    def test_with_non_numeric_time_column(self):
+        with self.assertRaisesRegex(ValueError, 'time_column.*categorical.*numeric'):
+            group_timepoints(diversity_measure=self.div,
+                             metadata=self.md,
+                             time_column='non_numeric_time_column',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
+class TestAlphaErrors(TestBase, ErrorMixins):
+    def setUp(self):
+        super().setUp()
+
+        self.div = self.alpha
+        self.md = self.md_alpha
+
+class TestBetaErrors(TestBase, ErrorMixins):
+    def setUp(self):
+        super().setUp()
+
+        self.div = self.dm
+        self.md = self.md_beta
+
+class TestGroupTimepoints(TestBase):
     # Beta Diversity (Distance Matrix) Test Cases
     def test_beta_dists_with_donors_and_controls(self):
         exp_time_df = pd.DataFrame({
@@ -133,38 +181,6 @@ class TestGroupTimepoints(TestPluginBase):
                              metadata=self.md_beta,
                              time_column='days_post_transplant',
                              control_column='control')
-
-    def test_beta_dists_with_non_numeric_time_column(self):
-        with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='non_numeric_time_column',
-                             reference_column='relevant_donor',
-                             control_column='control')
-
-    def test_beta_dists_with_time_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='foo',
-                             reference_column='relevant_donor',
-                             control_column='control')
-
-    def test_beta_dists_with_reference_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='foo',
-                             control_column='control')
-
-    def test_beta_dists_with_control_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='foo')
 
     def test_beta_dists_with_invalid_ref_column(self):
         with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
@@ -358,38 +374,6 @@ class TestGroupTimepoints(TestPluginBase):
                              metadata=self.md_alpha,
                              time_column='days_post_transplant',
                              control_column='control')
-
-    def test_alpha_dists_with_non_numeric_time_column(self):
-        with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='non_numeric_time_column',
-                             reference_column='relevant_donor',
-                             control_column='control')
-
-    def test_alpha_dists_with_time_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='foo',
-                             reference_column='relevant_donor',
-                             control_column='control')
-
-    def test_alpha_dists_with_reference_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             reference_column='foo',
-                             control_column='control')
-
-    def test_alpha_dists_with_control_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='foo')
 
     def test_alpha_dists_with_invalid_ref_column(self):
         with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):

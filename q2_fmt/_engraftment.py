@@ -21,6 +21,9 @@ def group_timepoints(
         _data_filtering(diversity_measure, metadata, time_column,
                         reference_column, subject_column, control_column)
 
+    diversity_measure.name = 'measure'
+    diversity_measure.index.name = 'id'
+
     ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
                                 time_col, subject_col)
 
@@ -49,23 +52,34 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
 
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
 
-    def _to_column(column_name):
+    def _get_series_from_col(md, col_name, param_name, expected_type=None,
+                             drop_missing_values=False):
         try:
-            col_name = metadata.get_column(column_name)
-        except ValueError:
-            raise ValueError('Column: "%s" not present within the metadata' % str(column_name))
+            column = md.get_column(col_name)
+        except ValueError as e:
+            raise ValueError("There was an issue with the argument for %r. %s"
+                            % (param_name, e)) from e
 
-        return col_name
+        if expected_type is not None and not isinstance(column, expected_type):
+            if type(expected_type) is tuple:
+                exp = tuple(e.type for e in expected_type)
+            else:
+                exp = expected_type.type
 
-    time_col = _to_column(time_column)
+            raise ValueError("Provided column for %r is %r, not %r."
+                            % (param_name, column.type, exp))
 
-    if not isinstance(time_col, qiime2.NumericMetadataColumn):
-        raise TypeError('Non-numeric characters detected in time_column.')
-    else:
-        time_col = time_col.to_series()
+        if drop_missing_values:
+            column = column.drop_missing_values()
 
-    # TODO: add a requirement for all samples that contain timepoint data to also contain donor data
-    reference_col = _to_column(reference_column).to_series()
+        return column.to_series()
+
+    time_col = _get_series_from_col(md=metadata, col_name=time_column, param_name='time_column',
+                                    expected_type=qiime2.NumericMetadataColumn)
+
+    reference_col = _get_series_from_col(md=metadata, col_name=reference_column, param_name='reference_column',
+                                         expected_type=qiime2.CategoricalMetadataColumn)
+
     used_references = reference_col[~time_col.isna()]
 
     if used_references.isna().any():
@@ -76,22 +90,13 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
 
     subject_col = None
     if subject_column:
-            subject_col = _to_column(subject_column).to_series()
-            used_subjects = subject_col[~time_col.isna()]
-
-    # if used_subjects.isna().any():
-    #     nan_subjects = used_subjects.index[used_subjects.isna()]
-    #     raise KeyError('Missing subjects for the associated sample data. Please make sure'
-    #                    ' that all samples with a timepoint value have an associated subject.'
-    #                    ' IDs where missing subjects were found: %s' % (tuple(nan_subjects),))
+            subject_col = _get_series_from_col(md=metadata, col_name=subject_column, param_name='subject_column',
+                                               expected_type=qiime2.CategoricalMetadataColumn)
 
     used_controls = None
     if control_column is not None:
-        control_col = _to_column(control_column).to_series()
+        control_col = _get_series_from_col(md=metadata, col_name=control_column, param_name='control_column')
         used_controls = control_col[~control_col.isna()]
-
-    diversity_measure.name = 'measure'
-    diversity_measure.index.name = 'id'
 
     return is_beta, used_references, time_col, subject_col, used_controls
 
