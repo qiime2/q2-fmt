@@ -48,11 +48,16 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         ids_with_data = diversity_measure.index
 
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
-    # TODO: refactor with a function that contains a single try/except for all columns
-    try:
-        time_col = metadata.get_column(time_column)
-    except ValueError:
-        raise ValueError('time_column provided not present within the metadata')
+
+    def _to_column(column_name):
+        try:
+            col_name = metadata.get_column(column_name)
+        except ValueError:
+            raise ValueError('Column: "%s" not present within the metadata' % str(column_name))
+
+        return col_name
+
+    time_col = _to_column(time_column)
 
     if not isinstance(time_col, qiime2.NumericMetadataColumn):
         raise TypeError('Non-numeric characters detected in time_column.')
@@ -60,11 +65,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         time_col = time_col.to_series()
 
     # TODO: add a requirement for all samples that contain timepoint data to also contain donor data
-    try:
-        reference_col = metadata.get_column(reference_column)
-    except ValueError:
-        raise ValueError('reference_column provided not present within the metadata')
-    reference_col = reference_col.to_series()
+    reference_col = _to_column(reference_column).to_series()
     used_references = reference_col[~time_col.isna()]
 
     if used_references.isna().any():
@@ -75,19 +76,18 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
 
     subject_col = None
     if subject_column:
-        try:
-            subject_col = metadata.get_column(subject_column)
-        except ValueError:
-            raise ValueError('subject_column provided not present within the metadata')
-        subject_col = subject_col.to_series()
+            subject_col = _to_column(subject_column).to_series()
+            used_subjects = subject_col[~time_col.isna()]
+
+    # if used_subjects.isna().any():
+    #     nan_subjects = used_subjects.index[used_subjects.isna()]
+    #     raise KeyError('Missing subjects for the associated sample data. Please make sure'
+    #                    ' that all samples with a timepoint value have an associated subject.'
+    #                    ' IDs where missing subjects were found: %s' % (tuple(nan_subjects),))
 
     used_controls = None
     if control_column is not None:
-        try:
-            control_col = metadata.get_column(control_column)
-        except ValueError:
-            raise ValueError('control_column provided not present within the metadata')
-        control_col = control_col.to_series()
+        control_col = _to_column(control_column).to_series()
         used_controls = control_col[~control_col.isna()]
 
     diversity_measure.name = 'measure'

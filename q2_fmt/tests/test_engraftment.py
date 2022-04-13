@@ -143,7 +143,7 @@ class TestGroupTimepoints(TestPluginBase):
                              control_column='control')
 
     def test_beta_dists_with_time_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'time_column provided not present within the metadata'):
+        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
                              time_column='foo',
@@ -151,7 +151,7 @@ class TestGroupTimepoints(TestPluginBase):
                              control_column='control')
 
     def test_beta_dists_with_reference_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'reference_column provided not present within the metadata'):
+        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
                              time_column='days_post_transplant',
@@ -159,7 +159,7 @@ class TestGroupTimepoints(TestPluginBase):
                              control_column='control')
 
     def test_beta_dists_with_control_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'control_column provided not present within the metadata'):
+        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
                              time_column='days_post_transplant',
@@ -368,7 +368,7 @@ class TestGroupTimepoints(TestPluginBase):
                              control_column='control')
 
     def test_alpha_dists_with_time_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'time_column provided not present within the metadata'):
+        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
                              time_column='foo',
@@ -376,7 +376,7 @@ class TestGroupTimepoints(TestPluginBase):
                              control_column='control')
 
     def test_alpha_dists_with_reference_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'reference_column provided not present within the metadata'):
+        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
                              time_column='days_post_transplant',
@@ -384,7 +384,7 @@ class TestGroupTimepoints(TestPluginBase):
                              control_column='control')
 
     def test_alpha_dists_with_control_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'control_column provided not present within the metadata'):
+        with self.assertRaisesRegex(ValueError, '"foo" not present within the metadata'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
                              time_column='days_post_transplant',
