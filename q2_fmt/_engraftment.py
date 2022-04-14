@@ -21,15 +21,62 @@ def group_timepoints(
         _data_filtering(diversity_measure, metadata, time_column,
                         reference_column, subject_column, control_column)
 
+    original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
     diversity_measure.index.name = 'id'
 
     ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
                                 time_col, subject_col)
 
+    id_annotation = {
+        'unit': used_references.index.name,
+        'description': '...'
+    }
+    # id, measure, group, [subject]
+    ordered_df['id'].attrs.update(id_annotation)
+    ordered_df['measure'].attrs.update({
+        'unit': ('Distance to %s' % used_references.name)
+                if is_beta else original_measure_name,
+        'description': '...'
+    })
+    ordered_df['group'].attrs.update({
+        'unit': time_col.name,
+        'description': '...'
+    })
+    if subject_col is not None:
+        ordered_df['subject'].attrs.update({
+            'unit': subject_col.name,
+            'description': '...'
+        })
+
+
     independent_df = _independent_dists(diversity_measure, metadata,
                                         used_references, is_beta, used_controls)
 
+    # id, measure, group, [A, B]
+    if is_beta:
+        independent_df['id'].attrs.update({
+            'unit': 'Pairwise Comparison',
+            'description': 'The pairwise comparisons within a group,'
+                           ' seperated by "..". Use column A and B for easier'
+                           ' parsing.'
+        })
+    else:
+        independent_df['id'].attrs.update(id_annotation)
+
+    independent_df['measure'].attrs.update({
+        'unit': 'distance' if is_beta else original_measure_name,
+        'description': 'Pairwise distance between A and B' if is_beta else
+                       original_measure_name
+    })
+    independent_df['group'].attrs.update({
+        'unit': used_references.name if used_controls is None else
+                '%s or %s' % (used_references.name, used_controls.name),
+        'description': '...'
+    })
+    if is_beta:
+        independent_df['A'].attrs.update(id_annotation)
+        independent_df['B'].attrs.update(id_annotation)
 
     return ordered_df, independent_df
 
