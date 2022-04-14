@@ -96,13 +96,16 @@ plugin.methods.register_function(
     function=wilcoxon_srt,
     inputs={'distribution': GroupDist[Ordered, Matched]},
     parameters={'hypothesis': Str % Choices('baseline', 'consecutive'),
-                'baseline_group': Str},
+                'baseline_group': Str,
+                'p_val_approx': Str % Choices('auto', 'exact', 'approx')},
     outputs=[('stats', ModelTests)],
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
                       ' Either `baseline` or `consecutive` must be selected.',
         'baseline_group': 'If `baseline` is the selected hypothesis, this is the column that will be used'
                           ' to compare all samples against.',
+        'p_val_approx': '"exact" will calculate an exact p-value for distributions of up to 25 (inclusive) measurements,'
+                        ' "approx" will use a normal distribution, and "auto" will use either "exact" or "approx" depending on size.'
     },
     output_descriptions={
         'stats': 'The Wilcoxon SRT distribution for either the `baseline` or `consecutive` hypothesis.',

@@ -16,8 +16,7 @@ from . import RecordTSVFileFormat, AnnotatedTSVDirFmt
 
 @plugin.register_transformer
 def _1(ff: RecordTSVFileFormat) -> pd.DataFrame:
-    df = pd.read_csv(str(ff), sep='\t', skip_blank_lines=True,
-                     header=0, dtype=object)
+    df = pd.read_csv(str(ff), sep='\t', skip_blank_lines=True, header=0)
     return df
 
 
@@ -37,7 +36,10 @@ def _3(ff: LSMatFormat) -> pd.Series:
 def _4(df: AnnotatedTSVDirFmt) -> pd.DataFrame:
     data = df.data.view(pd.DataFrame)
     metadata = df.metadata.view(pd.DataFrame)
+    metadata = metadata.set_index('column')
 
+    print(data)
+    print(metadata)
     for column in data.columns:
         # not sure what the semantics are, so do our best
         data[column].attrs.update(metadata.loc[column].to_dict())

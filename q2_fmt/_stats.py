@@ -37,16 +37,83 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
 
 # (dist, hypothesis, alpha=0.05, baseline=None)
 def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
-                 baseline_group: str=None) -> pd.DataFrame:
-    # hypothesis = 'baseline'
-    #   check if baseline is set
-    #   compare each group in distribution (except baseline) against baseline
-    #
-    # hypothesis = 'consecutive'
-    #   baseline should be None
-    #   compare each group against the last one
-    return pd.DataFrame()
+                 baseline_group: str=None, p_val_approx: str='auto') -> pd.DataFrame:
 
+    if hypothesis == 'baseline':
+        comparisons = _comp_baseline(distribution, baseline_group)
+    elif hypothesis == 'consecutive':
+        if baseline_group is not None:
+            raise Exception()
+        comparisons = _comp_consecutive(distribution)
+    else:
+        raise ValueError()
+
+    table = []
+    for comp_a, comp_b in comparisons:
+        group_a = distribution[distribution['group'] == comp_a]
+        group_b = distribution[distribution['group'] == comp_b]
+
+        group_a = group_a.set_index('subject')['measure']
+        group_b = group_b.set_index('subject')['measure']
+        row = _compare_wilcoxon(group_a, group_b, p_val_approx)
+        row['A:group'] = comp_a
+        row['B:group'] = comp_b
+        table.append(row)
+
+    df = pd.DataFrame(table)
+
+    df['q-value'] = _fdr_correction(df['p-value'])
+
+    df = df[['A:group', 'A:n', 'A:measure', 'B:group', 'B:n', 'B:measure',
+             'n', 'test-statistic', 'p-value', 'q-value']]
+
+    return df
+
+def _comp_baseline(distribution, baseline_group):
+    baseline_group = float(baseline_group)
+    group = distribution['group']
+    if baseline_group is None:
+        raise ValueError()
+
+    if not (group == baseline_group).any():
+        print(group)
+        print(group == baseline_group)
+        raise ValueError()
+
+    for comp_b in group[group != baseline_group].unique():
+        yield (baseline_group, comp_b)
+
+
+def _comp_consecutive(distribution):
+    group = distribution['group']
+    timepoints = list(sorted(group.unique()))
+    yield from zip(timepoints, timepoints[1:])
+
+
+def _compare_wilcoxon(group_a, group_b, p_val_approx) -> dict:
+    comp = pd.merge(group_a.to_frame(), group_b.to_frame(), how='outer',
+                    left_index=True, right_index=True)
+    filtered = comp.dropna()
+
+    results = {
+        'A:n': len(group_a),
+        'B:n': len(group_b),
+        'A:measure': group_a.median(),
+        'B:measure': group_b.median(),
+        'n': len(filtered.index),
+    }
+
+    stat, p_val = scipy.stats.wilcoxon(
+        filtered.iloc[:, 0], filtered.iloc[:, 1],
+        nan_policy='raise', mode=p_val_approx, alternative='two-sided')
+
+    results['test-statistic'] = stat
+    results['p-value'] = p_val
+
+    return results
+
+def _fdr_correction(series):
+    return series
 
 # output for both:
 # baseline
