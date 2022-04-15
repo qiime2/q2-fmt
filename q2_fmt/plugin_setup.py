@@ -61,7 +61,8 @@ plugin.methods.register_function(
         'timepoint_dists': 'The distributions for the `diversity_measure`, grouped by the selected `time_column`.'
                            ' May also contain subject IDs, if `subject_column` is provided in the `metadata`.',
         'reference_dists': 'The inter-group reference and inter-group control (when provided) distributions.'
-                           ' When `diversity_measure` is DistanceMatrix, the inter-group calculations will be all pairwise comparisons within a group.'
+                           ' When `diversity_measure` is DistanceMatrix, the inter-group calculations'
+                           ' will be all pairwise comparisons within a group.'
                            ' Otherwise, these are just the per-sample measurements of alpha-diversity.'
     },
     name='',
@@ -77,13 +78,17 @@ plugin.methods.register_function(
     inputs={'distribution': GroupDist[Unordered | Ordered, Independent],
             'against_each': GroupDist[Unordered | Ordered, Matched | Independent]},
     parameters={'hypothesis': Str % Choices('reference', 'all-pairwise'),
-                'reference_group': Str},
+                'reference_group': Str,
+                'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[('stats', ModelTests)],
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
                       ' Either `reference` or `all-pairwise` must be selected.',
         'reference_group': 'If `reference` is the selected hypothesis, this is the column that will be used'
                            ' to compare all samples against.',
+        'p_val_approx': '"exact" will calculate an exact p-value for distributions,'
+                        ' "asymptotic" will use a normal distribution, and "auto" will use either "exact"'
+                        ' when one of the groups has less than 8 observations and there are no ties, otherwise "asymptotic".'
     },
     output_descriptions={
         'stats': 'The Mann-Whitney U distribution for either the `reference` or `all-pairwise` hypothesis.',
@@ -97,7 +102,7 @@ plugin.methods.register_function(
     inputs={'distribution': GroupDist[Ordered, Matched]},
     parameters={'hypothesis': Str % Choices('baseline', 'consecutive'),
                 'baseline_group': Str,
-                'p_val_approx': Str % Choices('auto', 'exact', 'approx')},
+                'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[('stats', ModelTests)],
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
@@ -105,7 +110,7 @@ plugin.methods.register_function(
         'baseline_group': 'If `baseline` is the selected hypothesis, this is the column that will be used'
                           ' to compare all samples against.',
         'p_val_approx': '"exact" will calculate an exact p-value for distributions of up to 25 (inclusive) measurements,'
-                        ' "approx" will use a normal distribution, and "auto" will use either "exact" or "approx" depending on size.'
+                        ' "asymptotic" will use a normal distribution, and "auto" will use either "exact" or "approx" depending on size.'
     },
     output_descriptions={
         'stats': 'The Wilcoxon SRT distribution for either the `baseline` or `consecutive` hypothesis.',
