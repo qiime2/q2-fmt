@@ -8,6 +8,7 @@
 
 import pandas as pd
 import itertools
+from q2_diversity import filter_distance_matrix
 
 import qiime2
 
@@ -15,11 +16,14 @@ import qiime2
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,
         time_column: str, reference_column: str, subject_column: str = False,
-        control_column: str = None) -> (pd.DataFrame, pd.DataFrame):
+        control_column: str = None, filter_missing_references: bool = False) -> (pd.DataFrame, pd.DataFrame):
+
+    if isinstance(diversity_measure.index, pd.MultiIndex):
+        diversity_measure.index = _sort_multi_index(diversity_measure.index)
 
     is_beta, used_references, time_col, subject_col, used_controls = \
-        _data_filtering(diversity_measure, metadata, time_column,
-                        reference_column, subject_column, control_column)
+        _data_filtering(diversity_measure, metadata, time_column, reference_column,
+                        subject_column, control_column, filter_missing_references)
 
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
@@ -83,7 +87,7 @@ def group_timepoints(
 # HELPER FUNCTION FOR DATA FILTERING
 def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         time_column: str, reference_column: str, subject_column: str = False,
-        control_column: str = None):
+        control_column: str = None, filter_missing_references: bool = False):
 
     if diversity_measure.empty:
         raise ValueError('Empty diversity measure detected.'
@@ -135,6 +139,20 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                        ' that all samples with a timepoint value have an associated reference.'
                        ' IDs where missing references were found: %s' % (tuple(nan_references),))
 
+    available_references = (used_references.isin(ids_with_data))
+    if not available_references.all():
+        if filter_missing_references:
+            used_references = used_references[available_references]
+        else:
+            raise KeyError('References included in the metadata are missing from the diversity measure.'
+                        ' Please make sure all references included in the metadata are also present'
+                        ' in the diversity measure. Missing references: %s'
+                        % list(used_references[~available_references].unique())
+            )
+
+    if used_references.empty:
+        raise KeyError('No references were found within the diversity metric.')
+
     subject_col = None
     if subject_column:
             subject_col = _get_series_from_col(md=metadata, col_name=subject_column, param_name='subject_column',
@@ -147,11 +165,18 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
 
     return is_beta, used_references, time_col, subject_col, used_controls
 
+# HELPER FUNCTION FOR sorting a multi-index (for dist matrix and metadata)
+def _sort_multi_index(index):
+    sorted_levels = list(map(sorted, index))
+    sorted_multi = pd.MultiIndex.from_tuples(sorted_levels)
+    return sorted_multi
+
 # HELPER FUNCTION FOR GroupDists[Ordered, Matched | Independent]
 def _ordered_dists(diversity_measure: pd.Series, is_beta, used_references, time_col, subject_col):
     if is_beta:
         idx = pd.MultiIndex.from_frame(
             used_references.to_frame().reset_index())
+        idx = _sort_multi_index(idx)
         idx.names = ['id', 'reference']
     else:
         idx = used_references.index
@@ -164,6 +189,10 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta, used_references, time_
         ' chosen reference column contains values that are also present in the ID column for'
         ' the associated metadata.')
 
+    if is_beta:
+        sliced_df.index = used_references.index
+        sliced_df.index.name = 'id'
+
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
     if subject_col is not None:
@@ -173,7 +202,7 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta, used_references, time_
 
 # HELPER FUNCTION FOR GroupDists[Unordered, Independent]
 def _independent_dists(diversity_measure, metadata, used_references, is_beta, used_controls):
-    unique_references = used_references.unique()
+    unique_references = sorted(used_references.unique())
 
     if is_beta:
         try:

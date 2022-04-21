@@ -15,7 +15,9 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
                    reference_group: str=None,
                    against_each: pd.DataFrame=None,
                    p_val_approx: str='auto') -> pd.DataFrame:
+    # starting off with input dist
     dists = [distribution]
+    # if comparing against secondary DF
     if against_each is not None:
         dists.append(against_each)
 
@@ -24,7 +26,7 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
                                       against_each=against_each)
     elif hypothesis == 'all-pairwise':
         if reference_group is not None:
-            raise ValueError("")
+            raise ValueError("you are confused, pls try again")
         comparisons = _comp_all_pairwise(distribution,
                                          against_each=against_each)
     else:
@@ -182,8 +184,14 @@ def _get_reference_from_column(series, reference_value, param_name):
 
     if (series == reference_value).any():
         return reference_value
-    elif (series == float(reference_value)).any():
-        return float(reference_value)
+
+    try:
+        reference_value = float(reference_value)
+    except Exception:
+        pass
     else:
-        raise ValueError("%r was not found as a group within the distribution."
-                         % reference_value)
+        if (series == reference_value).any():
+            return reference_value
+
+    raise ValueError("%r was not found as a group within the distribution."
+                        % reference_value)

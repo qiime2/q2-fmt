@@ -247,9 +247,9 @@ class TestGroupTimepoints(TestBase):
         })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+            'id': ['donor1', 'donor2', 'donor3', 'donor4',
                    'sampleC', 'sampleD', 'sampleE', 'sampleF'],
-            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'measure': [32, 51, 3, 19, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
         })
@@ -274,9 +274,9 @@ class TestGroupTimepoints(TestBase):
         })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+            'id': ['donor1', 'donor2', 'donor3', 'donor4',
                    'sampleC', 'sampleD', 'sampleE', 'sampleF'],
-            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'measure': [32, 51, 3, 19, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
         })
@@ -331,8 +331,8 @@ class TestGroupTimepoints(TestBase):
         })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3', 'sampleB'],
-            'measure': [32, 51, 19, 3, 37],
+            'id': ['donor1', 'donor2', 'donor3', 'donor4', 'sampleB'],
+            'measure': [32, 51, 3, 19, 37],
             'group': ['reference', 'reference', 'reference', 'reference', 'control1']
         })
 
@@ -354,8 +354,8 @@ class TestGroupTimepoints(TestBase):
         })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3'],
-            'measure': [32, 51, 19, 3],
+            'id': ['donor1', 'donor2', 'donor3', 'donor4'],
+            'measure': [32, 51, 3, 19],
             'group': ['reference', 'reference', 'reference', 'reference']
         })
 
@@ -404,9 +404,9 @@ class TestGroupTimepoints(TestBase):
         })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+            'id': ['donor1', 'donor2', 'donor3', 'donor4',
                    'sampleC', 'sampleD', 'sampleE', 'sampleF'],
-            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'measure': [32, 51, 3, 19, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
         })
