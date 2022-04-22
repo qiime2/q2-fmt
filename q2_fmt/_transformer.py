@@ -38,8 +38,6 @@ def _4(df: AnnotatedTSVDirFmt) -> pd.DataFrame:
     metadata = df.metadata.view(pd.DataFrame)
     metadata = metadata.set_index('column')
 
-    print(data)
-    print(metadata)
     for column in data.columns:
         # not sure what the semantics are, so do our best
         data[column].attrs.update(metadata.loc[column].to_dict())
@@ -52,14 +50,9 @@ def _5(obj: pd.DataFrame) -> AnnotatedTSVDirFmt:
     for col in obj.columns:
         metadata.append(obj[col].attrs)
 
-    print(obj)
-
     metadata_df = pd.DataFrame(metadata, index=obj.columns.copy())
     metadata_df.index.name = 'column'
     metadata_df = metadata_df.reset_index()
-
-    print(obj)
-    print(metadata_df)
 
     dir_fmt = AnnotatedTSVDirFmt()
 

@@ -13,12 +13,12 @@ from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
-from q2_fmt import RecordTSVFileFormat, ModelTests
+from q2_fmt import RecordTSVFileFormat
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
 from q2_fmt._format import AnnotatedTSVDirFmt
 from q2_fmt._visualizer import hello_world
-from q2_fmt._type import GroupDist, Matched, Independent, Ordered, Unordered
+from q2_fmt._type import GroupDist, Matched, Independent, Ordered, Unordered, StatsTable, Pairwise
 import q2_fmt._examples as ex
 
 plugin = Plugin(name='fmt',
@@ -29,10 +29,10 @@ plugin = Plugin(name='fmt',
                 short_description='Plugin for analyzing FMT data.')
 
 plugin.register_formats(RecordTSVFileFormat, AnnotatedTSVDirFmt)
-plugin.register_semantic_types(ModelTests, GroupDist, Matched, Independent,
+plugin.register_semantic_types(StatsTable, Pairwise, GroupDist, Matched, Independent,
                                Ordered, Unordered)
 plugin.register_semantic_type_to_format(
-    GroupDist[Ordered | Unordered, Matched | Independent], AnnotatedTSVDirFmt)
+    GroupDist[Ordered | Unordered, Matched | Independent] | StatsTable[Pairwise], AnnotatedTSVDirFmt)
 
 T_subject, T_dependence = TypeMap({
     Bool % Choices(False): Independent,
@@ -83,7 +83,7 @@ plugin.methods.register_function(
     parameters={'hypothesis': Str % Choices('reference', 'all-pairwise'),
                 'reference_group': Str,
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
-    outputs=[('stats', ModelTests)],
+    outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
                       ' Either `reference` or `all-pairwise` must be selected.',
@@ -106,7 +106,7 @@ plugin.methods.register_function(
     parameters={'hypothesis': Str % Choices('baseline', 'consecutive'),
                 'baseline_group': Str,
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
-    outputs=[('stats', ModelTests)],
+    outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
                       ' Either `baseline` or `consecutive` must be selected.',

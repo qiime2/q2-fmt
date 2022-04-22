@@ -45,6 +45,9 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
         row['B:group'] = comp_b
         table.append(row)
 
+    if not table:
+        raise ValueError('Not enough groups to compare.')
+
     df = pd.DataFrame(table)
 
     df['q-value'] = _fdr_correction(df['p-value'])
@@ -121,6 +124,9 @@ def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
         row['B:group'] = comp_b
         table.append(row)
 
+    if not table:
+        raise ValueError('Not enough groups to compare.')
+
     df = pd.DataFrame(table)
 
     df['q-value'] = _fdr_correction(df['p-value'])
@@ -147,11 +153,11 @@ def _comp_consecutive(distribution):
 
 
 def _compare_wilcoxon(group_a, group_b, p_val_approx) -> dict:
-    if p_value_approx == 'asymptotic':
+    if p_val_approx == 'asymptotic':
         # wilcoxon differs from mannwhitneyu in arg value, but does the same
         # test using a normal dist instead of the permutational dist so
         # normalize the naming in Q2
-        p_value_approx = 'approx'
+        p_val_approx = 'approx'
     comp = pd.merge(group_a.to_frame(), group_b.to_frame(), how='outer',
                     left_index=True, right_index=True)
     filtered = comp.dropna()

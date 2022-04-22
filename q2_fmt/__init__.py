@@ -8,11 +8,11 @@
 
 from ._version import get_versions
 from ._format import RecordTSVFileFormat, AnnotatedTSVDirFmt
-from ._type import (ModelTests, GroupDist,
+from ._type import (StatsTable, Pairwise, GroupDist,
                     Ordered, Unordered, Matched, Independent)
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['RecordTSVFileFormat', 'AnnotatedTSVDirFmt', 'ModelTests',
+__all__ = ['RecordTSVFileFormat', 'AnnotatedTSVDirFmt', 'StatsTable', 'Pairwise',
            'GroupDist', 'Ordered', 'Unordered', 'Matched', 'Independent']

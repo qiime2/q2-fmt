@@ -183,7 +183,8 @@ class TestGroupTimepoints(TestBase):
                              control_column='control')
 
     def test_beta_dists_with_invalid_ref_column(self):
-        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+        with self.assertRaisesRegex(KeyError, 'References included in the metadata are missing'
+                                    ' from the diversity measure.*foo.*bar.*baz'):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
                              time_column='days_post_transplant',
@@ -376,7 +377,8 @@ class TestGroupTimepoints(TestBase):
                              control_column='control')
 
     def test_alpha_dists_with_invalid_ref_column(self):
-        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+        with self.assertRaisesRegex(KeyError, 'References included in the metadata are missing'
+                                    ' from the diversity measure.*foo.*bar.*baz'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
                              time_column='days_post_transplant',
