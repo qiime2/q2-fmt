@@ -125,7 +125,7 @@ plugin.methods.register_function(
 # Dummy Visualizer
 plugin.visualizers.register_function(
     function=plot_rainclouds,
-    inputs={},
+    inputs={'data': GroupDist[Ordered, Matched]},
     parameters={},
     input_descriptions={},
     parameter_descriptions={},

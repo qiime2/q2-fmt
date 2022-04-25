@@ -6,10 +6,14 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from dataclasses import Field
 import os
 import pkg_resources
 import jinja2
 import json
+import pandas as pd
+
+from q2_fmt import GroupDist
 
 def hello_world(output_dir: str):
     with open(os.path.join(output_dir, 'index.html'), 'w') as fh:
@@ -17,17 +21,18 @@ def hello_world(output_dir: str):
 
     template = pkg_resources.resource_filename('q2_fmt', os.path.join('assets', 'index.html'))
 
-def plot_rainclouds(output_dir: str):
+def plot_rainclouds(output_dir: str, data: pd.DataFrame):
     J_ENV = jinja2.Environment(
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
 
     index = J_ENV.get_template('index.html')
+    data = json.loads(data.to_json(orient='records'))
 
     with open(os.path.join(output_dir, 'index.html'), 'w') as fh:
-        fh.write(index.render(spec=json.dumps(_spec_())))
+        fh.write(index.render(spec=json.dumps(_spec_(data))))
 
-def _spec_():
+def _spec_(data):
     return {
     "$schema": "https://vega.github.io/schema/vega/v5.json",
     "description": "A basic bar chart example, with value labels shown upon mouse hover.",
@@ -38,15 +43,14 @@ def _spec_():
     "data": [
         {
         "name": "table",
-        "values": [
-            {"category": "A", "amount": 28},
-            {"category": "B", "amount": 55},
-            {"category": "C", "amount": 43},
-            {"category": "D", "amount": 91},
-            {"category": "E", "amount": 81},
-            {"category": "F", "amount": 53},
-            {"category": "G", "amount": 19},
-            {"category": "H", "amount": 87}
+        "values": data
+        },
+        {
+        "name": "median",
+        "source": "table",
+        "transform": [
+            {"type": "aggregate", "groupby": ["subject"],
+             "fields": ["measure"], "ops": ["median"]},
         ]
         }
     ],
@@ -66,14 +70,14 @@ def _spec_():
         {
         "name": "xscale",
         "type": "band",
-        "domain": {"data": "table", "field": "category"},
+        "domain": {"data": "table", "field": "subject"},
         "range": "width",
         "padding": 0.05,
         "round": True
         },
         {
         "name": "yscale",
-        "domain": {"data": "table", "field": "amount"},
+        "domain": {"data": "table", "field": "measure"},
         "nice": True,
         "range": "height"
         }
@@ -87,19 +91,19 @@ def _spec_():
     "marks": [
         {
         "type": "rect",
-        "from": {"data":"table"},
+        "from": {"data":"median"},
         "encode": {
             "enter": {
-            "x": {"scale": "xscale", "field": "category"},
+            "x": {"scale": "xscale", "field": "subject"},
             "width": {"scale": "xscale", "band": 1},
-            "y": {"scale": "yscale", "field": "amount"},
+            "y": {"scale": "yscale", "field": "median_measure"},
             "y2": {"scale": "yscale", "value": 0}
             },
             "update": {
             "fill": {"value": "steelblue"}
             },
             "hover": {
-            "fill": {"value": "red"}
+            "fill": {"value": "magenta"}
             }
         }
         },
@@ -112,9 +116,9 @@ def _spec_():
             "fill": {"value": "#333"}
             },
             "update": {
-            "x": {"scale": "xscale", "signal": "tooltip.category", "band": 0.5},
-            "y": {"scale": "yscale", "signal": "tooltip.amount", "offset": -2},
-            "text": {"signal": "tooltip.amount"},
+            "x": {"scale": "xscale", "signal": "tooltip.subject", "band": 0.5},
+            "y": {"scale": "yscale", "signal": "tooltip.median_measure", "offset": -2},
+            "text": {"signal": "tooltip.median_measure"},
             "fillOpacity": [
                 {"test": "datum === tooltip", "value": 0},
                 {"value": 1}
