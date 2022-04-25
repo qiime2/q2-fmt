@@ -12,6 +12,12 @@ from q2_diversity import filter_distance_matrix
 
 import qiime2
 
+#TODO: add in control comparison hypothesis
+# Questions from Greg's study
+# Increase in alpha div from baseline
+# Difference in alpha at a single timepoint (week vs. control)
+# Beta: is distance to donor significantly *lower* (not just different) than it was at baseline (week 0, pre-FMT)
+# Beta[donor, subject]_w < Beta[donor, subject]_0
 
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,

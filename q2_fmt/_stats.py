@@ -50,6 +50,7 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
 
     df = pd.DataFrame(table)
 
+    #TODO: actual stats for q-val
     df['q-value'] = _fdr_correction(df['p-value'])
 
     df = df[['A:group', 'A:n', 'A:measure', 'B:group', 'B:n', 'B:measure',
@@ -129,6 +130,7 @@ def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
 
     df = pd.DataFrame(table)
 
+    #TODO: actual stats for q-val
     df['q-value'] = _fdr_correction(df['p-value'])
 
     df = df[['A:group', 'A:n', 'A:measure', 'B:group', 'B:n', 'B:measure',
