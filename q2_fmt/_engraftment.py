@@ -6,11 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from curses import meta
-from numpy import where
 import pandas as pd
 import itertools
-from q2_diversity import filter_distance_matrix
 
 import qiime2
 
@@ -148,10 +145,13 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
     used_references = reference_col[~time_col.isna()]
 
     if used_references.isna().any():
-        nan_references = used_references.index[used_references.isna()]
-        raise KeyError('Missing references for the associated sample data. Please make sure'
-                       ' that all samples with a timepoint value have an associated reference.'
-                       ' IDs where missing references were found: %s' % (tuple(nan_references),))
+        if filter_missing_references:
+            used_references = used_references.dropna()
+        else:
+            nan_references = used_references.index[used_references.isna()]
+            raise KeyError('Missing references for the associated sample data. Please make sure'
+                        ' that all samples with a timepoint value have an associated reference.'
+                        ' IDs where missing references were found: %s' % (tuple(nan_references),))
 
     available_references = (used_references.isin(ids_with_data))
     if not available_references.all():
