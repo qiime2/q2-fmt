@@ -14,8 +14,8 @@ from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
 
-class TestGroupTimepoints(TestPluginBase):
-    package = 'q2_fmt.tests'
+class TestBase(TestPluginBase):
+    package='q2_fmt.tests'
 
     def setUp(self):
         super().setUp()
@@ -26,13 +26,61 @@ class TestGroupTimepoints(TestPluginBase):
         self.dm = DistanceMatrix.read(self.get_data_path('dist_matrix_donors.tsv')).to_series()
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
+class ErrorMixins:
+    def test_with_time_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'time_column.*foo.*metadata'):
+            group_timepoints(diversity_measure=self.div,
+                             metadata=self.md,
+                             time_column='foo',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
+    def test_with_reference_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'reference_column.*foo.*metadata'):
+            group_timepoints(diversity_measure=self.div,
+                             metadata=self.md,
+                             time_column='days_post_transplant',
+                             reference_column='foo',
+                             control_column='control')
+
+    def test_with_control_column_input_not_in_metadata(self):
+        with self.assertRaisesRegex(ValueError, 'control_column.*foo.*metadata'):
+            group_timepoints(diversity_measure=self.div,
+                             metadata=self.md,
+                             time_column='days_post_transplant',
+                             reference_column='relevant_donor',
+                             control_column='foo')
+
+    def test_with_non_numeric_time_column(self):
+        with self.assertRaisesRegex(ValueError, 'time_column.*categorical.*numeric'):
+            group_timepoints(diversity_measure=self.div,
+                             metadata=self.md,
+                             time_column='non_numeric_time_column',
+                             reference_column='relevant_donor',
+                             control_column='control')
+
+class TestAlphaErrors(TestBase, ErrorMixins):
+    def setUp(self):
+        super().setUp()
+
+        self.div = self.alpha
+        self.md = self.md_alpha
+
+class TestBetaErrors(TestBase, ErrorMixins):
+    def setUp(self):
+        super().setUp()
+
+        self.div = self.dm
+        self.md = self.md_beta
+
+class TestGroupTimepoints(TestBase):
     # Beta Diversity (Distance Matrix) Test Cases
     def test_beta_dists_with_donors_and_controls(self):
         exp_time_df = pd.DataFrame({
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0]
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
@@ -41,7 +89,7 @@ class TestGroupTimepoints(TestPluginBase):
             'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
             'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
             'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
@@ -58,7 +106,7 @@ class TestGroupTimepoints(TestPluginBase):
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0],
             'subject': ['subject1', 'subject1', 'subject1', 'subject2', 'subject2']
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
@@ -67,7 +115,7 @@ class TestGroupTimepoints(TestPluginBase):
             'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
             'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
             'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
@@ -108,7 +156,7 @@ class TestGroupTimepoints(TestPluginBase):
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0]
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3'],
@@ -116,7 +164,7 @@ class TestGroupTimepoints(TestPluginBase):
             'group': ['reference', 'reference', 'reference'],
             'A': ['donor1', 'donor1', 'donor2'],
             'B': ['donor2', 'donor3', 'donor3']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
@@ -134,40 +182,9 @@ class TestGroupTimepoints(TestPluginBase):
                              time_column='days_post_transplant',
                              control_column='control')
 
-    def test_beta_dists_with_non_numeric_time_column(self):
-        with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='non_numeric_time_column',
-                             reference_column='relevant_donor',
-                             control_column='control')
-
-    def test_beta_dists_with_time_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'time_column provided not present within the metadata'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='foo',
-                             reference_column='relevant_donor',
-                             control_column='control')
-
-    def test_beta_dists_with_reference_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'reference_column provided not present within the metadata'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='foo',
-                             control_column='control')
-
-    def test_beta_dists_with_control_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'control_column provided not present within the metadata'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='foo')
-
     def test_beta_dists_with_invalid_ref_column(self):
-        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+        with self.assertRaisesRegex(KeyError, 'References included in the metadata are missing'
+                                    ' from the diversity measure.*foo.*bar.*baz'):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
                              time_column='days_post_transplant',
@@ -191,7 +208,7 @@ class TestGroupTimepoints(TestPluginBase):
             'id': ['sampleA', 'sampleB', 'sampleC', 'sampleD', 'sampleE'],
             'measure': [0.45, 0.40, 0.28, 0.78, 0.66],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0]
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3',
@@ -200,7 +217,7 @@ class TestGroupTimepoints(TestPluginBase):
             'group': ['reference', 'reference', 'reference', 'control1', 'control1', 'control1'],
             'A': ['donor1', 'donor1', 'donor2', 'sampleB', 'sampleB', 'sampleC'],
             'B': ['donor2', 'donor3', 'donor3', 'sampleC', 'sampleD', 'sampleD']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=extra_md,
@@ -228,15 +245,15 @@ class TestGroupTimepoints(TestPluginBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+            'id': ['donor1', 'donor2', 'donor3', 'donor4',
                    'sampleC', 'sampleD', 'sampleE', 'sampleF'],
-            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'measure': [32, 51, 3, 19, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
@@ -255,15 +272,15 @@ class TestGroupTimepoints(TestPluginBase):
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
             'subject': ['subject1', 'subject1', 'subject2',
                         'subject1', 'subject2', 'subject2', 'subject1']
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+            'id': ['donor1', 'donor2', 'donor3', 'donor4',
                    'sampleC', 'sampleD', 'sampleE', 'sampleF'],
-            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'measure': [32, 51, 3, 19, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
@@ -281,13 +298,13 @@ class TestGroupTimepoints(TestPluginBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
             'id': ['donor1', 'sampleC', 'sampleD', 'sampleE', 'sampleF'],
             'measure': [32, 15, 6, 44, 17],
             'group': ['reference', 'control1', 'control1', 'control2', 'control2']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
@@ -312,13 +329,13 @@ class TestGroupTimepoints(TestPluginBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0]
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3', 'sampleB'],
-            'measure': [32, 51, 19, 3, 37],
+            'id': ['donor1', 'donor2', 'donor3', 'donor4', 'sampleB'],
+            'measure': [32, 51, 3, 19, 37],
             'group': ['reference', 'reference', 'reference', 'reference', 'control1']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
@@ -335,13 +352,13 @@ class TestGroupTimepoints(TestPluginBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3'],
-            'measure': [32, 51, 19, 3],
+            'id': ['donor1', 'donor2', 'donor3', 'donor4'],
+            'measure': [32, 51, 3, 19],
             'group': ['reference', 'reference', 'reference', 'reference']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
@@ -359,40 +376,9 @@ class TestGroupTimepoints(TestPluginBase):
                              time_column='days_post_transplant',
                              control_column='control')
 
-    def test_alpha_dists_with_non_numeric_time_column(self):
-        with self.assertRaisesRegex(TypeError, 'Non-numeric characters detected in time_column'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='non_numeric_time_column',
-                             reference_column='relevant_donor',
-                             control_column='control')
-
-    def test_alpha_dists_with_time_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'time_column provided not present within the metadata'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='foo',
-                             reference_column='relevant_donor',
-                             control_column='control')
-
-    def test_alpha_dists_with_reference_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'reference_column provided not present within the metadata'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             reference_column='foo',
-                             control_column='control')
-
-    def test_alpha_dists_with_control_column_input_not_in_metadata(self):
-        with self.assertRaisesRegex(ValueError, 'control_column provided not present within the metadata'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='foo')
-
     def test_alpha_dists_with_invalid_ref_column(self):
-        with self.assertRaisesRegex(KeyError, 'Pairwise comparisons were unsuccessful'):
+        with self.assertRaisesRegex(KeyError, 'References included in the metadata are missing'
+                                    ' from the diversity measure.*foo.*bar.*baz'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
                              time_column='days_post_transplant',
@@ -417,15 +403,15 @@ class TestGroupTimepoints(TestPluginBase):
                    'sampleE', 'sampleF', 'sampleG'],
             'measure': [24, 37, 15, 6, 44, 17, 29],
             'group': [7.0, 7.0, 9.0, 11.0, 11.0, 9.0, 7.0],
-        }).set_index('id')
+        })
 
         exp_ref_df = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor4', 'donor3',
+            'id': ['donor1', 'donor2', 'donor3', 'donor4',
                    'sampleC', 'sampleD', 'sampleE', 'sampleF'],
-            'measure': [32, 51, 19, 3, 15, 6, 44, 17],
+            'measure': [32, 51, 3, 19, 15, 6, 44, 17],
             'group': ['reference', 'reference', 'reference', 'reference',
                       'control1', 'control1', 'control2', 'control2']
-        }).set_index('id')
+        })
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=extra_md,
@@ -445,3 +431,6 @@ class TestGroupTimepoints(TestPluginBase):
                              time_column='days_post_transplant',
                              reference_column='relevant_donor',
                              control_column='control')
+
+    def test_examples(self):
+        self.execute_examples()

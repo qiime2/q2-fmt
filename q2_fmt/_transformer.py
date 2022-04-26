@@ -6,51 +6,24 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from os import sep
-
 import pandas as pd
 
-import qiime2
 import skbio
 from q2_types.distance_matrix import LSMatFormat
 from q2_fmt.plugin_setup import plugin
-from . import TSVFileFormat
+from . import RecordTSVFileFormat, AnnotatedTSVDirFmt
 
-def _tsv_format_to_dataframe(filepath, has_header=None):
-    """Read a TSV file into a dataframe.
 
-    Parameters
-    ----------
-    filepath : str
-        The TSV file to be read.
-    has_header : bool, optional
-        If `None`, autodetect the header: only `TBD - PLACEHOLDER` is
-        recognized, optionally followed by other columns. If `True`, the file
-        must have the expected header described above otherwise an error is
-        raised. If `False`, the file is read without assuming a header.
-
-    Returns
-    -------
-    pd.DataFrame
-        Dataframe containing parsed contents of the TSV file.
-
-    """
-    df = pd.read_csv(filepath, sep='\t', skip_blank_lines=True,
-                     header=None, dtype=object)
-
-    df.set_index(df.columns[0], drop=True, append=False, inplace=True)
-
+@plugin.register_transformer
+def _1(ff: RecordTSVFileFormat) -> pd.DataFrame:
+    df = pd.read_csv(str(ff), sep='\t', skip_blank_lines=True, header=0)
     return df
 
-@plugin.register_transformer
-def _1(ff: TSVFileFormat) -> pd.DataFrame:
-    return _tsv_format_to_dataframe(str(ff), has_header=None)
-
 
 @plugin.register_transformer
-def _2(obj: pd.DataFrame) -> TSVFileFormat:
-    ff = TSVFileFormat()
-    obj.to_csv(str(ff), sep='\t')
+def _2(obj: pd.DataFrame) -> RecordTSVFileFormat:
+    ff = RecordTSVFileFormat()
+    obj.to_csv(str(ff), sep='\t', index=False)
     return ff
 
 
@@ -58,3 +31,32 @@ def _2(obj: pd.DataFrame) -> TSVFileFormat:
 def _3(ff: LSMatFormat) -> pd.Series:
     dm = skbio.DistanceMatrix.read(str(ff), format='lsmat', verify=False)
     return dm.to_series()
+
+@plugin.register_transformer
+def _4(df: AnnotatedTSVDirFmt) -> pd.DataFrame:
+    data = df.data.view(pd.DataFrame)
+    metadata = df.metadata.view(pd.DataFrame)
+    metadata = metadata.set_index('column')
+
+    for column in data.columns:
+        # not sure what the semantics are, so do our best
+        data[column].attrs.update(metadata.loc[column].to_dict())
+
+    return data
+
+@plugin.register_transformer
+def _5(obj: pd.DataFrame) -> AnnotatedTSVDirFmt:
+    metadata = []
+    for col in obj.columns:
+        metadata.append(obj[col].attrs)
+
+    metadata_df = pd.DataFrame(metadata, index=obj.columns.copy())
+    metadata_df.index.name = 'column'
+    metadata_df = metadata_df.reset_index()
+
+    dir_fmt = AnnotatedTSVDirFmt()
+
+    dir_fmt.data.write_data(obj, pd.DataFrame)
+    dir_fmt.metadata.write_data(metadata_df, pd.DataFrame)
+
+    return dir_fmt

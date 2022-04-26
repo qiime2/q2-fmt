@@ -7,12 +7,12 @@
 # ----------------------------------------------------------------------------
 
 from ._version import get_versions
-from ._format import TSVFileFormat
-from ._type import (ModelTests, GroupDist,
+from ._format import RecordTSVFileFormat, AnnotatedTSVDirFmt
+from ._type import (StatsTable, Pairwise, GroupDist,
                     Ordered, Unordered, Matched, Independent)
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['TSVFileFormat', 'ModelTests',
+__all__ = ['RecordTSVFileFormat', 'AnnotatedTSVDirFmt', 'StatsTable', 'Pairwise',
            'GroupDist', 'Ordered', 'Unordered', 'Matched', 'Independent']

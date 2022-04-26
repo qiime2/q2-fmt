@@ -11,13 +11,92 @@ import itertools
 
 import qiime2
 
+#TODO: add in control comparison hypothesis
+# Questions from Greg's study
+# Increase in alpha div from baseline
+# Difference in alpha at a single timepoint (week vs. control)
+# Beta: is distance to donor significantly *lower* (not just different) than it was at baseline (week 0, pre-FMT)
+# Beta[donor, subject]_w < Beta[donor, subject]_0
 
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,
         time_column: str, reference_column: str, subject_column: str = False,
-        control_column: str = None) -> (pd.DataFrame, pd.DataFrame):
+        control_column: str = None, filter_missing_references: bool = False,
+        where: str = None) -> (pd.DataFrame, pd.DataFrame):
 
-    # Data filtering
+    if isinstance(diversity_measure.index, pd.MultiIndex):
+        diversity_measure.index = _sort_multi_index(diversity_measure.index)
+
+    is_beta, used_references, time_col, subject_col, used_controls = \
+        _data_filtering(diversity_measure, metadata, time_column, reference_column,
+                        subject_column, control_column, filter_missing_references,
+                        where)
+
+    original_measure_name = diversity_measure.name
+    diversity_measure.name = 'measure'
+    diversity_measure.index.name = 'id'
+
+    ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
+                                time_col, subject_col)
+
+    id_annotation = {
+        'unit': used_references.index.name,
+        'description': '...'
+    }
+    # id, measure, group, [subject]
+    ordered_df['id'].attrs.update(id_annotation)
+    ordered_df['measure'].attrs.update({
+        'unit': ('Distance to %s' % used_references.name)
+                if is_beta else original_measure_name,
+        'description': '...'
+    })
+    ordered_df['group'].attrs.update({
+        'unit': time_col.name,
+        'description': '...'
+    })
+    if subject_col is not None:
+        ordered_df['subject'].attrs.update({
+            'unit': subject_col.name,
+            'description': '...'
+        })
+
+
+    independent_df = _independent_dists(diversity_measure, metadata,
+                                        used_references, is_beta, used_controls)
+
+    # id, measure, group, [A, B]
+    if is_beta:
+        independent_df['id'].attrs.update({
+            'unit': 'Pairwise Comparison',
+            'description': 'The pairwise comparisons within a group,'
+                           ' seperated by "..". Use column A and B for easier'
+                           ' parsing.'
+        })
+    else:
+        independent_df['id'].attrs.update(id_annotation)
+
+    independent_df['measure'].attrs.update({
+        'unit': 'distance' if is_beta else original_measure_name,
+        'description': 'Pairwise distance between A and B' if is_beta else
+                       original_measure_name
+    })
+    independent_df['group'].attrs.update({
+        'unit': used_references.name if used_controls is None else
+                '%s or %s' % (used_references.name, used_controls.name),
+        'description': '...'
+    })
+    if is_beta:
+        independent_df['A'].attrs.update(id_annotation)
+        independent_df['B'].attrs.update(id_annotation)
+
+    return ordered_df, independent_df
+
+# HELPER FUNCTION FOR DATA FILTERING
+def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
+        time_column: str, reference_column: str, subject_column: str = False,
+        control_column: str = None, filter_missing_references: bool = False,
+        where: str = None):
+
     if diversity_measure.empty:
         raise ValueError('Empty diversity measure detected.'
                          ' Please make sure your diversity measure contains data.')
@@ -32,53 +111,86 @@ def group_timepoints(
 
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
 
-    # TODO: refactor with a function that contains a single try/except for all columns
-    try:
-        time_col = metadata.get_column(time_column)
-    except ValueError:
-        raise ValueError('time_column provided not present within the metadata')
+    if where is not None:
+        metadata = metadata.filter_ids(ids_to_keep=metadata.get_ids(where=where))
 
-    if not isinstance(time_col, qiime2.NumericMetadataColumn):
-        raise TypeError('Non-numeric characters detected in time_column.')
-    else:
-        time_col = time_col.to_series()
+    def _get_series_from_col(md, col_name, param_name, expected_type=None,
+                             drop_missing_values=False):
+        try:
+            column = md.get_column(col_name)
+        except ValueError as e:
+            raise ValueError("There was an issue with the argument for %r. %s"
+                            % (param_name, e)) from e
 
-    # TODO: add a requirement for all samples that contain timepoint data to also contain donor data
-    try:
-        reference_col = metadata.get_column(reference_column)
-    except ValueError:
-        raise ValueError('reference_column provided not present within the metadata')
-    reference_col = reference_col.to_series()
+        if expected_type is not None and not isinstance(column, expected_type):
+            if type(expected_type) is tuple:
+                exp = tuple(e.type for e in expected_type)
+            else:
+                exp = expected_type.type
+
+            raise ValueError("Provided column for %r is %r, not %r."
+                            % (param_name, column.type, exp))
+
+        if drop_missing_values:
+            column = column.drop_missing_values()
+
+        return column.to_series()
+
+    time_col = _get_series_from_col(md=metadata, col_name=time_column, param_name='time_column',
+                                    expected_type=qiime2.NumericMetadataColumn)
+
+    reference_col = _get_series_from_col(md=metadata, col_name=reference_column, param_name='reference_column',
+                                         expected_type=qiime2.CategoricalMetadataColumn)
+
     used_references = reference_col[~time_col.isna()]
 
     if used_references.isna().any():
-        nan_references = used_references.index[used_references.isna()]
-        raise KeyError('Missing references for the associated sample data. Please make sure'
-                       ' that all samples with a timepoint value have an associated reference.'
-                       ' IDs where missing references were found: %s' % (tuple(nan_references),))
+        if filter_missing_references:
+            used_references = used_references.dropna()
+        else:
+            nan_references = used_references.index[used_references.isna()]
+            raise KeyError('Missing references for the associated sample data. Please make sure'
+                        ' that all samples with a timepoint value have an associated reference.'
+                        ' IDs where missing references were found: %s' % (tuple(nan_references),))
 
+    available_references = (used_references.isin(ids_with_data))
+    if not available_references.all():
+        if filter_missing_references:
+            used_references = used_references[available_references]
+        else:
+            raise KeyError('References included in the metadata are missing from the diversity measure.'
+                        ' Please make sure all references included in the metadata are also present'
+                        ' in the diversity measure. Missing references: %s'
+                        % list(used_references[~available_references].unique())
+            )
+
+    if used_references.empty:
+        raise KeyError('No references were found within the diversity metric.')
+
+    subject_col = None
     if subject_column:
-        try:
-            subject_col = metadata.get_column(subject_column)
-        except ValueError:
-            raise ValueError('subject_column provided not present within the metadata')
-        subject_col = subject_col.to_series()
+            subject_col = _get_series_from_col(md=metadata, col_name=subject_column, param_name='subject_column',
+                                               expected_type=qiime2.CategoricalMetadataColumn)
 
+    used_controls = None
     if control_column is not None:
-        try:
-            control_col = metadata.get_column(control_column)
-        except ValueError:
-            raise ValueError('control_column provided not present within the metadata')
-        control_col = control_col.to_series()
+        control_col = _get_series_from_col(md=metadata, col_name=control_column, param_name='control_column')
         used_controls = control_col[~control_col.isna()]
 
-    diversity_measure.name = 'measure'
-    diversity_measure.index.name = 'id'
+    return is_beta, used_references, time_col, subject_col, used_controls
 
-    # GroupDists[Ordered, Matched | Independent]
+# HELPER FUNCTION FOR sorting a multi-index (for dist matrix and metadata)
+def _sort_multi_index(index):
+    sorted_levels = list(map(sorted, index))
+    sorted_multi = pd.MultiIndex.from_tuples(sorted_levels)
+    return sorted_multi
+
+# HELPER FUNCTION FOR GroupDists[Ordered, Matched | Independent]
+def _ordered_dists(diversity_measure: pd.Series, is_beta, used_references, time_col, subject_col):
     if is_beta:
         idx = pd.MultiIndex.from_frame(
             used_references.to_frame().reset_index())
+        idx = _sort_multi_index(idx)
         idx.names = ['id', 'reference']
     else:
         idx = used_references.index
@@ -91,13 +203,20 @@ def group_timepoints(
         ' chosen reference column contains values that are also present in the ID column for'
         ' the associated metadata.')
 
+    if is_beta:
+        sliced_df.index = used_references.index
+        sliced_df.index.name = 'id'
+
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
-    if subject_column:
+    if subject_col is not None:
         ordinal_df['subject'] = subject_col
 
-    # GroupDists[Unordered, Independent]
-    unique_references = used_references.unique()
+    return ordinal_df.reset_index()
+
+# HELPER FUNCTION FOR GroupDists[Unordered, Independent]
+def _independent_dists(diversity_measure, metadata, used_references, is_beta, used_controls):
+    unique_references = sorted(used_references.unique())
 
     if is_beta:
         try:
@@ -109,7 +228,7 @@ def group_timepoints(
 
         ref_idx.names = ['A', 'B']
 
-        if control_column is not None:
+        if used_controls is not None:
             grouped_md = metadata.to_dataframe().loc[used_controls.index].groupby(used_controls)
             ctrl_list = list()
             for group_id, grouped_ctrls in grouped_md:
@@ -131,7 +250,7 @@ def group_timepoints(
 
     else:
         ref_idx = list(unique_references)
-        if control_column is not None:
+        if used_controls is not None:
             ctrl_series = used_controls
             ctrl_series.index.name = 'id'
 
@@ -144,7 +263,7 @@ def group_timepoints(
 
     nominal_df['group'] = 'reference'
 
-    if control_column is not None:
+    if used_controls is not None:
         ctrl_group = diversity_measure[ctrl_series.index].to_frame()
         ctrl_group['group'] = ctrl_series
         ctrl_group = ctrl_group.reset_index()
@@ -155,6 +274,4 @@ def group_timepoints(
         nominal_df['id'] = nominal_df[['A', 'B']].agg('..'.join, axis=1)
         nominal_df = nominal_df[['id', 'measure', 'group', 'A', 'B']]
 
-    nominal_df = nominal_df.set_index('id')
-
-    return ordinal_df, nominal_df
+    return nominal_df

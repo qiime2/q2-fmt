@@ -14,3 +14,6 @@ def hello_world(output_dir: str):
         fh.write('hello world')
 
     template = pkg_resources.resource_filename('q2_fmt', os.path.join('assets', 'index.html.jinja2'))
+
+def plot_rainclouds(output_dir: str):
+    pass

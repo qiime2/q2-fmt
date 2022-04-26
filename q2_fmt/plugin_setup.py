@@ -13,12 +13,13 @@ from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
-from q2_fmt import TSVFileFormat, ModelTests
+from q2_fmt import RecordTSVFileFormat
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
-from q2_fmt._format import TSVFileDirFmt
+from q2_fmt._format import AnnotatedTSVDirFmt
 from q2_fmt._visualizer import hello_world
-from q2_fmt._type import GroupDist, Matched, Independent, Ordered, Unordered
+from q2_fmt._type import GroupDist, Matched, Independent, Ordered, Unordered, StatsTable, Pairwise
+import q2_fmt._examples as ex
 
 plugin = Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -27,11 +28,11 @@ plugin = Plugin(name='fmt',
                 description='This QIIME 2 plugin supports FMT analyses.',
                 short_description='Plugin for analyzing FMT data.')
 
-plugin.register_formats(TSVFileFormat, TSVFileDirFmt)
-plugin.register_semantic_types(ModelTests, GroupDist, Matched, Independent,
+plugin.register_formats(RecordTSVFileFormat, AnnotatedTSVDirFmt)
+plugin.register_semantic_types(StatsTable, Pairwise, GroupDist, Matched, Independent,
                                Ordered, Unordered)
 plugin.register_semantic_type_to_format(
-    GroupDist[Ordered | Unordered, Matched | Independent], TSVFileDirFmt)
+    GroupDist[Ordered | Unordered, Matched | Independent] | StatsTable[Pairwise], AnnotatedTSVDirFmt)
 
 T_subject, T_dependence = TypeMap({
     Bool % Choices(False): Independent,
@@ -42,7 +43,8 @@ plugin.methods.register_function(
     function=group_timepoints,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity] },
     parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': T_subject, 'control_column': Str},
+                'reference_column': Str, 'subject_column': T_subject, 'control_column': Str,
+                'filter_missing_references': Bool, 'where': Str},
     outputs=[('timepoint_dists', GroupDist[Ordered, T_dependence]),
              ('reference_dists', GroupDist[Unordered, Independent])],
     parameter_descriptions={
@@ -55,16 +57,24 @@ plugin.methods.register_function(
                             ' for a given beta `diversity_measure`.'
                             ' For example, this may be the relevant donor sample to compare against.',
         'subject_column': 'The column within the `metadata` that contains the subject ID to be tracked against timepoints.',
+        'filter_missing_references': 'Filter out references contained within the metadata that are not present'
+                                     ' in the diversity measure. Default behavior is to raise an error.',
+        'where': '..',
     },
     output_descriptions={
         'timepoint_dists': 'The distributions for the `diversity_measure`, grouped by the selected `time_column`.'
                            ' May also contain subject IDs, if `subject_column` is provided in the `metadata`.',
         'reference_dists': 'The inter-group reference and inter-group control (when provided) distributions.'
-                           ' When `diversity_measure` is DistanceMatrix, the inter-group calculations will be all pairwise comparisons within a group.'
+                           ' When `diversity_measure` is DistanceMatrix, the inter-group calculations'
+                           ' will be all pairwise comparisons within a group.'
                            ' Otherwise, these are just the per-sample measurements of alpha-diversity.'
     },
     name='',
-    description=''
+    description='',
+    examples={
+        'group_timepoints_alpha_ind': ex.group_timepoints_alpha_independent,
+        'group_timepoints_beta': ex.group_timepoints_beta
+    }
 )
 
 plugin.methods.register_function(
@@ -72,13 +82,17 @@ plugin.methods.register_function(
     inputs={'distribution': GroupDist[Unordered | Ordered, Independent],
             'against_each': GroupDist[Unordered | Ordered, Matched | Independent]},
     parameters={'hypothesis': Str % Choices('reference', 'all-pairwise'),
-                'reference_group': Str},
-    outputs=[('stats', ModelTests)],
+                'reference_group': Str,
+                'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
+    outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
                       ' Either `reference` or `all-pairwise` must be selected.',
         'reference_group': 'If `reference` is the selected hypothesis, this is the column that will be used'
                            ' to compare all samples against.',
+        'p_val_approx': '"exact" will calculate an exact p-value for distributions,'
+                        ' "asymptotic" will use a normal distribution, and "auto" will use either "exact"'
+                        ' when one of the groups has less than 8 observations and there are no ties, otherwise "asymptotic".'
     },
     output_descriptions={
         'stats': 'The Mann-Whitney U distribution for either the `reference` or `all-pairwise` hypothesis.',
@@ -91,13 +105,16 @@ plugin.methods.register_function(
     function=wilcoxon_srt,
     inputs={'distribution': GroupDist[Ordered, Matched]},
     parameters={'hypothesis': Str % Choices('baseline', 'consecutive'),
-                'baseline_group': Str},
-    outputs=[('stats', ModelTests)],
+                'baseline_group': Str,
+                'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
+    outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
                       ' Either `baseline` or `consecutive` must be selected.',
         'baseline_group': 'If `baseline` is the selected hypothesis, this is the column that will be used'
                           ' to compare all samples against.',
+        'p_val_approx': '"exact" will calculate an exact p-value for distributions of up to 25 (inclusive) measurements,'
+                        ' "asymptotic" will use a normal distribution, and "auto" will use either "exact" or "approx" depending on size.'
     },
     output_descriptions={
         'stats': 'The Wilcoxon SRT distribution for either the `baseline` or `consecutive` hypothesis.',
