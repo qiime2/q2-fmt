@@ -6,6 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from curses import meta
+from numpy import where
 import pandas as pd
 import itertools
 from q2_diversity import filter_distance_matrix
@@ -22,14 +24,16 @@ import qiime2
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,
         time_column: str, reference_column: str, subject_column: str = False,
-        control_column: str = None, filter_missing_references: bool = False) -> (pd.DataFrame, pd.DataFrame):
+        control_column: str = None, filter_missing_references: bool = False,
+        where: str = None) -> (pd.DataFrame, pd.DataFrame):
 
     if isinstance(diversity_measure.index, pd.MultiIndex):
         diversity_measure.index = _sort_multi_index(diversity_measure.index)
 
     is_beta, used_references, time_col, subject_col, used_controls = \
         _data_filtering(diversity_measure, metadata, time_column, reference_column,
-                        subject_column, control_column, filter_missing_references)
+                        subject_column, control_column, filter_missing_references,
+                        where)
 
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
@@ -93,7 +97,8 @@ def group_timepoints(
 # HELPER FUNCTION FOR DATA FILTERING
 def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         time_column: str, reference_column: str, subject_column: str = False,
-        control_column: str = None, filter_missing_references: bool = False):
+        control_column: str = None, filter_missing_references: bool = False,
+        where: str = None):
 
     if diversity_measure.empty:
         raise ValueError('Empty diversity measure detected.'
@@ -108,6 +113,9 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         ids_with_data = diversity_measure.index
 
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
+
+    if where is not None:
+        metadata = metadata.filter_ids(ids_to_keep=metadata.get_ids(where=where))
 
     def _get_series_from_col(md, col_name, param_name, expected_type=None,
                              drop_missing_values=False):

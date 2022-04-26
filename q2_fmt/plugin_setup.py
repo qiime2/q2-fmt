@@ -44,7 +44,7 @@ plugin.methods.register_function(
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity] },
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject, 'control_column': Str,
-                'filter_missing_references': Bool},
+                'filter_missing_references': Bool, 'where': Str},
     outputs=[('timepoint_dists', GroupDist[Ordered, T_dependence]),
              ('reference_dists', GroupDist[Unordered, Independent])],
     parameter_descriptions={
@@ -59,6 +59,7 @@ plugin.methods.register_function(
         'subject_column': 'The column within the `metadata` that contains the subject ID to be tracked against timepoints.',
         'filter_missing_references': 'Filter out references contained within the metadata that are not present'
                                      ' in the diversity measure. Default behavior is to raise an error.',
+        'where': '..',
     },
     output_descriptions={
         'timepoint_dists': 'The distributions for the `diversity_measure`, grouped by the selected `time_column`.'
