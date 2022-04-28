@@ -55,6 +55,28 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
     df = df[['A:group', 'A:n', 'A:measure', 'B:group', 'B:n', 'B:measure',
              'n', 'test-statistic', 'p-value', 'q-value']]
 
+    df['A:group'].attrs.update(dists[idx_a]['group'].attrs)
+    df['B:group'].attrs.update(dists[idx_b]['group'].attrs)
+    n = {'unit': 'count', 'description': '...'}
+    df['A:n'].attrs.update(n)
+    df['B:n'].attrs.update(n)
+    measure = {
+        'unit': 'Median ' + distribution['measure'].attrs['unit'],
+        'description': '...'
+    }
+    df['A:measure'].attrs.update(measure)
+    df['B:measure'].attrs.update(measure)
+    df['n'].attrs.update(dict(unit='count', description='...'))
+    df['test-statistic'].attrs.update(dict(unit='Mann-Whitney U',
+                                           description='...'))
+    pval = 'two-sided'
+    if p_val_approx != 'auto':
+        pval += ', ' + p_val_approx
+    df['p-value'].attrs.update(dict(unit=pval, description='...'))
+    df['q-value'].attrs.update(
+        dict(unit='Benjamini–Hochberg', description='...'))
+
+
     return df
 
 
@@ -133,6 +155,27 @@ def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
 
     df = df[['A:group', 'A:n', 'A:measure', 'B:group', 'B:n', 'B:measure',
              'n', 'test-statistic', 'p-value', 'q-value']]
+
+    df['A:group'].attrs.update(distribution['group'].attrs)
+    df['B:group'].attrs.update(distribution['group'].attrs)
+    n = {'unit': 'count', 'description': '...'}
+    df['A:n'].attrs.update(n)
+    df['B:n'].attrs.update(n)
+    measure = {
+        'unit': 'Median ' + distribution['measure'].attrs['unit'],
+        'description': '...'
+    }
+    df['A:measure'].attrs.update(measure)
+    df['B:measure'].attrs.update(measure)
+    df['n'].attrs.update(dict(unit='count', description='...'))
+    df['test-statistic'].attrs.update(dict(unit='Wilcoxon Signed Rank',
+                                           description='...'))
+    pval = 'two-sided'
+    if p_val_approx != 'auto':
+        pval += ', ' + p_val_approx
+    df['p-value'].attrs.update(dict(unit=pval, description='...'))
+    df['q-value'].attrs.update(
+        dict(unit='Benjamini–Hochberg', description='...'))
 
     return df
 
