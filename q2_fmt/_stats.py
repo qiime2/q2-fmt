@@ -15,9 +15,9 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
                    reference_group: str=None,
                    against_each: pd.DataFrame=None,
                    p_val_approx: str='auto') -> pd.DataFrame:
-    # starting off with input dist
+
     dists = [distribution]
-    # if comparing against secondary DF
+
     if against_each is not None:
         dists.append(against_each)
 
@@ -50,7 +50,6 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
 
     df = pd.DataFrame(table)
 
-    #TODO: actual stats for q-val
     df['q-value'] = _fdr_correction(df['p-value'])
 
     df = df[['A:group', 'A:n', 'A:measure', 'B:group', 'B:n', 'B:measure',
@@ -130,7 +129,6 @@ def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
 
     df = pd.DataFrame(table)
 
-    #TODO: actual stats for q-val
     df['q-value'] = _fdr_correction(df['p-value'])
 
     df = df[['A:group', 'A:n', 'A:measure', 'B:group', 'B:n', 'B:measure',
@@ -181,10 +179,12 @@ def _compare_wilcoxon(group_a, group_b, p_val_approx) -> dict:
 
     return results
 
+def _fdr_correction(p_vals):
+    ranked_p_values = scipy.stats.rankdata(p_vals)
+    fdr = p_vals * len(p_vals) / ranked_p_values
+    fdr[fdr > 1] = 1
 
-def _fdr_correction(series):
-    return series
-
+    return fdr
 
 def _get_reference_from_column(series, reference_value, param_name):
     if reference_value is None:

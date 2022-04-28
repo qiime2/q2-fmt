@@ -18,6 +18,36 @@ import qiime2
 # Beta: is distance to donor significantly *lower* (not just different) than it was at baseline (week 0, pre-FMT)
 # Beta[donor, subject]_w < Beta[donor, subject]_0
 
+def engraftment(
+    ctx, diversity_measure, metadata, hypothesis, time_column,
+    reference_column, subject_column, control_column=None,
+    filter_missing_references=False, where=None, against_group=None,
+    p_val_approx='auto'):
+
+    raincloud_plot = ctx.get_action('fmt', 'plot_rainclouds')
+
+    results = []
+
+    time_dist, ref_dist = group_timepoints(diversity_measure, metadata,
+    time_column, reference_column, subject_column, control_column,
+    filter_missing_references, where)
+
+    if hypothesis == 'reference' or 'all-pairwise':
+        mann_whitney_u = ctx.get_action('fmt', 'mann_whitney')
+        stats = mann_whitney_u(distribution=ref_dist, hypothesis=hypothesis,
+                               reference_group=against_group,
+                               against_each=ref_dist, p_val_approx=p_val_approx)
+
+    else:
+        wilcoxon_srt = ctx.get_action('fmt', 'wilcoxon')
+        stats = wilcoxon_srt(distribution=time_dist, hypothesis=hypothesis,
+                             baseline_group=against_group, p_val_approx=p_val_approx)
+
+    results += stats
+    results += raincloud_plot(data=time_dist, stats=stats[0])
+
+    return tuple(results)
+
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,
         time_column: str, reference_column: str, subject_column: str = False,

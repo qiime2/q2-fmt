@@ -13,6 +13,7 @@ from qiime2.plugin.testing import TestPluginBase
 from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
+from q2_fmt._stats import wilcoxon_srt, mann_whitney_u
 
 class TestBase(TestPluginBase):
     package='q2_fmt.tests'
@@ -434,3 +435,25 @@ class TestGroupTimepoints(TestBase):
 
     def test_examples(self):
         self.execute_examples()
+
+class TestStats(TestBase):
+    pass
+    # Wilcoxon SRT test cases
+    # def test_wilcoxon_with_faith_pd_baseline0_where_true(self):
+    #     exp_stats_data = pd.DataFrame({
+    #         'A:group': [0, 0, 0, 0],
+    #         'A:n': [18, 18, 18, 18],
+    #         'A:measure': [9.54973486, 9.54973486, 9.54973486, 9.54973486],
+    #         'B:group': [3, 10, 18, 100],
+    #         'B:n': [17, 18, 18, 16],
+    #         'B:measure': [9.592979726, 10.9817719, 11.39392352, 12.97286672],
+    #         'n': [17, 18, 18, 16],
+    #         'test-statistic': [70, 20, 4, 5],
+    #         'p-value': [0.758312374, 0.004337022, 0.000386178, 0.001123379],
+    #         'q-value': [0.758312374, 0.005782696, 0.00154471, 0.002246758]
+    #     })
+
+    #     stats_data = wilcoxon_srt
+
+    #     pd.testing.assert_frame_equal(stats_data, exp_stats_data)
+    # Mann-Whitney U test cases
