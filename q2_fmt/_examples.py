@@ -33,8 +33,8 @@ def beta_div_factory():
         'DistanceMatrix', _get_data_from_tests('dist_matrix_donors.tsv'))
 
 def faithpd_timedist_factory():
-    return qiime2.Artifact.load(
-        _get_data_from_tests('faithpd_timedist.qza')
+    return qiime2.Artifact.import_data(
+        'GroupDist[Ordered, Matched]', _get_data_from_tests('faithpd_timedist.tsv')
     )
 
 def group_timepoints_alpha_independent(use):
@@ -98,4 +98,4 @@ def wilcoxon_baseline0(use):
         )
     )
 
-    # stats_table.assert_output_type('StatsTable[Pairwise]')
+    stats_table.assert_output_type('StatsTable[Pairwise]')
