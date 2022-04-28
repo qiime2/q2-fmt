@@ -10,8 +10,6 @@ import pandas as pd
 import itertools
 
 import qiime2
-from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
-from q2_fmt._visualizer import plot_rainclouds
 
 #TODO: add in control comparison hypothesis
 # Questions from Greg's study
@@ -22,9 +20,9 @@ from q2_fmt._visualizer import plot_rainclouds
 
 def engraftment(
     ctx, diversity_measure, metadata, hypothesis, time_column,
-    reference_column, subject_column=False, control_column=None,
-    filter_missing_references=False, where=None, baseline_group=None,
-    reference_group=None, against_each=None, p_val_approx='auto'):
+    reference_column, subject_column, control_column=None,
+    filter_missing_references=False, where=None, against_group=None,
+    p_val_approx='auto'):
 
     raincloud_plot = ctx.get_action('fmt', 'plot_rainclouds')
 
@@ -37,16 +35,16 @@ def engraftment(
     if hypothesis == 'reference' or 'all-pairwise':
         mann_whitney_u = ctx.get_action('fmt', 'mann_whitney')
         stats = mann_whitney_u(distribution=ref_dist, hypothesis=hypothesis,
-                               reference_group=reference_group,
-                               against_each=against_each, p_val_approx=p_val_approx)
+                               reference_group=against_group,
+                               against_each=ref_dist, p_val_approx=p_val_approx)
 
     else:
         wilcoxon_srt = ctx.get_action('fmt', 'wilcoxon')
         stats = wilcoxon_srt(distribution=time_dist, hypothesis=hypothesis,
-                             baseline_group=baseline_group, p_val_approx=p_val_approx)
+                             baseline_group=against_group, p_val_approx=p_val_approx)
 
     results += stats
-    results += raincloud_plot(data=stats)
+    results += raincloud_plot(data=time_dist, stats=stats[0])
 
     return tuple(results)
 

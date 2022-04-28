@@ -7,9 +7,8 @@
 # ----------------------------------------------------------------------------
 
 import importlib
-from qiime2 import Visualization
 
-from qiime2.plugin import Str, Plugin, Metadata, TypeMap, Bool, Choices
+from qiime2.plugin import Str, Plugin, Metadata, TypeMap, Bool, Choices, Visualization
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
@@ -42,15 +41,13 @@ T_subject, T_dependence = TypeMap({
 
 plugin.pipelines.register_function(
     function=q2_fmt.engraftment,
-    inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity],
-            'against_each': GroupDist[Unordered | Ordered, Matched | Independent]},
+    inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata,
                 'hypothesis': Str % Choices('reference', 'all-pairwise',
                                             'baseline', 'consecutive'),
                 'time_column': Str, 'reference_column': Str,
                 'subject_column': T_subject, 'control_column': Str,
-                'filter_missing_references': Bool, 'where': Str,
-                'baseline_group': Str, 'reference_group': Str,
+                'filter_missing_references': Bool, 'where': Str, 'against_group': Str,
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[
         ('stats', StatsTable[Pairwise]),
@@ -58,7 +55,6 @@ plugin.pipelines.register_function(
     ],
     input_descriptions= {
         'diversity_measure': '',
-        'against_each': '',
     },
     parameter_descriptions={
         'metadata': 'The sample metadata.',
@@ -75,10 +71,8 @@ plugin.pipelines.register_function(
         'filter_missing_references': 'Filter out references contained within the metadata that are not present'
                                      ' in the diversity measure. Default behavior is to raise an error.',
         'where': '..',
-        'baseline_group': 'If `baseline` is the selected hypothesis, this is the column that will be used'
+        'against_group': 'Based on the selected hypothesis, this is the column that will be used'
                           ' to compare all samples against.',
-        'reference_group': 'If `reference` is the selected hypothesis, this is the column that will be used'
-                           ' to compare all samples against.',
         'p_val_approx': '"exact" will calculate an exact p-value for distributions,'
                         ' "asymptotic" will use a normal distribution, and "auto" will use either "exact"'
                         ' when one of the groups has less than 8 observations and there are no ties, otherwise "asymptotic".'

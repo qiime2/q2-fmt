@@ -6,14 +6,11 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from dataclasses import Field
 import os
 import pkg_resources
 import jinja2
 import json
 import pandas as pd
-
-from q2_fmt import GroupDist
 
 
 def plot_rainclouds(output_dir: str, data: pd.DataFrame):
