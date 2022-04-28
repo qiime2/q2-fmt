@@ -20,36 +20,35 @@ from q2_fmt._visualizer import plot_rainclouds
 # Beta: is distance to donor significantly *lower* (not just different) than it was at baseline (week 0, pre-FMT)
 # Beta[donor, subject]_w < Beta[donor, subject]_0
 
-
-# takes the same inputs as group_timepoints and then runs the corresponding outputs
-# (either time dist or ref dist) through either wilcoxon or mann_whitney and then
-# through plot_rainclouds - final output includes stats.qza and raincloud_plot.qzv
 def engraftment(
-    diversity_measure: pd.Series, metadata: qiime2.Metadata,
-    hypothesis: str, time_column: str, reference_column: str,
-    subject_column: str = False, control_column: str = None,
-    filter_missing_references: bool = False, where: str = None,
-    baseline_group: str=None, reference_group: str=None,
-    against_each: pd.DataFrame=None,
-    p_val_approx: str='auto') -> (pd.DataFrame):
-    # should the function return (pd.DataFrame, None) for the viz?
+    ctx, diversity_measure, metadata, hypothesis, time_column,
+    reference_column, subject_column=False, control_column=None,
+    filter_missing_references=False, where=None, baseline_group=None,
+    reference_group=None, against_each=None, p_val_approx='auto'):
+
+    raincloud_plot = ctx.get_action('fmt', 'plot_rainclouds')
+
+    results = []
 
     time_dist, ref_dist = group_timepoints(diversity_measure, metadata,
     time_column, reference_column, subject_column, control_column,
     filter_missing_references, where)
 
     if hypothesis == 'reference' or 'all-pairwise':
+        mann_whitney_u = ctx.get_action('fmt', 'mann_whitney')
         stats = mann_whitney_u(distribution=ref_dist, hypothesis=hypothesis,
                                reference_group=reference_group,
                                against_each=against_each, p_val_approx=p_val_approx)
 
-    if hypothesis == 'baseline' or 'consecutive':
+    else:
+        wilcoxon_srt = ctx.get_action('fmt', 'wilcoxon')
         stats = wilcoxon_srt(distribution=time_dist, hypothesis=hypothesis,
                              baseline_group=baseline_group, p_val_approx=p_val_approx)
 
-    viz = plot_rainclouds(data=stats)
+    results += stats
+    results += raincloud_plot(data=stats)
 
-    return stats, viz
+    return tuple(results)
 
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,

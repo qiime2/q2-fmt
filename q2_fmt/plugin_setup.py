@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import importlib
+from qiime2 import Visualization
 
 from qiime2.plugin import Str, Plugin, Metadata, TypeMap, Bool, Choices
 from q2_types.sample_data import SampleData, AlphaDiversity
@@ -14,7 +15,7 @@ from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
 from q2_fmt import RecordTSVFileFormat
-from q2_fmt._engraftment import group_timepoints, engraftment
+from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
 from q2_fmt._format import AnnotatedTSVDirFmt
 from q2_fmt._visualizer import hello_world
@@ -39,8 +40,8 @@ T_subject, T_dependence = TypeMap({
     Str: Matched
 })
 
-plugin.methods.register_function(
-    function=engraftment,
+plugin.pipelines.register_function(
+    function=q2_fmt.engraftment,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity],
             'against_each': GroupDist[Unordered | Ordered, Matched | Independent]},
     parameters={'metadata': Metadata,
@@ -51,7 +52,14 @@ plugin.methods.register_function(
                 'filter_missing_references': Bool, 'where': Str,
                 'baseline_group': Str, 'reference_group': Str,
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
-    outputs=[('stats', StatsTable[Pairwise])],
+    outputs=[
+        ('stats', StatsTable[Pairwise]),
+        ('raincloud_plot', Visualization)
+    ],
+    input_descriptions= {
+        'diversity_measure': '',
+        'against_each': '',
+    },
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
@@ -77,8 +85,10 @@ plugin.methods.register_function(
     },
     output_descriptions={
         'stats': 'Either the Mann-Whitney U or Wilcoxon SRT distribution for the chosen hypothesis.',
+        'raincloud_plot': 'Raincloud plot for the computed significance test (either Mann-Whitney U or Wilxocon SRT)'
+                          ' from the grouped diversity data and selected hypothesis.',
     },
-    name='',
+    name='Engraftment Pipeline for FMT Analysis',
     description='',
 )
 
