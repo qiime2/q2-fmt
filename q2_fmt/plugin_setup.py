@@ -167,7 +167,10 @@ plugin.methods.register_function(
         'stats': 'The Wilcoxon SRT distribution for either the `baseline` or `consecutive` hypothesis.',
     },
     name='Wilcoxon Signed Rank Test',
-    description=''
+    description='',
+    examples={
+        'wilcoxon_baseline0': ex.wilcoxon_baseline0
+    }
 )
 
 # Dummy Visualizer
