@@ -173,10 +173,14 @@ plugin.methods.register_function(
 # Dummy Visualizer
 plugin.visualizers.register_function(
     function=plot_rainclouds,
-    inputs={'data': GroupDist[Ordered, Matched]},
+    inputs={
+        'data': GroupDist[Ordered, Matched],
+        'stats': StatsTable[Pairwise]
+    },
     parameters={},
     input_descriptions={
-        'data': 'The group distributions to plot.'
+        'data': 'The group distributions to plot.',
+        'stats': 'Statistical tests to display.'
     },
     parameter_descriptions={},
     name='Raincloud plots',
