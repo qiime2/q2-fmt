@@ -34,7 +34,7 @@ def beta_div_factory():
 
 def faithpd_timedist_factory():
     return qiime2.Artifact.import_data(
-        'GroupDist[Ordered, Matched]', _get_data_from_tests('faithpd_timedist.tsv')
+        'GroupDist[Ordered, Matched]', _get_data_from_tests('faithpd_timedist')
     )
 
 def group_timepoints_alpha_independent(use):
@@ -85,7 +85,7 @@ def group_timepoints_beta(use):
 def wilcoxon_baseline0(use):
     timedist = use.init_artifact('timedist', faithpd_timedist_factory)
 
-    stats_table = use.action(
+    stats_table, = use.action(
         use.UsageAction('fmt', 'wilcoxon_srt'),
         use.UsageInputs(
             distribution=timedist,

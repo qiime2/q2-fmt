@@ -27,7 +27,7 @@ class TestBase(TestPluginBase):
         self.dm = DistanceMatrix.read(self.get_data_path('dist_matrix_donors.tsv')).to_series()
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
-        self.faithpd_timedist = pd.read_csv(self.get_data_path('faithpd_timedist.tsv'),
+        self.faithpd_timedist = pd.read_csv(self.get_data_path('faithpd_timedist/data.tsv'),
                                             sep='\t', index_col=0, squeeze=True)
 
 class ErrorMixins:
@@ -480,6 +480,7 @@ class TestStats(TestBase):
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
     # Mann-Whitney U test cases
+    # search for any online refs for datasets with given results to compare
     def test_mann_whitney_reference(self):
         pass
 
