@@ -10,6 +10,8 @@ import pandas as pd
 import itertools
 
 import qiime2
+from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
+from q2_fmt._visualizer import plot_rainclouds
 
 #TODO: add in control comparison hypothesis
 # Questions from Greg's study
@@ -17,6 +19,37 @@ import qiime2
 # Difference in alpha at a single timepoint (week vs. control)
 # Beta: is distance to donor significantly *lower* (not just different) than it was at baseline (week 0, pre-FMT)
 # Beta[donor, subject]_w < Beta[donor, subject]_0
+
+
+# takes the same inputs as group_timepoints and then runs the corresponding outputs
+# (either time dist or ref dist) through either wilcoxon or mann_whitney and then
+# through plot_rainclouds - final output includes stats.qza and raincloud_plot.qzv
+def engraftment(
+    diversity_measure: pd.Series, metadata: qiime2.Metadata,
+    hypothesis: str, time_column: str, reference_column: str,
+    subject_column: str = False, control_column: str = None,
+    filter_missing_references: bool = False, where: str = None,
+    baseline_group: str=None, reference_group: str=None,
+    against_each: pd.DataFrame=None,
+    p_val_approx: str='auto') -> (pd.DataFrame):
+    # should the function return (pd.DataFrame, None) for the viz?
+
+    time_dist, ref_dist = group_timepoints(diversity_measure, metadata,
+    time_column, reference_column, subject_column, control_column,
+    filter_missing_references, where)
+
+    if hypothesis == 'reference' or 'all-pairwise':
+        stats = mann_whitney_u(distribution=ref_dist, hypothesis=hypothesis,
+                               reference_group=reference_group,
+                               against_each=against_each, p_val_approx=p_val_approx)
+
+    if hypothesis == 'baseline' or 'consecutive':
+        stats = wilcoxon_srt(distribution=time_dist, hypothesis=hypothesis,
+                             baseline_group=baseline_group, p_val_approx=p_val_approx)
+
+    viz = plot_rainclouds(data=stats)
+
+    return stats, viz
 
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,

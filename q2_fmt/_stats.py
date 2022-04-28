@@ -9,7 +9,8 @@
 import itertools
 import pandas as pd
 import scipy.stats
-
+import numpy as np
+from statsmodels.sandbox.stats.multicomp import fdrcorrection0
 
 def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
                    reference_group: str=None,
@@ -181,10 +182,13 @@ def _compare_wilcoxon(group_a, group_b, p_val_approx) -> dict:
 
     return results
 
+def _fdr_correction(p_vals):
+    from scipy.stats import rankdata
+    ranked_p_values = rankdata(p_vals)
+    fdr = p_vals * len(p_vals) / ranked_p_values
+    fdr[fdr > 1] = 1
 
-def _fdr_correction(series):
-    return series
-
+    return fdr
 
 def _get_reference_from_column(series, reference_value, param_name):
     if reference_value is None:

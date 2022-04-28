@@ -14,7 +14,7 @@ from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
 from q2_fmt import RecordTSVFileFormat
-from q2_fmt._engraftment import group_timepoints
+from q2_fmt._engraftment import group_timepoints, engraftment
 from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
 from q2_fmt._format import AnnotatedTSVDirFmt
 from q2_fmt._visualizer import hello_world
@@ -40,8 +40,51 @@ T_subject, T_dependence = TypeMap({
 })
 
 plugin.methods.register_function(
+    function=engraftment,
+    inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity],
+            'against_each': GroupDist[Unordered | Ordered, Matched | Independent]},
+    parameters={'metadata': Metadata,
+                'hypothesis': Str % Choices('reference', 'all-pairwise',
+                                            'baseline', 'consecutive'),
+                'time_column': Str, 'reference_column': Str,
+                'subject_column': T_subject, 'control_column': Str,
+                'filter_missing_references': Bool, 'where': Str,
+                'baseline_group': Str, 'reference_group': Str,
+                'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
+    outputs=[('stats', StatsTable[Pairwise])],
+    parameter_descriptions={
+        'metadata': 'The sample metadata.',
+        'hypothesis': 'The hypothesis that will be used to analyze the input `distribution`.'
+                      ' Either `reference`, `all-pairwise`, `baseline` or `consecutive` must be selected.',
+        'time_column': 'The column within the `metadata` that the `diversity_measure` should be grouped by.'
+                       ' This column should contain simple integer values.',
+        'control_column': 'The column within the `metadata` that contains any relevant control group IDs.'
+                          ' Actual treatment samples should not contain any value within this column.',
+        'reference_column': 'The column within the `metadata` that contains the sample to use as a reference'
+                            ' for a given beta `diversity_measure`.'
+                            ' For example, this may be the relevant donor sample to compare against.',
+        'subject_column': 'The column within the `metadata` that contains the subject ID to be tracked against timepoints.',
+        'filter_missing_references': 'Filter out references contained within the metadata that are not present'
+                                     ' in the diversity measure. Default behavior is to raise an error.',
+        'where': '..',
+        'baseline_group': 'If `baseline` is the selected hypothesis, this is the column that will be used'
+                          ' to compare all samples against.',
+        'reference_group': 'If `reference` is the selected hypothesis, this is the column that will be used'
+                           ' to compare all samples against.',
+        'p_val_approx': '"exact" will calculate an exact p-value for distributions,'
+                        ' "asymptotic" will use a normal distribution, and "auto" will use either "exact"'
+                        ' when one of the groups has less than 8 observations and there are no ties, otherwise "asymptotic".'
+    },
+    output_descriptions={
+        'stats': 'Either the Mann-Whitney U or Wilcoxon SRT distribution for the chosen hypothesis.',
+    },
+    name='',
+    description='',
+)
+
+plugin.methods.register_function(
     function=group_timepoints,
-    inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity] },
+    inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject, 'control_column': Str,
                 'filter_missing_references': Bool, 'where': Str},
