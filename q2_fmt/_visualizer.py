@@ -76,7 +76,7 @@ def json_replace(json_obj, **values):
 
 
 def _make_stats(stats):
-    method = 'Wilcoxon Signed Rank'
+    method = stats['test-statistic'].attrs['unit']
     group_unit = (stats['A:group'].attrs['unit']
                   + ' vs ' + stats['B:group'].attrs['unit'])
     pval_method = stats['p-value'].attrs['unit']
