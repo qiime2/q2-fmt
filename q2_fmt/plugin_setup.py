@@ -17,7 +17,7 @@ from q2_fmt import RecordTSVFileFormat
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
 from q2_fmt._format import AnnotatedTSVDirFmt
-from q2_fmt._visualizer import hello_world
+from q2_fmt._visualizer import plot_rainclouds
 from q2_fmt._type import GroupDist, Matched, Independent, Ordered, Unordered, StatsTable, Pairwise
 import q2_fmt._examples as ex
 
@@ -125,13 +125,13 @@ plugin.methods.register_function(
 
 # Dummy Visualizer
 plugin.visualizers.register_function(
-    function=hello_world,
-    inputs={},
+    function=plot_rainclouds,
+    inputs={'data': GroupDist[Ordered, Matched]},
     parameters={},
     input_descriptions={},
     parameter_descriptions={},
-    name='Hello World Viz',
-    description='Placeholder visualizer that outputs hello world.'
+    name='Plot Rainclouds for group_timepoints data',
+    description='Placeholder visualizer that outputs raincloud plots.'
 )
 
 importlib.import_module('q2_fmt._transformer')
