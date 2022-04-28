@@ -8,14 +8,51 @@
   <script type="application/json" id="spec">
     {{ spec }}
   </script>
+  <style>
+    body {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0px;
+      padding: 50px 212px 0px 50px;
+    }
+    #viz {
+      margin: 0 auto;
+      display: block;
+      width: 100%;
+      position: relative;
+    }
+    .vega-bindings {
+      top: 90px;
+      right: 50px;
+      width: 200px;
+      position: fixed;
+      font-family: monospace;
+    }
+    .vega-bind {
+      margin-right: 15px;
+    }
+    .vega-bind-name {
+      margin-right: 5px;
+    }
+    .vega-embed summary {
+      position: fixed !important;
+      top: 50px !important;
+      right: 222px !important;
+    }
+    .vega-embed .vega-actions {
+      position: fixed !important;
+      right: 212px !important;
+      top: 85px !important;
+    }
+  </style>
 </head>
 <body>
 
-<div id="vis"></div>
+<div id="viz"></div>
 
 <script type="text/javascript">
   var spec = JSON.parse(document.getElementById('spec').innerHTML);
-  vegaEmbed('#vis', spec).then(function(result) {
+  vegaEmbed('#viz', spec, {'renderer': 'svg'}).then(function(result) {
     // Access the Vega view instance (https://vega.github.io/vega/docs/api/view/) as result.view
   }).catch(console.error);
 </script>

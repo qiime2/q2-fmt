@@ -128,10 +128,12 @@ plugin.visualizers.register_function(
     function=plot_rainclouds,
     inputs={'data': GroupDist[Ordered, Matched]},
     parameters={},
-    input_descriptions={},
+    input_descriptions={
+        'data': 'The group distributions to plot.'
+    },
     parameter_descriptions={},
-    name='Plot Rainclouds for group_timepoints data',
-    description='Placeholder visualizer that outputs raincloud plots.'
+    name='Raincloud plots',
+    description='Plot raincloud distributions for each group.'
 )
 
 importlib.import_module('q2_fmt._transformer')
