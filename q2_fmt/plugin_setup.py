@@ -148,7 +148,10 @@ plugin.methods.register_function(
         'stats': 'The Mann-Whitney U distribution for either the `reference` or `all-pairwise` hypothesis.',
     },
     name='Mann-Whitney U Test',
-    description=''
+    description='',
+    examples={
+        'mann_whitney_pairwise': ex.mann_whitney_pairwise
+    }
 )
 
 plugin.methods.register_function(

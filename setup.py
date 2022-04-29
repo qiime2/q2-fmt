@@ -16,7 +16,8 @@ setup(
     packages=find_packages(),
     package_data={
         'q2_fmt': ['assets/*'],
-        'q2_fmt.tests': ['data/*', 'data/faithpd_timedist/*'],
+        'q2_fmt.tests': ['data/*', 'data/faithpd_timedist/*',
+                         'data/faithpd_refdist/*'],
     },
     author='Liz Gehret',
     author_email='elizabeth.gehret@nau.edu',

@@ -37,6 +37,11 @@ def faithpd_timedist_factory():
         'GroupDist[Ordered, Matched]', _get_data_from_tests('faithpd_timedist')
     )
 
+def faithpd_refdist_factory():
+    return qiime2.Artifact.import_data(
+        'GroupDist[Unordered, Independent]', _get_data_from_tests('faithpd_refdist')
+    )
+
 def faithpd_md_factory():
     return qiime2.Metadata.load(
         _get_data_from_tests('metadata-faithpd.tsv')
@@ -110,9 +115,24 @@ def wilcoxon_baseline0(use):
 
     stats_table.assert_output_type('StatsTable[Pairwise]')
 
-#TODO: usage example for mann-whitney
-def mann_whitney_u(use):
-    pass
+def mann_whitney_pairwise(use):
+    timedist = use.init_artifact('timedist', faithpd_timedist_factory)
+    refdist = use.init_artifact('refdist', faithpd_refdist_factory)
+
+    stats_table, = use.action(
+        use.UsageAction('fmt', 'mann_whitney_u'),
+        use.UsageInputs(
+            distribution=refdist,
+            hypothesis='all-pairwise',
+            against_each=timedist,
+            p_val_approx='asymptotic',
+        ),
+        use.UsageOutputNames(
+            stats='stats'
+        )
+    )
+
+    stats_table.assert_output_type('StatsTable[Pairwise]')
 
 # Engraftment example using faith PD, baseline0 hypothesis
 def engraftment_baseline(use):
