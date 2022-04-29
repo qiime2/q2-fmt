@@ -14,6 +14,7 @@ from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import wilcoxon_srt, mann_whitney_u
+from q2_fmt._examples import faithpd_timedist_factory
 
 class TestBase(TestPluginBase):
     package='q2_fmt.tests'
@@ -27,8 +28,7 @@ class TestBase(TestPluginBase):
         self.dm = DistanceMatrix.read(self.get_data_path('dist_matrix_donors.tsv')).to_series()
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
-        self.faithpd_timedist = pd.read_csv(self.get_data_path('faithpd_timedist/data.tsv'),
-                                            sep='\t', index_col=0, squeeze=True)
+        self.faithpd_timedist = faithpd_timedist_factory().view(pd.DataFrame)
 
 class ErrorMixins:
     def test_with_time_column_input_not_in_metadata(self):
