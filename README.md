@@ -3,8 +3,8 @@
 ![](https://github.com/qiime2/q2-fmt/workflows/ci/badge.svg)
 
 ## Demo
-![](https://raw.githubusercontent.com/qiime2/q2-fmt/master/demo/screenshot.png)
-[** Interactive Link **](https://raw.githubusercontent.com/qiime2/q2-fmt/master/demo/raincloud-baseline0.qzv)
+[![](https://raw.githubusercontent.com/qiime2/q2-fmt/master/demo/screenshot.png)
+**Interactive Link**](https://view.qiime2.org/visualization/?type=html&src=https%3A%2F%2Fraw.githubusercontent.com%2Fqiime2%2Fq2-fmt%2Fmaster%2Fdemo%2Fraincloud-baseline0.qzv)
 
 ## Installation
 
@@ -28,6 +28,7 @@ cd fmt-examples/engraftment/engraftment-baseline/
 ```
 
 **Plot Engraftment**
+
 This pipeline will execute the below actions in order to produce engraftment
 plots in a single step. To learn more, see the examples below this.
 ```bash
@@ -49,6 +50,7 @@ qiime fmt engraftment \
 ---
 
 **Group Timepoints**
+
 First the data must be collected from your study and organized into groups with
 some relevant diversity measure. We will use Faith's Phylogenetic Diversity in
 these examples, but other measures, including beta diversity metrics, are
@@ -70,6 +72,7 @@ qiime fmt group-timepoints \
 ```
 
 **Statistical Tests**
+
 Wilcoxon Signed Rank tests and Mann-Whitney U tests are available and
 differentiated by the semantic type of the input to ensure the applicability of
 the test (i.e. only matched pairs for Wilcoxon, and independent groups for
@@ -97,6 +100,7 @@ qiime fmt wilcoxon-srt \
 ```
 
 **Raincloud Plots**
+
 A statistical test is not required to generate the plots, but if provided, will
 produce a table showing the results of the test.
 ```bash
