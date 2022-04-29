@@ -37,6 +37,16 @@ def faithpd_timedist_factory():
         'GroupDist[Ordered, Matched]', _get_data_from_tests('faithpd_timedist')
     )
 
+def faithpd_md_factory():
+    return qiime2.Metadata.load(
+        _get_data_from_tests('metadata-faithpd.tsv')
+    )
+
+def faithpd_div_factory():
+    return qiime2.Artifact.import_data(
+        'SampleData[AlphaDiversity]', _get_data_from_tests('faithpd.tsv')
+    )
+
 def group_timepoints_alpha_independent(use):
     alpha = use.init_artifact('alpha', alpha_div_factory)
     metadata = use.init_metadata('metadata', alpha_md_factory)
@@ -99,3 +109,35 @@ def wilcoxon_baseline0(use):
     )
 
     stats_table.assert_output_type('StatsTable[Pairwise]')
+
+#TODO: usage example for mann-whitney
+def mann_whitney_u(use):
+    pass
+
+# Engraftment example using faith PD, baseline0 hypothesis
+def engraftment_baseline(use):
+    md = use.init_metadata('md', faithpd_md_factory)
+    div_measure = use.init_artifact('div_measure', faithpd_div_factory)
+
+    stats_table, raincloud = use.action(
+        use.UsageAction('fmt', 'engraftment'),
+        use.UsageInputs(
+            diversity_measure=div_measure,
+            metadata=md,
+            hypothesis='baseline',
+            time_column='week',
+            reference_column='InitialDonorSampleID',
+            subject_column='SubjectID',
+            where='SampleType="stool"',
+            filter_missing_references=True,
+            against_group='0',
+            p_val_approx='asymptotic',
+        ),
+        use.UsageOutputNames(
+            stats='stats',
+            raincloud_plot='raincloud_plot'
+        )
+    )
+
+    stats_table.assert_output_type('StatsTable[Pairwise]')
+    raincloud.assert_output_type('Visualization')

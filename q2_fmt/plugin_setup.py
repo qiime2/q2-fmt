@@ -84,6 +84,9 @@ plugin.pipelines.register_function(
     },
     name='Engraftment Pipeline for FMT Analysis',
     description='',
+    examples={
+        'engraftment_baseline': ex.engraftment_baseline
+    }
 )
 
 plugin.methods.register_function(
@@ -173,7 +176,6 @@ plugin.methods.register_function(
     }
 )
 
-# Dummy Visualizer
 plugin.visualizers.register_function(
     function=plot_rainclouds,
     inputs={

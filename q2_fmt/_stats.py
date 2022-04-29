@@ -86,22 +86,22 @@ def _comp_reference(distribution, reference_group, against_each=None):
                                                  'reference_group')
 
     if against_each is None:
-        for other in group[group != reference_group].unique():
+        for other in sorted(group[group != reference_group].unique()):
             yield ((0, reference_group), (0, other))
     else:
-        for other in against_each['group'].unique():
+        for other in sorted(against_each['group'].unique()):
             yield ((0, reference_group), (1, other))
 
 
 def _comp_all_pairwise(distribution, against_each=None):
     if against_each is None:
         for (comp_a, comp_b) in itertools.combinations(
-                distribution['group'].unique(), 2):
+                sorted(distribution['group'].unique()), 2):
             yield ((0, comp_a), (0, comp_b))
     else:
         for (comp_a, comp_b) in itertools.product(
-                distribution['group'].unique(),
-                against_each['group'].unique()):
+                sorted(distribution['group'].unique()),
+                sorted(against_each['group'].unique())):
             yield ((0, comp_a), (1, comp_b))
 
 
@@ -185,7 +185,7 @@ def _comp_baseline(distribution, baseline_group):
     baseline_group = _get_reference_from_column(group, baseline_group,
                                                 'baseline_group')
 
-    for comp_b in group[group != baseline_group].unique():
+    for comp_b in sorted(group[group != baseline_group].unique()):
         yield (baseline_group, comp_b)
 
 
