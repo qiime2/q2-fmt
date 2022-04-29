@@ -116,6 +116,7 @@ def wilcoxon_baseline0(use):
     stats_table.assert_output_type('StatsTable[Pairwise]')
 
 def mann_whitney_pairwise(use):
+    timedist = use.init_artifact('timedist', faithpd_timedist_factory)
     refdist = use.init_artifact('refdist', faithpd_refdist_factory)
 
     stats_table, = use.action(
@@ -123,6 +124,7 @@ def mann_whitney_pairwise(use):
         use.UsageInputs(
             distribution=refdist,
             hypothesis='all-pairwise',
+            against_each=timedist,
             p_val_approx='asymptotic',
         ),
         use.UsageOutputNames(
