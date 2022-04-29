@@ -158,7 +158,7 @@
     {
       "name": "group_scale",
       "type": "band",
-      "domain": {"data": "table", "field": "group"},
+      "domain": {"data": "table", "field": "group", "sort": true},
       "range": [0, {"signal": "$row_height * $n_rows"}],
       "padding": 0,
       "round": true
