@@ -9,7 +9,7 @@
 ## Installation
 
 Please note that this software is now an alpha release. Conda packages will
-be provided in the future. In the interimn, use this command in the latest
+be provided in the future. In the interim, use this command in the latest
 QIIME 2 environment.
 
 ```bash
