@@ -44,11 +44,45 @@
       right: 212px !important;
       top: 85px !important;
     }
+    #stats table {
+      margin-top: 50px;
+      width: 100%;
+      text-align: right;
+      border-collapse: collapse;
+      border: 0px;
+      font-family: monospace;
+    }
+
+    #stats thead tr {
+      border: none;
+    }
+
+    #stats tr th {
+      border: none;
+      padding-right: 10px;
+    }
+
+    #stats td {
+      border: none;
+      padding-right: 10px;
+    }
+
+    #stats tr {
+      border-top: 1px solid;
+    }
   </style>
 </head>
 <body>
 
 <div id="viz"></div>
+<p><strong>Figure 1.</strong> {{ figure1 }}</p>
+
+{% if stats %}
+<div id='stats'>
+{{ stats }}
+</div>
+<p><strong>Table 1.</strong> {{ table1 }}</p>
+{% endif %}
 
 <script type="text/javascript">
   var spec = JSON.parse(document.getElementById('spec').innerHTML);
