@@ -27,6 +27,9 @@ class TestBase(TestPluginBase):
         self.dm = DistanceMatrix.read(self.get_data_path('dist_matrix_donors.tsv')).to_series()
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'), sep='\t', index_col=0, squeeze=True)
 
+        self.faithpd_timedist = pd.read_csv(self.get_data_path('faithpd_timedist/data.tsv'),
+                                            sep='\t', index_col=0, squeeze=True)
+
 class ErrorMixins:
     def test_with_time_column_input_not_in_metadata(self):
         with self.assertRaisesRegex(ValueError, 'time_column.*foo.*metadata'):
@@ -437,23 +440,49 @@ class TestGroupTimepoints(TestBase):
         self.execute_examples()
 
 class TestStats(TestBase):
-    pass
     # Wilcoxon SRT test cases
-    # def test_wilcoxon_with_faith_pd_baseline0_where_true(self):
-    #     exp_stats_data = pd.DataFrame({
-    #         'A:group': [0, 0, 0, 0],
-    #         'A:n': [18, 18, 18, 18],
-    #         'A:measure': [9.54973486, 9.54973486, 9.54973486, 9.54973486],
-    #         'B:group': [3, 10, 18, 100],
-    #         'B:n': [17, 18, 18, 16],
-    #         'B:measure': [9.592979726, 10.9817719, 11.39392352, 12.97286672],
-    #         'n': [17, 18, 18, 16],
-    #         'test-statistic': [70, 20, 4, 5],
-    #         'p-value': [0.758312374, 0.004337022, 0.000386178, 0.001123379],
-    #         'q-value': [0.758312374, 0.005782696, 0.00154471, 0.002246758]
-    #     })
+    def test_wilcoxon_with_faith_pd_baseline0_asymptotic(self):
+        exp_stats_data = pd.DataFrame({
+            'A:group': [0.0, 0.0, 0.0, 0.0],
+            'A:n': [18, 18, 18, 18],
+            'A:measure': [9.54973486, 9.54973486, 9.54973486, 9.54973486],
+            'B:group': [3, 10, 18, 100],
+            'B:n': [17, 18, 18, 16],
+            'B:measure': [9.592979726, 10.9817719, 11.39392352, 12.97286672],
+            'n': [17, 18, 18, 16],
+            'test-statistic': [70.0, 20.0, 4.0, 5.0],
+            'p-value': [0.758312374, 0.004337022, 0.000386178, 0.001123379],
+            'q-value': [0.758312374, 0.005782696, 0.00154471, 0.002246758]
+        })
 
-    #     stats_data = wilcoxon_srt
+        stats_data = wilcoxon_srt(distribution=self.faithpd_timedist, hypothesis='baseline',
+                                  baseline_group='0', p_val_approx='asymptotic')
 
-    #     pd.testing.assert_frame_equal(stats_data, exp_stats_data)
+        pd.testing.assert_frame_equal(stats_data, exp_stats_data)
+
+    def test_wilcoxon_with_faith_pd_consecutive_asymptotic(self):
+        exp_stats_data = pd.DataFrame({
+            'A:group': [0, 3, 10, 18],
+            'A:n': [18, 17, 18, 18],
+            'A:measure': [9.54973486, 9.592979726, 10.9817719, 11.393923515],
+            'B:group': [3, 10, 18, 100],
+            'B:n': [17, 18, 18, 16],
+            'B:measure': [9.592980, 10.981772, 11.393924, 12.972867],
+            'n': [17, 17, 18, 16],
+            'test-statistic': [70.0, 26.0, 83.0, 24.0],
+            'p-value': [0.758312, 0.016822, 0.913301, 0.022895],
+            'q-value': [1.000000, 0.067288, 0.913301, 0.045790]
+        })
+
+        stats_data = wilcoxon_srt(distribution=self.faithpd_timedist,
+                                  hypothesis='consecutive', p_val_approx='asymptotic')
+        print(stats_data['B:measure'])
+        pd.testing.assert_frame_equal(stats_data, exp_stats_data)
+
     # Mann-Whitney U test cases
+    # search for any online refs for datasets with given results to compare
+    def test_mann_whitney_reference(self):
+        pass
+
+    def test_mann_whitney_pairwise(self):
+        pass

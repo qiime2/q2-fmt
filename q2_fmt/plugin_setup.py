@@ -84,6 +84,9 @@ plugin.pipelines.register_function(
     },
     name='Engraftment Pipeline for FMT Analysis',
     description='',
+    examples={
+        'engraftment_baseline': ex.engraftment_baseline
+    }
 )
 
 plugin.methods.register_function(
@@ -167,10 +170,12 @@ plugin.methods.register_function(
         'stats': 'The Wilcoxon SRT distribution for either the `baseline` or `consecutive` hypothesis.',
     },
     name='Wilcoxon Signed Rank Test',
-    description=''
+    description='',
+    examples={
+        'wilcoxon_baseline0': ex.wilcoxon_baseline0
+    }
 )
 
-# Dummy Visualizer
 plugin.visualizers.register_function(
     function=plot_rainclouds,
     inputs={

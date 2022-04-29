@@ -25,6 +25,7 @@ def engraftment(
     p_val_approx='auto'):
 
     raincloud_plot = ctx.get_action('fmt', 'plot_rainclouds')
+    group_timepoints = ctx.get_action('fmt', 'group_timepoints')
 
     results = []
 
@@ -32,14 +33,14 @@ def engraftment(
     time_column, reference_column, subject_column, control_column,
     filter_missing_references, where)
 
-    if hypothesis == 'reference' or 'all-pairwise':
-        mann_whitney_u = ctx.get_action('fmt', 'mann_whitney')
+    if hypothesis == 'reference' or hypothesis == 'all-pairwise':
+        mann_whitney_u = ctx.get_action('fmt', 'mann_whitney_u')
         stats = mann_whitney_u(distribution=ref_dist, hypothesis=hypothesis,
                                reference_group=against_group,
                                against_each=ref_dist, p_val_approx=p_val_approx)
 
     else:
-        wilcoxon_srt = ctx.get_action('fmt', 'wilcoxon')
+        wilcoxon_srt = ctx.get_action('fmt', 'wilcoxon_srt')
         stats = wilcoxon_srt(distribution=time_dist, hypothesis=hypothesis,
                              baseline_group=against_group, p_val_approx=p_val_approx)
 

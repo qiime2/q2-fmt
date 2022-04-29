@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 
 import os
-from importlib_metadata import metadata
 import pkg_resources
 
 import qiime2
@@ -33,6 +32,20 @@ def beta_div_factory():
     return qiime2.Artifact.import_data(
         'DistanceMatrix', _get_data_from_tests('dist_matrix_donors.tsv'))
 
+def faithpd_timedist_factory():
+    return qiime2.Artifact.import_data(
+        'GroupDist[Ordered, Matched]', _get_data_from_tests('faithpd_timedist')
+    )
+
+def faithpd_md_factory():
+    return qiime2.Metadata.load(
+        _get_data_from_tests('metadata-faithpd.tsv')
+    )
+
+def faithpd_div_factory():
+    return qiime2.Artifact.import_data(
+        'SampleData[AlphaDiversity]', _get_data_from_tests('faithpd.tsv')
+    )
 
 def group_timepoints_alpha_independent(use):
     alpha = use.init_artifact('alpha', alpha_div_factory)
@@ -78,3 +91,53 @@ def group_timepoints_beta(use):
 
     timepoints.assert_output_type('GroupDist[Ordered, Matched]')
     references.assert_output_type('GroupDist[Unordered, Independent]')
+
+def wilcoxon_baseline0(use):
+    timedist = use.init_artifact('timedist', faithpd_timedist_factory)
+
+    stats_table, = use.action(
+        use.UsageAction('fmt', 'wilcoxon_srt'),
+        use.UsageInputs(
+            distribution=timedist,
+            hypothesis='baseline',
+            baseline_group='0',
+            p_val_approx='asymptotic',
+        ),
+        use.UsageOutputNames(
+            stats='stats'
+        )
+    )
+
+    stats_table.assert_output_type('StatsTable[Pairwise]')
+
+#TODO: usage example for mann-whitney
+def mann_whitney_u(use):
+    pass
+
+# Engraftment example using faith PD, baseline0 hypothesis
+def engraftment_baseline(use):
+    md = use.init_metadata('md', faithpd_md_factory)
+    div_measure = use.init_artifact('div_measure', faithpd_div_factory)
+
+    stats_table, raincloud = use.action(
+        use.UsageAction('fmt', 'engraftment'),
+        use.UsageInputs(
+            diversity_measure=div_measure,
+            metadata=md,
+            hypothesis='baseline',
+            time_column='week',
+            reference_column='InitialDonorSampleID',
+            subject_column='SubjectID',
+            where='SampleType="stool"',
+            filter_missing_references=True,
+            against_group='0',
+            p_val_approx='asymptotic',
+        ),
+        use.UsageOutputNames(
+            stats='stats',
+            raincloud_plot='raincloud_plot'
+        )
+    )
+
+    stats_table.assert_output_type('StatsTable[Pairwise]')
+    raincloud.assert_output_type('Visualization')
