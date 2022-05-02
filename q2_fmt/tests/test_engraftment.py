@@ -483,9 +483,10 @@ class TestStats(TestBase):
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
     # Mann-Whitney U test cases
-    def test_mann_whitney_reference(self):
-        pass
 
+    # Data in the exp_stats_data dataframe were calculated 'by hand' in a jupyter notebook
+    # using the same data, manually organized into groups and subsequently compared using
+    # scipy.stats.mannwhitneyu to calculate the test-statistic and p-values
     def test_mann_whitney_pairwise_against_each(self):
         exp_stats_data = pd.DataFrame({
             'A:group': ['control', 'control', 'control', 'control', 'control',
@@ -515,15 +516,23 @@ class TestStats(TestBase):
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
-        # exp_stats_data = pd.DataFrame({
-        #     'A:group': [],
-        #     'A:n': [],
-        #     'A:measure': [],
-        #     'B:group': [],
-        #     'B:n': [],
-        #     'B:measure': [],
-        #     'n': [],
-        #     'test-statistic': [],
-        #     'p-value': [],
-        #     'q-value': [],
-        # })
+    def test_mann_whitney_reference(self):
+        exp_stats_data = pd.DataFrame({
+            'A:group': ['reference'],
+            'A:n': [5],
+            'A:measure': [10.2488392],
+            'B:group': ['control'],
+            'B:n': [23],
+            'B:measure': [11.6496274],
+            'n': [28],
+            'test-statistic': [37.0],
+            'p-value': [0.23025583],
+            'q-value': [0.23025583],
+        })
+
+        stats_data = mann_whitney_u(distribution=self.faithpd_refdist,
+                                    hypothesis='reference',
+                                    reference_group='reference',
+                                    p_val_approx='asymptotic')
+
+        pd.testing.assert_frame_equal(stats_data, exp_stats_data)
