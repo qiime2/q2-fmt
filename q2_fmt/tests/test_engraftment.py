@@ -16,6 +16,7 @@ from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import wilcoxon_srt, mann_whitney_u
 from q2_fmt._examples import faithpd_timedist_factory, faithpd_refdist_factory
 
+
 class TestBase(TestPluginBase):
     package='q2_fmt.tests'
 
@@ -30,6 +31,7 @@ class TestBase(TestPluginBase):
 
         self.faithpd_timedist = faithpd_timedist_factory().view(pd.DataFrame)
         self.faithpd_refdist = faithpd_refdist_factory().view(pd.DataFrame)
+
 
 class ErrorMixins:
     def test_with_time_column_input_not_in_metadata(self):
