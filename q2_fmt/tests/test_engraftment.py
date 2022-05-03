@@ -508,6 +508,8 @@ class TestStats(TestBase):
     # Data in the exp_stats_data dataframes were calculated 'by hand' in a jupyter notebook
     # using the same data, manually organized into groups and subsequently compared using
     # scipy.stats.mannwhitneyu to calculate the test-statistic and p-values
+    # Notebook can be found here, for reference:
+    # https://gist.github.com/lizgehret/c9add7b451e5e91b1017a2a963276bff
     def test_mann_whitney_pairwise_against_each(self):
         exp_stats_data = pd.DataFrame({
             'A:group': ['control', 'control', 'control', 'control', 'control',
