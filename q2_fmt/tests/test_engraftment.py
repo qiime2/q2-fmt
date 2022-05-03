@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import re
 import pandas as pd
 from skbio.stats.distance import DistanceMatrix
 
@@ -497,6 +498,12 @@ class TestStats(TestBase):
                                     " `baseline` or `consecutive` as your hypothesis."):
             wilcoxon_srt(distribution=self.faithpd_timedist, hypothesis='foo')
 
+    def test_wilcoxon_invalid_baseline_group(self):
+        with self.assertRaisesRegex(ValueError, "'foo' was not found as a group"
+                                    " within the distribution."):
+            wilcoxon_srt(distribution=self.faithpd_timedist,
+                         hypothesis='baseline', baseline_group='foo')
+
     # Mann-Whitney U test cases
 
     # Data in the exp_stats_data dataframes were calculated 'by hand' in a jupyter notebook
@@ -564,3 +571,9 @@ class TestStats(TestBase):
                          " choose `reference` or `all-pairwise` as your hypothesis."):
             mann_whitney_u(distribution=self.faithpd_refdist,
                            hypothesis='foo')
+
+    def test_mann_whitney_invalid_reference_group(self):
+        with self.assertRaisesRegex(ValueError, "'foo' was not found as a group"
+                                    " within the distribution."):
+            mann_whitney_u(distribution=self.faithpd_refdist,
+                           hypothesis='reference', reference_group='foo')
