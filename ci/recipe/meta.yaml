@@ -24,14 +24,16 @@ requirements:
 
   run:
     - python {{ python }}
+    - pandas
+    - scipy
+    - scikit-bio
+    - jinja2
     - qiime2 {{ qiime2_epoch }}.*
-    - q2templates {{ qiime2_epoch }}.*
     - q2-types {{ qiime2_epoch }}.*
 
 test:
   requires:
     - qiime2 >={{ qiime2 }}
-    - q2templates >={{ q2templates }}
     - q2-types >={{ q2_types }}
     - pytest
 
