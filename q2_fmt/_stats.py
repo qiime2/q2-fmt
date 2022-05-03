@@ -12,9 +12,9 @@ import scipy.stats
 
 
 def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
-                   reference_group: str=None,
-                   against_each: pd.DataFrame=None,
-                   p_val_approx: str='auto') -> pd.DataFrame:
+                   reference_group: str = None,
+                   against_each: pd.DataFrame = None,
+                   p_val_approx: str = 'auto') -> pd.DataFrame:
 
     dists = [distribution]
 
@@ -76,7 +76,6 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
     df['q-value'].attrs.update(
         dict(unit='Benjamini–Hochberg', description='...'))
 
-
     return df
 
 
@@ -121,7 +120,8 @@ def _compare_mannwhitneyu(group_a, group_b, p_val_approx):
 
 
 def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
-                 baseline_group: str=None, p_val_approx: str='auto') -> pd.DataFrame:
+                 baseline_group: str = None,
+                 p_val_approx: str = 'auto') -> pd.DataFrame:
 
     if hypothesis == 'baseline':
         comparisons = _comp_baseline(distribution, baseline_group)
@@ -222,12 +222,14 @@ def _compare_wilcoxon(group_a, group_b, p_val_approx) -> dict:
 
     return results
 
+
 def _fdr_correction(p_vals):
     ranked_p_values = scipy.stats.rankdata(p_vals)
     fdr = p_vals * len(p_vals) / ranked_p_values
     fdr[fdr > 1] = 1
 
     return fdr
+
 
 def _get_reference_from_column(series, reference_value, param_name):
     if reference_value is None:
@@ -245,4 +247,4 @@ def _get_reference_from_column(series, reference_value, param_name):
             return reference_value
 
     raise ValueError("%r was not found as a group within the distribution."
-                        % reference_value)
+                     % reference_value)

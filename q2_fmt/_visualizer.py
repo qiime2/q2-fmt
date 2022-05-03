@@ -14,7 +14,7 @@ import pandas as pd
 
 
 def plot_rainclouds(output_dir: str, data: pd.DataFrame,
-                    stats: pd.DataFrame=None):
+                    stats: pd.DataFrame = None):
     table1 = None
     if stats is not None:
         table1, stats = _make_stats(stats)
@@ -119,5 +119,5 @@ def _make_group_col(prefix, df):
     group_n = " (n=" + group_n.apply(str) + ")"
 
     series = group_series + group_n
-    series.name = f"Group " + prefix
+    series.name = f'{"Group "}' + prefix
     return series
