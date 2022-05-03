@@ -37,7 +37,6 @@ class TestBase(TestPluginBase):
         self.faithpd_refdist = faithpd_refdist_factory().view(pd.DataFrame)
 
 
-
 class ErrorMixins:
     def test_with_time_column_input_not_in_metadata(self):
         with self.assertRaisesRegex(ValueError,
@@ -493,7 +492,8 @@ class TestStats(TestBase):
 
     # Data in the exp_stats_data dataframes were pulled from Greg Caporaso's
     # Autism study repo on github, which can be found here:
-    # https://github.com/caporaso-lab/autism-fmt1/blob/18-month-followup/16S/engraftment.ipynb
+    # https://github.com/caporaso-lab/autism-fmt1/
+    # blob/18-month-followup/16S/engraftment.ipynb
     def test_wilcoxon_with_faith_pd_baseline0_asymptotic(self):
         exp_stats_data = pd.DataFrame({
             'A:group': [0.0, 0.0, 0.0, 0.0],
@@ -530,54 +530,65 @@ class TestStats(TestBase):
         })
 
         stats_data = wilcoxon_srt(distribution=self.faithpd_timedist,
-                                  hypothesis='consecutive', p_val_approx='asymptotic')
+                                  hypothesis='consecutive',
+                                  p_val_approx='asymptotic')
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
     def test_wilcoxon_consecutive_hypothesis_with_baseline_group(self):
-        with self.assertRaisesRegex(ValueError, "`consecutive` was selected as the hypothesis,"
-                                    " but a `baseline_group` was added."):
+        with self.assertRaisesRegex(ValueError, "`consecutive` was selected as"
+                                    " the hypothesis, but a `baseline_group`"
+                                    " was added."):
             wilcoxon_srt(distribution=self.faithpd_timedist,
                          hypothesis='consecutive', baseline_group='reference')
 
     def test_wilcoxon_invalid_hypothesis(self):
-        with self.assertRaisesRegex(ValueError, "Invalid hypothesis. Please either choose"
-                                    " `baseline` or `consecutive` as your hypothesis."):
-            wilcoxon_srt(distribution=self.faithpd_timedist, hypothesis='foo')
+        with self.assertRaisesRegex(ValueError, "Invalid hypothesis. Please"
+                                    " either choose `baseline` or"
+                                    " `consecutive` as your hypothesis."):
+            wilcoxon_srt(distribution=self.faithpd_timedist,
+                         hypothesis='foo')
 
     def test_wilcoxon_invalid_baseline_group(self):
-        with self.assertRaisesRegex(ValueError, "'foo' was not found as a group"
-                                    " within the distribution."):
+        with self.assertRaisesRegex(ValueError, "'foo' was not found as a"
+                                    " group within the distribution."):
             wilcoxon_srt(distribution=self.faithpd_timedist,
                          hypothesis='baseline', baseline_group='foo')
 
     # Mann-Whitney U test cases
 
-    # Data in the exp_stats_data dataframes were calculated 'by hand' in a jupyter notebook
-    # using the same data, manually organized into groups and subsequently compared using
-    # scipy.stats.mannwhitneyu to calculate the test-statistic and p-values
-    # Notebook can be found here, for reference:
+    # Data in the exp_stats_data dataframes were calculated 'by hand' in a
+    # jupyter notebook using the same data, manually organized into groups
+    # and subsequently compared using scipy.stats.mannwhitneyu to calculate
+    # the test-statistic and p-values. Notebook can be found here:
     # https://gist.github.com/lizgehret/c9add7b451e5e91b1017a2a963276bff
     def test_mann_whitney_pairwise_against_each(self):
         exp_stats_data = pd.DataFrame({
             'A:group': ['control', 'control', 'control', 'control', 'control',
-                        'reference', 'reference', 'reference', 'reference', 'reference'],
+                        'reference', 'reference', 'reference',
+                        'reference', 'reference'],
             'A:n': [23, 23, 23, 23, 23, 5, 5, 5, 5, 5],
-            'A:measure': [11.64962736, 11.64962736, 11.64962736, 11.64962736, 11.64962736,
-                          10.24883918, 10.24883918, 10.24883918, 10.24883918, 10.24883918],
+            'A:measure': [11.64962736, 11.64962736, 11.64962736,
+                          11.64962736, 11.64962736,
+                          10.24883918, 10.24883918, 10.24883918,
+                          10.24883918, 10.24883918],
             'B:group': [0, 3, 10, 18, 100, 0, 3, 10, 18, 100],
             'B:n': [18, 17, 18, 18, 16, 18, 17, 18, 18, 16],
-            'B:measure': [9.54973486, 9.592979726, 10.9817719, 11.39392352, 12.97286672,
-                          9.54973486, 9.592979726, 10.9817719, 11.39392352, 12.97286672],
+            'B:measure': [9.54973486, 9.592979726, 10.9817719,
+                          11.39392352, 12.97286672,
+                          9.54973486, 9.592979726, 10.9817719,
+                          11.39392352, 12.97286672],
             'n': [41, 40, 41, 41, 39, 23, 22, 23, 23, 21],
             'test-statistic': [282.0, 260.0, 194.0, 190.0, 104.0,
                                49.0, 43.0, 20.0, 14.0, 6.0],
-            'p-value': [0.050330911733538534, 0.07994303215567311, 0.7426248650660427,
-                        0.6646800940267454, 0.02321456407322841, 0.7941892150565809,
+            'p-value': [0.050330911733538534, 0.07994303215567311,
+                        0.7426248650660427, 0.6646800940267454,
+                        0.02321456407322841, 0.7941892150565809,
                         1.0, 0.06783185968744732, 0.023005953105134484,
                         0.0056718704407604376],
-            'q-value': [0.12582728, 0.13323839, 0.92828108, 0.94954299, 0.07738188,
-                        0.88243246, 1.0, 0.13566372, 0.11502977, 0.0567187],
+            'q-value': [0.12582728, 0.13323839, 0.92828108, 0.94954299,
+                        0.07738188, 0.88243246, 1.0, 0.13566372,
+                        0.11502977, 0.0567187],
         })
 
         stats_data = mann_whitney_u(distribution=self.faithpd_refdist,
@@ -609,20 +620,22 @@ class TestStats(TestBase):
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
     def test_mann_whitney_all_pairwise_hypothesis_with_reference_group(self):
-        with self.assertRaisesRegex(ValueError, "`all-pairwise` was selected as the"
-                                    " hypothesis, but a `reference_group` was added."):
+        with self.assertRaisesRegex(ValueError, "`all-pairwise` was selected"
+                                    " as the hypothesis, but a"
+                                    " `reference_group` was added."):
             mann_whitney_u(distribution=self.faithpd_refdist,
                            hypothesis='all-pairwise',
                            reference_group='reference')
 
     def test_mann_whitney_invalid_hypothesis(self):
-        with self.assertRaisesRegex(ValueError, "Invalid hypothesis. Please either"
-                         " choose `reference` or `all-pairwise` as your hypothesis."):
+        with self.assertRaisesRegex(ValueError, "Invalid hypothesis. Please"
+                                    " either choose `reference` or"
+                                    " `all-pairwise` as your hypothesis."):
             mann_whitney_u(distribution=self.faithpd_refdist,
                            hypothesis='foo')
 
     def test_mann_whitney_invalid_reference_group(self):
-        with self.assertRaisesRegex(ValueError, "'foo' was not found as a group"
-                                    " within the distribution."):
+        with self.assertRaisesRegex(ValueError, "'foo' was not found as a"
+                                    " group within the distribution."):
             mann_whitney_u(distribution=self.faithpd_refdist,
                            hypothesis='reference', reference_group='foo')
