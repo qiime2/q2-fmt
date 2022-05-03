@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from multiprocessing.sharedctypes import Value
 import pandas as pd
 from skbio.stats.distance import DistanceMatrix
 
@@ -444,6 +445,10 @@ class TestGroupTimepoints(TestBase):
 
 class TestStats(TestBase):
     # Wilcoxon SRT test cases
+
+    # Data in the exp_stats_data dataframes were pulled from Greg Caporaso's
+    # Autism study repo on github, which can be found here:
+    # https://github.com/caporaso-lab/autism-fmt1/blob/18-month-followup/16S/engraftment.ipynb
     def test_wilcoxon_with_faith_pd_baseline0_asymptotic(self):
         exp_stats_data = pd.DataFrame({
             'A:group': [0.0, 0.0, 0.0, 0.0],
@@ -482,9 +487,20 @@ class TestStats(TestBase):
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
+    def test_wilcoxon_consecutive_hypothesis_with_baseline_group(self):
+        with self.assertRaisesRegex(ValueError, "`consecutive` was selected as the hypothesis,"
+                                    " but a `baseline_group` was added."):
+            wilcoxon_srt(distribution=self.faithpd_timedist,
+                         hypothesis='consecutive', baseline_group='reference')
+
+    def test_wilcoxon_invalid_hypothesis(self):
+        with self.assertRaisesRegex(ValueError, "Invalid hypothesis. Please either choose"
+                                    " `baseline` or `consecutive` as your hypothesis."):
+            wilcoxon_srt(distribution=self.faithpd_timedist, hypothesis='foo')
+
     # Mann-Whitney U test cases
 
-    # Data in the exp_stats_data dataframe were calculated 'by hand' in a jupyter notebook
+    # Data in the exp_stats_data dataframes were calculated 'by hand' in a jupyter notebook
     # using the same data, manually organized into groups and subsequently compared using
     # scipy.stats.mannwhitneyu to calculate the test-statistic and p-values
     def test_mann_whitney_pairwise_against_each(self):
@@ -536,3 +552,16 @@ class TestStats(TestBase):
                                     p_val_approx='asymptotic')
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
+
+    def test_mann_whitney_all_pairwise_hypothesis_with_reference_group(self):
+        with self.assertRaisesRegex(ValueError, "`all-pairwise` was selected as the"
+                                    " hypothesis, but a `reference_group` was added."):
+            mann_whitney_u(distribution=self.faithpd_refdist,
+                           hypothesis='all-pairwise',
+                           reference_group='reference')
+
+    def test_mann_whitney_invalid_hypothesis(self):
+        with self.assertRaisesRegex(ValueError, "Invalid hypothesis. Please either"
+                         " choose `reference` or `all-pairwise` as your hypothesis."):
+            mann_whitney_u(distribution=self.faithpd_refdist,
+                           hypothesis='foo')
