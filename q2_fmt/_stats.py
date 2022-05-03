@@ -26,11 +26,15 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
                                       against_each=against_each)
     elif hypothesis == 'all-pairwise':
         if reference_group is not None:
-            raise ValueError("you are confused, pls try again")
+            raise ValueError("`all-pairwise` was selected as the hypothesis,"
+                             " but a `reference_group` was added. Please either"
+                             " select `reference` as the hypothesis, or remove"
+                             " the `reference_group` parameter from your command.")
         comparisons = _comp_all_pairwise(distribution,
                                          against_each=against_each)
     else:
-        raise ValueError()
+        raise ValueError("Invalid hypothesis. Please either choose `reference` or"
+                         " `all-pairwise` as your hypothesis.")
 
     table = []
     for (idx_a, comp_a), (idx_b, comp_b) in comparisons:
@@ -127,10 +131,14 @@ def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
         comparisons = _comp_baseline(distribution, baseline_group)
     elif hypothesis == 'consecutive':
         if baseline_group is not None:
-            raise ValueError()
+            raise ValueError("`consecutive` was selected as the hypothesis,"
+                             " but a `baseline_group` was added. Please either"
+                             " select `baseline` as the hypothesis, or remove"
+                             " the `baseline_group` parameter from your command.")
         comparisons = _comp_consecutive(distribution)
     else:
-        raise ValueError()
+        raise ValueError("Invalid hypothesis. Please either choose `baseline` or"
+                         " `consecutive` as your hypothesis.")
 
     table = []
     for comp_a, comp_b in comparisons:
