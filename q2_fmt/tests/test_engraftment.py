@@ -6,7 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from multiprocessing.sharedctypes import Value
 import pandas as pd
 from skbio.stats.distance import DistanceMatrix
 
