@@ -115,6 +115,7 @@ def group_timepoints(
         '%s or %s' % (used_references.name, used_controls.name),
         'description': '...'
     })
+
     if is_beta:
         independent_df['A'].attrs.update(id_annotation)
         independent_df['B'].attrs.update(id_annotation)
@@ -243,6 +244,7 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta,
             used_references.to_frame().reset_index())
         idx = _sort_multi_index(idx)
         idx.names = ['id', 'reference']
+        diversity_measure.index.names = ['id', 'reference']
     else:
         idx = used_references.index
         idx.name = 'id'
@@ -286,6 +288,7 @@ def _independent_dists(diversity_measure, metadata,
                             ' successful grouping.')
 
         ref_idx.names = ['A', 'B']
+        diversity_measure.index.names = ['A', 'B']
 
         if used_controls is not None:
             grouped_md = (metadata
