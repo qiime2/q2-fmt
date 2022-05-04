@@ -88,8 +88,8 @@ plugin.pipelines.register_function(
         'where': '..',
         'against_group': 'Based on the selected hypothesis, this is the column'
                          ' that will be used to compare all samples against.',
-        'alternative': 'The type of comparison to be made, if opting out of the'
-                       ' standard `two-sided` comparison for either'
+        'alternative': 'The type of comparison to be made, if opting out of'
+                       ' the standard `two-sided` comparison for either'
                        ' Wilcoxon SRT or Mann-Whitney U.'
                        ' Default behavior is `two-sided`, unless `greater` or'
                        ' `less` are selected.'
@@ -196,8 +196,9 @@ plugin.methods.register_function(
         'reference_group': 'If `reference` is the selected hypothesis, this'
                            ' is the column that will be used'
                            ' to compare all samples against.',
-        'alternative': 'The type of comparison to be made, if opting out of the'
-                       ' standard `two-sided` comparison for Mann-Whitney U.'
+        'alternative': 'The type of comparison to be made, if opting out of'
+                       ' the standard `two-sided` comparison for'
+                       ' Mann-Whitney U.'
                        ' Default behavior is `two-sided`, unless `greater` or'
                        ' `less` are selected.'
                        ' If `greater` is selected, this will produce a'
@@ -246,8 +247,8 @@ plugin.methods.register_function(
         'baseline_group': 'If `baseline` is the selected hypothesis, this is'
                           ' the column that will be used'
                           ' to compare all samples against.',
-        'alternative': 'The type of comparison to be made, if opting out of the'
-                       ' standard `two-sided` comparison for Wilcoxon SRT.'
+        'alternative': 'The type of comparison to be made, if opting out of'
+                       ' the standard `two-sided` comparison for Wilcoxon SRT.'
                        ' Default behavior is `two-sided`, unless `greater` or'
                        ' `less` are selected.'
                        ' If `greater` is selected, this will produce a'

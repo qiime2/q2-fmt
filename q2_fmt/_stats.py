@@ -46,7 +46,8 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
         group_a = a_dist[a_dist['group'] == comp_a]['measure']
         group_b = b_dist[b_dist['group'] == comp_b]['measure']
 
-        row = _compare_mannwhitneyu(group_a, group_b, alternative, p_val_approx)
+        row = _compare_mannwhitneyu(group_a, group_b,
+                                    alternative, p_val_approx)
         row['A:group'] = comp_a
         row['B:group'] = comp_b
         table.append(row)
