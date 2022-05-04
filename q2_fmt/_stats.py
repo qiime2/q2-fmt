@@ -14,6 +14,7 @@ import scipy.stats
 def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
                    reference_group: str = None,
                    against_each: pd.DataFrame = None,
+                   alternative: str = 'two-sided',
                    p_val_approx: str = 'auto') -> pd.DataFrame:
 
     dists = [distribution]
@@ -45,7 +46,7 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
         group_a = a_dist[a_dist['group'] == comp_a]['measure']
         group_b = b_dist[b_dist['group'] == comp_b]['measure']
 
-        row = _compare_mannwhitneyu(group_a, group_b, p_val_approx)
+        row = _compare_mannwhitneyu(group_a, group_b, alternative, p_val_approx)
         row['A:group'] = comp_a
         row['B:group'] = comp_b
         table.append(row)
@@ -109,9 +110,11 @@ def _comp_all_pairwise(distribution, against_each=None):
             yield ((0, comp_a), (1, comp_b))
 
 
-def _compare_mannwhitneyu(group_a, group_b, p_val_approx):
+def _compare_mannwhitneyu(group_a, group_b, alternative, p_val_approx):
+    #TODO: error on alternative ne greater, less or two-sided
     stat, p_val = scipy.stats.mannwhitneyu(
-        group_a, group_b, method=p_val_approx, nan_policy='raise')
+        group_a, group_b, method=p_val_approx,
+        alternative=alternative, nan_policy='raise')
 
     return {
         'A:n': len(group_a),
@@ -126,6 +129,7 @@ def _compare_mannwhitneyu(group_a, group_b, p_val_approx):
 
 def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
                  baseline_group: str = None,
+                 alternative: str = 'two-sided',
                  p_val_approx: str = 'auto') -> pd.DataFrame:
 
     if hypothesis == 'baseline':
@@ -150,7 +154,7 @@ def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
         group_a = group_a.set_index('subject')['measure']
         group_b = group_b.set_index('subject')['measure']
 
-        row = _compare_wilcoxon(group_a, group_b, p_val_approx)
+        row = _compare_wilcoxon(group_a, group_b, alternative, p_val_approx)
 
         row['A:group'] = comp_a
         row['B:group'] = comp_b
@@ -205,7 +209,7 @@ def _comp_consecutive(distribution):
     yield from zip(timepoints, timepoints[1:])
 
 
-def _compare_wilcoxon(group_a, group_b, p_val_approx) -> dict:
+def _compare_wilcoxon(group_a, group_b, alternative, p_val_approx) -> dict:
     if p_val_approx == 'asymptotic':
         # wilcoxon differs from mannwhitneyu in arg value, but does the same
         # test using a normal dist instead of the permutational dist so
@@ -222,10 +226,10 @@ def _compare_wilcoxon(group_a, group_b, p_val_approx) -> dict:
         'B:measure': group_b.median(),
         'n': len(filtered.index),
     }
-
+    #TODO: error on alternative ne greater, less or two-sided
     stat, p_val = scipy.stats.wilcoxon(
         filtered.iloc[:, 0], filtered.iloc[:, 1],
-        nan_policy='raise', mode=p_val_approx, alternative='two-sided')
+        nan_policy='raise', mode=p_val_approx, alternative=alternative)
 
     results['test-statistic'] = stat
     results['p-value'] = p_val

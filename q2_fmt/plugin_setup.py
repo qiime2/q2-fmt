@@ -53,6 +53,7 @@ plugin.pipelines.register_function(
                 'subject_column': T_subject, 'control_column': Str,
                 'filter_missing_references': Bool, 'where': Str,
                 'against_group': Str,
+                'alternative': Str % Choices('two-sided', 'greater', 'less'),
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[
         ('stats', StatsTable[Pairwise]),
@@ -87,6 +88,25 @@ plugin.pipelines.register_function(
         'where': '..',
         'against_group': 'Based on the selected hypothesis, this is the column'
                          ' that will be used to compare all samples against.',
+        'alternative': 'The type of comparison to be made, if opting out of the'
+                       ' standard `two-sided` comparison for either'
+                       ' Wilcoxon SRT or Mann-Whitney U.'
+                       ' Default behavior is `two-sided`, unless `greater` or'
+                       ' `less` are selected.'
+                       ' If `greater` is selected, this will produce a'
+                       ' significant result if the input distribution is'
+                       ' greater than the `against_group` (for `reference`'
+                       ' `baseline` or `all-pairwise` hypotheses),'
+                       ' and will produce a significant result if group n is'
+                       ' greater than group n+1 (for the `consecutive`'
+                       ' hypothesis).'
+                       ' If `less` is selected, this will produce a'
+                       ' significant result if the input distribution is'
+                       ' less than the `against_group` (for `reference`'
+                       ' `baseline` or `all-pairwise` hypotheses),'
+                       ' and will produce a significant result if group n is'
+                       ' less than group n+1 (for the `consecutive`'
+                       ' hypothesis).',
         'p_val_approx': '"exact" will calculate an exact p-value'
                         ' for distributions, "asymptotic" will use a normal'
                         ' distribution, and "auto" will use either "exact"'
@@ -166,6 +186,7 @@ plugin.methods.register_function(
                                       Matched | Independent]},
     parameters={'hypothesis': Str % Choices('reference', 'all-pairwise'),
                 'reference_group': Str,
+                'alternative': Str % Choices('two-sided', 'greater', 'less'),
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
@@ -175,6 +196,24 @@ plugin.methods.register_function(
         'reference_group': 'If `reference` is the selected hypothesis, this'
                            ' is the column that will be used'
                            ' to compare all samples against.',
+        'alternative': 'The type of comparison to be made, if opting out of the'
+                       ' standard `two-sided` comparison for Mann-Whitney U.'
+                       ' Default behavior is `two-sided`, unless `greater` or'
+                       ' `less` are selected.'
+                       ' If `greater` is selected, this will produce a'
+                       ' significant result if the input distribution is'
+                       ' greater than the `reference_group` (for the'
+                       ' `reference` hypothesis), and will produce a'
+                       ' significant result if the input distribution is'
+                       ' greater than the `against_each` distribution'
+                       ' (for the `all-pairwise` hypothesis).'
+                       ' If `less` is selected, this will produce a'
+                       ' significant result if the input distribution is'
+                       ' less than the `reference_group` (for the'
+                       ' `reference` hypothesis), and will produce a'
+                       ' significant result if the input distribution is'
+                       ' less than the `against_each` distribution'
+                       ' (for the `all-pairwise` hypothesis).',
         'p_val_approx': '"exact" will calculate an exact p-value for'
                         ' distributions, "asymptotic" will use a normal'
                         ' distribution, and "auto" will use either "exact"'
@@ -197,6 +236,7 @@ plugin.methods.register_function(
     inputs={'distribution': GroupDist[Ordered, Matched]},
     parameters={'hypothesis': Str % Choices('baseline', 'consecutive'),
                 'baseline_group': Str,
+                'alternative': Str % Choices('two-sided', 'greater', 'less'),
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
@@ -206,6 +246,22 @@ plugin.methods.register_function(
         'baseline_group': 'If `baseline` is the selected hypothesis, this is'
                           ' the column that will be used'
                           ' to compare all samples against.',
+        'alternative': 'The type of comparison to be made, if opting out of the'
+                       ' standard `two-sided` comparison for Wilcoxon SRT.'
+                       ' Default behavior is `two-sided`, unless `greater` or'
+                       ' `less` are selected.'
+                       ' If `greater` is selected, this will produce a'
+                       ' significant result if the input distribution is'
+                       ' greater than the `baseline_group` (for the'
+                       ' `baseline` hypothesis), and will produce a'
+                       ' significant result if group n+1 is greater than group'
+                       ' n (for the `consecutive` hypothesis).'
+                       ' If `less` is selected, this will produce a'
+                       ' significant result if the input distribution is'
+                       ' less than the `baseline_group` (for the'
+                       ' `baseline` hypothesis), and will produce a'
+                       ' significant result if group n+1 is less than group'
+                       ' n (for the `consecutive` hypothesis).',
         'p_val_approx': '"exact" will calculate an exact p-value for'
                         ' distributions of up to 25 (inclusive) measurements,'
                         ' "asymptotic" will use a normal distribution,'
