@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2021, QIIME 2 development team.
+# Copyright (c) 2022, QIIME 2 development team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -32,6 +32,7 @@ def _3(ff: LSMatFormat) -> pd.Series:
     dm = skbio.DistanceMatrix.read(str(ff), format='lsmat', verify=False)
     return dm.to_series()
 
+
 @plugin.register_transformer
 def _4(df: AnnotatedTSVDirFmt) -> pd.DataFrame:
     data = df.data.view(pd.DataFrame)
@@ -43,6 +44,7 @@ def _4(df: AnnotatedTSVDirFmt) -> pd.DataFrame:
         data[column].attrs.update(metadata.loc[column].to_dict())
 
     return data
+
 
 @plugin.register_transformer
 def _5(obj: pd.DataFrame) -> AnnotatedTSVDirFmt:

@@ -12,9 +12,9 @@ import scipy.stats
 
 
 def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
-                   reference_group: str=None,
-                   against_each: pd.DataFrame=None,
-                   p_val_approx: str='auto') -> pd.DataFrame:
+                   reference_group: str = None,
+                   against_each: pd.DataFrame = None,
+                   p_val_approx: str = 'auto') -> pd.DataFrame:
 
     dists = [distribution]
 
@@ -27,14 +27,15 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
     elif hypothesis == 'all-pairwise':
         if reference_group is not None:
             raise ValueError("`all-pairwise` was selected as the hypothesis,"
-                             " but a `reference_group` was added. Please either"
-                             " select `reference` as the hypothesis, or remove"
-                             " the `reference_group` parameter from your command.")
+                             " but a `reference_group` was added."
+                             " Please either select `reference` as the"
+                             " hypothesis, or remove the `reference_group`"
+                             " parameter from your command.")
         comparisons = _comp_all_pairwise(distribution,
                                          against_each=against_each)
     else:
-        raise ValueError("Invalid hypothesis. Please either choose `reference` or"
-                         " `all-pairwise` as your hypothesis.")
+        raise ValueError("Invalid hypothesis. Please either choose `reference`"
+                         " or `all-pairwise` as your hypothesis.")
 
     table = []
     for (idx_a, comp_a), (idx_b, comp_b) in comparisons:
@@ -80,7 +81,6 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
     df['q-value'].attrs.update(
         dict(unit='Benjamini–Hochberg', description='...'))
 
-
     return df
 
 
@@ -125,20 +125,22 @@ def _compare_mannwhitneyu(group_a, group_b, p_val_approx):
 
 
 def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
-                 baseline_group: str=None, p_val_approx: str='auto') -> pd.DataFrame:
+                 baseline_group: str = None,
+                 p_val_approx: str = 'auto') -> pd.DataFrame:
 
     if hypothesis == 'baseline':
         comparisons = _comp_baseline(distribution, baseline_group)
     elif hypothesis == 'consecutive':
         if baseline_group is not None:
             raise ValueError("`consecutive` was selected as the hypothesis,"
-                             " but a `baseline_group` was added. Please either"
-                             " select `baseline` as the hypothesis, or remove"
-                             " the `baseline_group` parameter from your command.")
+                             " but a `baseline_group` was added. Please"
+                             " either select `baseline` as the hypothesis,"
+                             " or remove the `baseline_group` parameter"
+                             " from your command.")
         comparisons = _comp_consecutive(distribution)
     else:
-        raise ValueError("Invalid hypothesis. Please either choose `baseline` or"
-                         " `consecutive` as your hypothesis.")
+        raise ValueError("Invalid hypothesis. Please either choose `baseline`"
+                         " or `consecutive` as your hypothesis.")
 
     table = []
     for comp_a, comp_b in comparisons:
@@ -230,12 +232,14 @@ def _compare_wilcoxon(group_a, group_b, p_val_approx) -> dict:
 
     return results
 
+
 def _fdr_correction(p_vals):
     ranked_p_values = scipy.stats.rankdata(p_vals)
     fdr = p_vals * len(p_vals) / ranked_p_values
     fdr[fdr > 1] = 1
 
     return fdr
+
 
 def _get_reference_from_column(series, reference_value, param_name):
     if reference_value is None:
@@ -253,4 +257,4 @@ def _get_reference_from_column(series, reference_value, param_name):
             return reference_value
 
     raise ValueError("%r was not found as a group within the distribution."
-                        % reference_value)
+                     % reference_value)

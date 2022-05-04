@@ -2,7 +2,7 @@
 
 PYTHON ?= python
 
-all:
+all: ;
 
 lint:
 	q2lint
@@ -22,4 +22,4 @@ dev: all
 
 clean: distclean
 
-distclean:
+distclean: ;

@@ -15,5 +15,6 @@ from ._engraftment import engraftment
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['RecordTSVFileFormat', 'AnnotatedTSVDirFmt', 'StatsTable', 'Pairwise',
-           'GroupDist', 'Ordered', 'Unordered', 'Matched', 'Independent', 'engraftment']
+__all__ = ['RecordTSVFileFormat', 'AnnotatedTSVDirFmt', 'StatsTable',
+           'Pairwise', 'GroupDist', 'Ordered', 'Unordered', 'Matched',
+           'Independent', 'engraftment']
