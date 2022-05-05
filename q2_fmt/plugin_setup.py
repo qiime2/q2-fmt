@@ -66,7 +66,13 @@ plugin.pipelines.register_function(
         'metadata': 'The sample metadata.',
         'hypothesis': 'The hypothesis that will be used to analyze the input'
                       ' `distribution`. Either `reference`, `all-pairwise`,'
-                      ' `baseline` or `consecutive` must be selected.',
+                      ' `baseline` or `consecutive` must be selected.'
+                      ' If selecting an `alternative` comparison, the input'
+                      ' diversity measure will be used as Group A, and Group B'
+                      ' will be designated for each hypothesis as follows:'
+                      ' The `against_group` distribution (for the `reference`,'
+                      ' `baseline`, and `all-pairwise` hypothesis), or the'
+                      ' n+1 timepoint (for the `consecutive` hypothesis).',
         'time_column': 'The column within the `metadata` that the'
                        ' `diversity_measure` should be grouped by.'
                        ' This column should contain simple integer values.',
@@ -85,7 +91,9 @@ plugin.pipelines.register_function(
                                      ' the metadata that are not present in'
                                      ' the diversity measure.'
                                      ' Default behavior is to raise an error.',
-        'where': '..',
+        'where': 'Additional filtering for the associated metadata file. This'
+                 ' can be used to filter by a subset of the metadata, such as'
+                 ' a specific value in one of the metadata columns.',
         'against_group': 'Based on the selected hypothesis, this is the column'
                          ' that will be used to compare all samples against.',
         'alternative': 'The type of comparison to be made, if opting out of'
@@ -94,19 +102,13 @@ plugin.pipelines.register_function(
                        ' Default behavior is `two-sided`, unless `greater` or'
                        ' `less` are selected.'
                        ' If `greater` is selected, this will produce a'
-                       ' significant result if the input distribution is'
-                       ' greater than the `against_group` (for `reference`'
-                       ' `baseline` or `all-pairwise` hypotheses),'
-                       ' and will produce a significant result if group n is'
-                       ' greater than group n+1 (for the `consecutive`'
-                       ' hypothesis).'
+                       ' significant result if the distribution median of'
+                       ' Group A is greater than the distribution median of'
+                       ' Group B.'
                        ' If `less` is selected, this will produce a'
-                       ' significant result if the input distribution is'
-                       ' less than the `against_group` (for `reference`'
-                       ' `baseline` or `all-pairwise` hypotheses),'
-                       ' and will produce a significant result if group n is'
-                       ' less than group n+1 (for the `consecutive`'
-                       ' hypothesis).',
+                       ' significant result if the distribution median of'
+                       ' Group A is less than the distribution median of'
+                       ' Group B.',
         'p_val_approx': '"exact" will calculate an exact p-value'
                         ' for distributions, "asymptotic" will use a normal'
                         ' distribution, and "auto" will use either "exact"'
@@ -156,7 +158,9 @@ plugin.methods.register_function(
                                      ' the metadata that are not present'
                                      ' in the diversity measure.'
                                      ' Default behavior is to raise an error.',
-        'where': '..',
+        'where': 'Additional filtering for the associated metadata file. This'
+                 ' can be used to filter by a subset of the metadata, such as'
+                 ' a specific value in one of the metadata columns.',
     },
     output_descriptions={
         'timepoint_dists': 'The distributions for the `diversity_measure`,'
@@ -192,7 +196,12 @@ plugin.methods.register_function(
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input'
                       ' `distribution`. Either `reference` or `all-pairwise`'
-                      ' must be selected.',
+                      ' must be selected. If selecting an `alternative`'
+                      ' comparison, the input distribution will be used as'
+                      '  Group A, and the `against_each` distribution will be'
+                      ' used as Group B (for the `all-pairwise` hypothesis),'
+                      ' or the `reference_group` (for the `reference`'
+                      ' hypothesis).',
         'reference_group': 'If `reference` is the selected hypothesis, this'
                            ' is the column that will be used'
                            ' to compare all samples against.',
@@ -202,19 +211,13 @@ plugin.methods.register_function(
                        ' Default behavior is `two-sided`, unless `greater` or'
                        ' `less` are selected.'
                        ' If `greater` is selected, this will produce a'
-                       ' significant result if the input distribution is'
-                       ' greater than the `reference_group` (for the'
-                       ' `reference` hypothesis), and will produce a'
-                       ' significant result if the input distribution is'
-                       ' greater than the `against_each` distribution'
-                       ' (for the `all-pairwise` hypothesis).'
+                       ' significant result if the distribution median of'
+                       ' Group A is greater than the distribution median of'
+                       ' Group B.'
                        ' If `less` is selected, this will produce a'
-                       ' significant result if the input distribution is'
-                       ' less than the `reference_group` (for the'
-                       ' `reference` hypothesis), and will produce a'
-                       ' significant result if the input distribution is'
-                       ' less than the `against_each` distribution'
-                       ' (for the `all-pairwise` hypothesis).',
+                       ' significant result if the distribution median of'
+                       ' Group A is less than the distribution median of'
+                       ' Group B.',
         'p_val_approx': '"exact" will calculate an exact p-value for'
                         ' distributions, "asymptotic" will use a normal'
                         ' distribution, and "auto" will use either "exact"'
@@ -243,7 +246,11 @@ plugin.methods.register_function(
     parameter_descriptions={
         'hypothesis': 'The hypothesis that will be used to analyze the input'
                       ' `distribution`. Either `baseline` or `consecutive`'
-                      ' must be selected.',
+                      ' must be selected. If selecting an `alternative`'
+                      ' comparison, the input distribution will be used as'
+                      '  Group A, and the `baseline_group` will be used as'
+                      ' Group B (for the `baseline` hypothesis), or timepoint'
+                      ' n+1 (for the `consecutive` hypothesis).',
         'baseline_group': 'If `baseline` is the selected hypothesis, this is'
                           ' the column that will be used'
                           ' to compare all samples against.',
@@ -252,17 +259,13 @@ plugin.methods.register_function(
                        ' Default behavior is `two-sided`, unless `greater` or'
                        ' `less` are selected.'
                        ' If `greater` is selected, this will produce a'
-                       ' significant result if the input distribution is'
-                       ' greater than the `baseline_group` (for the'
-                       ' `baseline` hypothesis), and will produce a'
-                       ' significant result if group n+1 is greater than group'
-                       ' n (for the `consecutive` hypothesis).'
+                       ' significant result if the distribution median of'
+                       ' Group A is greater than the distribution median of'
+                       ' Group B.'
                        ' If `less` is selected, this will produce a'
-                       ' significant result if the input distribution is'
-                       ' less than the `baseline_group` (for the'
-                       ' `baseline` hypothesis), and will produce a'
-                       ' significant result if group n+1 is less than group'
-                       ' n (for the `consecutive` hypothesis).',
+                       ' significant result if the distribution median of'
+                       ' Group A is less than the distribution median of'
+                       ' Group B.',
         'p_val_approx': '"exact" will calculate an exact p-value for'
                         ' distributions of up to 25 (inclusive) measurements,'
                         ' "asymptotic" will use a normal distribution,'

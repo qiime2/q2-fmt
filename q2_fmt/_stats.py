@@ -38,6 +38,8 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
         raise ValueError("Invalid hypothesis. Please either choose `reference`"
                          " or `all-pairwise` as your hypothesis.")
 
+    _alternative_comps(alternative=alternative)
+
     table = []
     for (idx_a, comp_a), (idx_b, comp_b) in comparisons:
         a_dist = dists[idx_a]
@@ -112,16 +114,9 @@ def _comp_all_pairwise(distribution, against_each=None):
 
 
 def _compare_mannwhitneyu(group_a, group_b, alternative, p_val_approx):
-    if (alternative == 'two-sided' or alternative == 'greater'
-            or alternative == 'less'):
-
-        stat, p_val = scipy.stats.mannwhitneyu(
-            group_a, group_b, method=p_val_approx,
-            alternative=alternative, nan_policy='raise')
-    else:
-        raise ValueError("Invalid `alternative` comparison selected."
-                         " Please either choose `two-sided`, `greater`"
-                         " or `less` as your alternative comparison.")
+    stat, p_val = scipy.stats.mannwhitneyu(
+        group_a, group_b, method=p_val_approx,
+        alternative=alternative, nan_policy='raise')
 
     return {
         'A:n': len(group_a),
@@ -152,6 +147,8 @@ def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
     else:
         raise ValueError("Invalid hypothesis. Please either choose `baseline`"
                          " or `consecutive` as your hypothesis.")
+
+    _alternative_comps(alternative=alternative)
 
     table = []
     for comp_a, comp_b in comparisons:
@@ -234,16 +231,9 @@ def _compare_wilcoxon(group_a, group_b, alternative, p_val_approx) -> dict:
         'n': len(filtered.index),
     }
 
-    if (alternative == 'two-sided' or alternative == 'greater'
-            or alternative == 'less'):
-
-        stat, p_val = scipy.stats.wilcoxon(
-            filtered.iloc[:, 0], filtered.iloc[:, 1],
-            nan_policy='raise', mode=p_val_approx, alternative=alternative)
-    else:
-        raise ValueError("Invalid `alternative` comparison selected."
-                         " Please either choose `two-sided`, `greater`"
-                         " or `less` as your alternative comparison.")
+    stat, p_val = scipy.stats.wilcoxon(
+        filtered.iloc[:, 0], filtered.iloc[:, 1],
+        nan_policy='raise', mode=p_val_approx, alternative=alternative)
 
     results['test-statistic'] = stat
     results['p-value'] = p_val
@@ -257,6 +247,14 @@ def _fdr_correction(p_vals):
     fdr[fdr > 1] = 1
 
     return fdr
+
+
+def _alternative_comps(alternative):
+    if not (alternative == 'two-sided' or alternative == 'greater'
+            or alternative == 'less'):
+        raise ValueError("Invalid `alternative` comparison selected."
+                         " Please either choose `two-sided`, `greater`"
+                         " or `less` as your alternative comparison.")
 
 
 def _get_reference_from_column(series, reference_value, param_name):
