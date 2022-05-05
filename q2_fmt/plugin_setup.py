@@ -47,12 +47,13 @@ plugin.pipelines.register_function(
     function=q2_fmt.engraftment,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata,
-                'hypothesis': Str % Choices('reference', 'all-pairwise',
-                                            'baseline', 'consecutive'),
+                'compare': Str % Choices('reference', 'all-pairwise',
+                                         'baseline', 'consecutive'),
                 'time_column': Str, 'reference_column': Str,
                 'subject_column': T_subject, 'control_column': Str,
                 'filter_missing_references': Bool, 'where': Str,
                 'against_group': Str,
+                'alternative': Str % Choices('two-sided', 'greater', 'less'),
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[
         ('stats', StatsTable[Pairwise]),
@@ -62,10 +63,22 @@ plugin.pipelines.register_function(
         'diversity_measure': '',
     },
     parameter_descriptions={
-        'metadata': 'The sample metadata.',
-        'hypothesis': 'The hypothesis that will be used to analyze the input'
-                      ' `distribution`. Either `reference`, `all-pairwise`,'
-                      ' `baseline` or `consecutive` must be selected.',
+        'metadata': 'The sample `metadata`.',
+        'compare': 'The type of comparison that will be used to analyze the'
+                   ' input `diversity_measure`.'
+                   ' The "baseline" comparison defines Group A as the'
+                   ' timepoint provided to `against_group` (sourced from'
+                   ' `time_column`), and Group B as all other timepoints'
+                   ' contained in `time_column`. The "reference" comparison'
+                   ' defines Group A as the reference/control provided to'
+                   ' `against_group` (sourced from either `reference_column`'
+                   ' or `control_column`), and Group B as all timepoints'
+                   ' contained in `time_column`. The "consecutive" comparison'
+                   ' defines Group A as "timepoint n", and Group B as'
+                   ' "timepoint n+1" (both sourced from `time_column`).'
+                   ' The "all-pairwise" comparison defines Group A as all'
+                   ' groups in `reference_column` and `control_column`, and'
+                   ' Group B is all timepoints in `time_column`.',
         'time_column': 'The column within the `metadata` that the'
                        ' `diversity_measure` should be grouped by.'
                        ' This column should contain simple integer values.',
@@ -84,9 +97,18 @@ plugin.pipelines.register_function(
                                      ' the metadata that are not present in'
                                      ' the diversity measure.'
                                      ' Default behavior is to raise an error.',
-        'where': '..',
-        'against_group': 'Based on the selected hypothesis, this is the column'
+        'where': 'Additional filtering for the associated `metadata` file.'
+                 ' This can be used to filter by a subset of the `metadata`,'
+                 ' such as a specific value in one of the `metadata` columns.',
+        'against_group': 'Based on the selected comparison, this is the column'
                          ' that will be used to compare all samples against.',
+        'alternative': 'The "two-sided" alternative hypothesis is that the'
+                       ' median of Group A does not equal the median of Group'
+                       ' B. The "greater" alternative hypothesis is that the'
+                       ' median of group A is greater than the median of Group'
+                       ' B. The "less" alternative hypothesis is that the'
+                       ' median of group A is less than the median of Group'
+                       ' B.',
         'p_val_approx': '"exact" will calculate an exact p-value'
                         ' for distributions, "asymptotic" will use a normal'
                         ' distribution, and "auto" will use either "exact"'
@@ -94,11 +116,11 @@ plugin.pipelines.register_function(
                         ' and there are no ties, otherwise "asymptotic".'
     },
     output_descriptions={
-        'stats': 'Either the Mann-Whitney U or Wilcoxon SRT distribution'
-                 ' for the chosen hypothesis.',
+        'stats': 'Either the Mann-Whitney U or Wilcoxon SRT table'
+                 ' for the chosen comparison.',
         'raincloud_plot': 'Raincloud plot for the computed significance test'
                           ' (either Mann-Whitney U or Wilxocon SRT) from the'
-                          ' grouped diversity data and selected hypothesis.',
+                          ' grouped diversity data and selected comparison.',
     },
     name='Engraftment Pipeline for FMT Analysis',
     description='',
@@ -136,7 +158,9 @@ plugin.methods.register_function(
                                      ' the metadata that are not present'
                                      ' in the diversity measure.'
                                      ' Default behavior is to raise an error.',
-        'where': '..',
+        'where': 'Additional filtering for the associated `metadata` file.'
+                 ' This can be used to filter by a subset of the `metadata`,'
+                 ' such as a specific value in one of the `metadata` columns.',
     },
     output_descriptions={
         'timepoint_dists': 'The distributions for the `diversity_measure`,'
@@ -164,17 +188,31 @@ plugin.methods.register_function(
     inputs={'distribution': GroupDist[Unordered | Ordered, Independent],
             'against_each': GroupDist[Unordered | Ordered,
                                       Matched | Independent]},
-    parameters={'hypothesis': Str % Choices('reference', 'all-pairwise'),
+    parameters={'compare': Str % Choices('reference', 'all-pairwise'),
                 'reference_group': Str,
+                'alternative': Str % Choices('two-sided', 'greater', 'less'),
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
-        'hypothesis': 'The hypothesis that will be used to analyze the input'
-                      ' `distribution`. Either `reference` or `all-pairwise`'
-                      ' must be selected.',
-        'reference_group': 'If `reference` is the selected hypothesis, this'
-                           ' is the column that will be used'
-                           ' to compare all samples against.',
+        'compare': 'The comparison that will be used to analyze the input'
+                   ' `distribution`. Either "reference" or "all-pairwise"'
+                   ' must be selected. The "reference" comparison defines'
+                   ' Group A as the reference/control provided to'
+                   ' `reference_group` (sourced from either `reference_column`'
+                   ' or `control_column`), and Group B as all other groups.'
+                   ' The "all-pairwise" comparison compares all groups to'
+                   ' all other groups. If `against_each` is used, this will'
+                   ' define Group B.',
+        'reference_group': 'If "reference" is the selected comparison, this'
+                           ' is the column that will be used to compare all'
+                           ' other groups against.',
+        'alternative': 'The "two-sided" alternative hypothesis is that the'
+                       ' median of Group A does not equal the median of Group'
+                       ' B. The "greater" alternative hypothesis is that the'
+                       ' median of group A is greater than the median of Group'
+                       ' B. The "less" alternative hypothesis is that the'
+                       ' median of group A is less than the median of Group'
+                       ' B.',
         'p_val_approx': '"exact" will calculate an exact p-value for'
                         ' distributions, "asymptotic" will use a normal'
                         ' distribution, and "auto" will use either "exact"'
@@ -182,8 +220,8 @@ plugin.methods.register_function(
                         ' and there are no ties, otherwise "asymptotic".'
     },
     output_descriptions={
-        'stats': 'The Mann-Whitney U distribution for either the `reference`'
-                 ' or `all-pairwise` hypothesis.',
+        'stats': 'The Mann-Whitney U table for either the "reference"'
+                 ' or "all-pairwise" comparison.',
     },
     name='Mann-Whitney U Test',
     description='',
@@ -195,17 +233,30 @@ plugin.methods.register_function(
 plugin.methods.register_function(
     function=wilcoxon_srt,
     inputs={'distribution': GroupDist[Ordered, Matched]},
-    parameters={'hypothesis': Str % Choices('baseline', 'consecutive'),
+    parameters={'compare': Str % Choices('baseline', 'consecutive'),
                 'baseline_group': Str,
+                'alternative': Str % Choices('two-sided', 'greater', 'less'),
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
-        'hypothesis': 'The hypothesis that will be used to analyze the input'
-                      ' `distribution`. Either `baseline` or `consecutive`'
-                      ' must be selected.',
-        'baseline_group': 'If `baseline` is the selected hypothesis, this is'
-                          ' the column that will be used'
-                          ' to compare all samples against.',
+        'compare': 'The type of comparison that will be used to analyze the'
+                   ' input `distribution`.'
+                   ' The "baseline" comparison defines Group A as the'
+                   ' timepoint provided to `baseline_group` (sourced from'
+                   ' `time_column`), and Group B as all other timepoints'
+                   ' contained in `time_column`. The "consecutive" comparison'
+                   ' defines Group A as "timepoint n", and Group B as'
+                   ' "timepoint n+1" (both sourced from `time_column`).',
+        'baseline_group': 'If "baseline" is the selected comparison, this is'
+                          ' the column that will be used to compare all'
+                          ' other groups against.',
+        'alternative': 'The "two-sided" alternative hypothesis is that the'
+                       ' median of Group A does not equal the median of Group'
+                       ' B. The "greater" alternative hypothesis is that the'
+                       ' median of group A is greater than the median of Group'
+                       ' B. The "less" alternative hypothesis is that the'
+                       ' median of group A is less than the median of Group'
+                       ' B.',
         'p_val_approx': '"exact" will calculate an exact p-value for'
                         ' distributions of up to 25 (inclusive) measurements,'
                         ' "asymptotic" will use a normal distribution,'
@@ -213,8 +264,8 @@ plugin.methods.register_function(
                         ' depending on size.'
     },
     output_descriptions={
-        'stats': 'The Wilcoxon SRT distribution for either the `baseline`'
-                 ' or `consecutive` hypothesis.',
+        'stats': 'The Wilcoxon SRT table for either the "baseline"'
+                 ' or "consecutive" comparison.',
     },
     name='Wilcoxon Signed Rank Test',
     description='',

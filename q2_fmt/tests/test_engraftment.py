@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
+import numpy as np
 from skbio.stats.distance import DistanceMatrix
 
 from qiime2.plugin.testing import TestPluginBase
@@ -509,11 +510,28 @@ class TestStats(TestBase):
         })
 
         stats_data = wilcoxon_srt(distribution=self.faithpd_timedist,
-                                  hypothesis='baseline',
+                                  compare='baseline',
                                   baseline_group='0',
                                   p_val_approx='asymptotic')
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
+
+    def test_wilcoxon_pairwise_against_each_alternative_hypothesis(self):
+        stats_data_greater = wilcoxon_srt(distribution=self.faithpd_timedist,
+                                          compare='consecutive',
+                                          alternative='greater',
+                                          p_val_approx='asymptotic')
+        p_vals_greater = stats_data_greater['p-value']
+
+        stats_data_less = wilcoxon_srt(distribution=self.faithpd_timedist,
+                                       compare='consecutive',
+                                       alternative='less',
+                                       p_val_approx='asymptotic')
+        p_vals_less = stats_data_less['p-value']
+
+        p_val_total = np.add(p_vals_greater, p_vals_less)
+        for p_val in p_val_total:
+            self.assertAlmostEqual(p_val, 1, places=1)
 
     def test_wilcoxon_with_faith_pd_consecutive_asymptotic(self):
         exp_stats_data = pd.DataFrame({
@@ -530,30 +548,36 @@ class TestStats(TestBase):
         })
 
         stats_data = wilcoxon_srt(distribution=self.faithpd_timedist,
-                                  hypothesis='consecutive',
+                                  compare='consecutive',
                                   p_val_approx='asymptotic')
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
-    def test_wilcoxon_consecutive_hypothesis_with_baseline_group(self):
+    def test_wilcoxon_consecutive_comparison_with_baseline_group(self):
         with self.assertRaisesRegex(ValueError, "`consecutive` was selected as"
-                                    " the hypothesis, but a `baseline_group`"
+                                    " the comparison, but a `baseline_group`"
                                     " was added."):
             wilcoxon_srt(distribution=self.faithpd_timedist,
-                         hypothesis='consecutive', baseline_group='reference')
+                         compare='consecutive', baseline_group='reference')
 
-    def test_wilcoxon_invalid_hypothesis(self):
-        with self.assertRaisesRegex(ValueError, "Invalid hypothesis. Please"
+    def test_wilcoxon_invalid_comparison(self):
+        with self.assertRaisesRegex(ValueError, "Invalid comparison. Please"
                                     " either choose `baseline` or"
-                                    " `consecutive` as your hypothesis."):
+                                    " `consecutive` as your comparison."):
             wilcoxon_srt(distribution=self.faithpd_timedist,
-                         hypothesis='foo')
+                         compare='foo')
 
     def test_wilcoxon_invalid_baseline_group(self):
         with self.assertRaisesRegex(ValueError, "'foo' was not found as a"
                                     " group within the distribution."):
             wilcoxon_srt(distribution=self.faithpd_timedist,
-                         hypothesis='baseline', baseline_group='foo')
+                         compare='baseline', baseline_group='foo')
+
+    def test_wilcoxon_invalid_alternative_hypothesis(self):
+        with self.assertRaisesRegex(ValueError, "Invalid `alternative`"
+                                    " hypothesis selected."):
+            wilcoxon_srt(distribution=self.faithpd_timedist,
+                         compare='consecutive', alternative='foo')
 
     # Mann-Whitney U test cases
 
@@ -593,10 +617,29 @@ class TestStats(TestBase):
 
         stats_data = mann_whitney_u(distribution=self.faithpd_refdist,
                                     against_each=self.faithpd_timedist,
-                                    hypothesis='all-pairwise',
+                                    compare='all-pairwise',
                                     p_val_approx='asymptotic')
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
+
+    def test_mann_whitney_pairwise_against_each_alternative_hypothesis(self):
+        stats_data_greater = mann_whitney_u(distribution=self.faithpd_refdist,
+                                            against_each=self.faithpd_timedist,
+                                            compare='all-pairwise',
+                                            alternative='greater',
+                                            p_val_approx='asymptotic')
+        p_vals_greater = stats_data_greater['p-value']
+
+        stats_data_less = mann_whitney_u(distribution=self.faithpd_refdist,
+                                         against_each=self.faithpd_timedist,
+                                         compare='all-pairwise',
+                                         alternative='less',
+                                         p_val_approx='asymptotic')
+        p_vals_less = stats_data_less['p-value']
+
+        p_val_total = np.add(p_vals_greater, p_vals_less)
+        for p_val in p_val_total:
+            self.assertAlmostEqual(p_val, 1, places=1)
 
     def test_mann_whitney_reference(self):
         exp_stats_data = pd.DataFrame({
@@ -613,29 +656,35 @@ class TestStats(TestBase):
         })
 
         stats_data = mann_whitney_u(distribution=self.faithpd_refdist,
-                                    hypothesis='reference',
+                                    compare='reference',
                                     reference_group='reference',
                                     p_val_approx='asymptotic')
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
-    def test_mann_whitney_all_pairwise_hypothesis_with_reference_group(self):
+    def test_mann_whitney_all_pairwise_comparisons_with_reference_group(self):
         with self.assertRaisesRegex(ValueError, "`all-pairwise` was selected"
-                                    " as the hypothesis, but a"
+                                    " as the comparison, but a"
                                     " `reference_group` was added."):
             mann_whitney_u(distribution=self.faithpd_refdist,
-                           hypothesis='all-pairwise',
+                           compare='all-pairwise',
                            reference_group='reference')
 
-    def test_mann_whitney_invalid_hypothesis(self):
-        with self.assertRaisesRegex(ValueError, "Invalid hypothesis. Please"
+    def test_mann_whitney_invalid_comparison(self):
+        with self.assertRaisesRegex(ValueError, "Invalid comparison. Please"
                                     " either choose `reference` or"
-                                    " `all-pairwise` as your hypothesis."):
+                                    " `all-pairwise` as your comparison."):
             mann_whitney_u(distribution=self.faithpd_refdist,
-                           hypothesis='foo')
+                           compare='foo')
 
     def test_mann_whitney_invalid_reference_group(self):
         with self.assertRaisesRegex(ValueError, "'foo' was not found as a"
                                     " group within the distribution."):
             mann_whitney_u(distribution=self.faithpd_refdist,
-                           hypothesis='reference', reference_group='foo')
+                           compare='reference', reference_group='foo')
+
+    def test_mann_whitney_invalid_alternative_hypothesis(self):
+        with self.assertRaisesRegex(ValueError, "Invalid `alternative`"
+                                    " hypothesis selected."):
+            mann_whitney_u(distribution=self.faithpd_refdist,
+                           compare='all-pairwise', alternative='foo')

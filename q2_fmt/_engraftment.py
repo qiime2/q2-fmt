@@ -13,10 +13,10 @@ import qiime2
 
 
 def engraftment(
-    ctx, diversity_measure, metadata, hypothesis, time_column,
+    ctx, diversity_measure, metadata, compare, time_column,
     reference_column, subject_column, control_column=None,
     filter_missing_references=False, where=None, against_group=None,
-    p_val_approx='auto'
+    alternative='two-sided', p_val_approx='auto'
 ):
 
     raincloud_plot = ctx.get_action('fmt', 'plot_rainclouds')
@@ -29,17 +29,18 @@ def engraftment(
                                            subject_column, control_column,
                                            filter_missing_references, where)
 
-    if hypothesis == 'reference' or hypothesis == 'all-pairwise':
+    if compare == 'reference' or compare == 'all-pairwise':
         mann_whitney_u = ctx.get_action('fmt', 'mann_whitney_u')
-        stats = mann_whitney_u(distribution=ref_dist, hypothesis=hypothesis,
+        stats = mann_whitney_u(distribution=ref_dist, compare=compare,
                                reference_group=against_group,
-                               against_each=ref_dist,
+                               against_each=time_dist, alternative=alternative,
                                p_val_approx=p_val_approx)
 
     else:
         wilcoxon_srt = ctx.get_action('fmt', 'wilcoxon_srt')
-        stats = wilcoxon_srt(distribution=time_dist, hypothesis=hypothesis,
+        stats = wilcoxon_srt(distribution=time_dist, compare=compare,
                              baseline_group=against_group,
+                             alternative=alternative,
                              p_val_approx=p_val_approx)
 
     results += stats

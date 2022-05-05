@@ -115,7 +115,7 @@ def wilcoxon_baseline0(use):
         use.UsageAction('fmt', 'wilcoxon_srt'),
         use.UsageInputs(
             distribution=timedist,
-            hypothesis='baseline',
+            compare='baseline',
             baseline_group='0',
             p_val_approx='asymptotic',
         ),
@@ -135,7 +135,7 @@ def mann_whitney_pairwise(use):
         use.UsageAction('fmt', 'mann_whitney_u'),
         use.UsageInputs(
             distribution=refdist,
-            hypothesis='all-pairwise',
+            compare='all-pairwise',
             against_each=timedist,
             p_val_approx='asymptotic',
         ),
@@ -147,7 +147,7 @@ def mann_whitney_pairwise(use):
     stats_table.assert_output_type('StatsTable[Pairwise]')
 
 
-# Engraftment example using faith PD, baseline0 hypothesis
+# Engraftment example using faith PD, baseline0 comparison
 def engraftment_baseline(use):
     md = use.init_metadata('md', faithpd_md_factory)
     div_measure = use.init_artifact('div_measure', faithpd_div_factory)
@@ -157,7 +157,7 @@ def engraftment_baseline(use):
         use.UsageInputs(
             diversity_measure=div_measure,
             metadata=md,
-            hypothesis='baseline',
+            compare='baseline',
             time_column='week',
             reference_column='InitialDonorSampleID',
             subject_column='SubjectID',
