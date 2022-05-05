@@ -555,6 +555,12 @@ class TestStats(TestBase):
             wilcoxon_srt(distribution=self.faithpd_timedist,
                          hypothesis='baseline', baseline_group='foo')
 
+    def test_wilcoxon_invalid_alternative_comparison(self):
+        with self.assertRaisesRegex(ValueError, "Invalid `alternative`"
+                                    " comparison selected."):
+            wilcoxon_srt(distribution=self.faithpd_timedist,
+                         hypothesis='consecutive', alternative='foo')
+
     # Mann-Whitney U test cases
 
     # Data in the exp_stats_data dataframes were calculated 'by hand' in a
@@ -639,3 +645,9 @@ class TestStats(TestBase):
                                     " group within the distribution."):
             mann_whitney_u(distribution=self.faithpd_refdist,
                            hypothesis='reference', reference_group='foo')
+
+    def test_mann_whitney_invalid_alternative_comparison(self):
+        with self.assertRaisesRegex(ValueError, "Invalid `alternative`"
+                                    " comparison selected."):
+            mann_whitney_u(distribution=self.faithpd_refdist,
+                         hypothesis='all-pairwise', alternative='foo')

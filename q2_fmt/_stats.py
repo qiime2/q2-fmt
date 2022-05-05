@@ -112,10 +112,16 @@ def _comp_all_pairwise(distribution, against_each=None):
 
 
 def _compare_mannwhitneyu(group_a, group_b, alternative, p_val_approx):
-    #TODO: error on alternative ne greater, less or two-sided
-    stat, p_val = scipy.stats.mannwhitneyu(
-        group_a, group_b, method=p_val_approx,
-        alternative=alternative, nan_policy='raise')
+    if (alternative == 'two-sided' or alternative == 'greater'
+            or alternative == 'less'):
+
+        stat, p_val = scipy.stats.mannwhitneyu(
+            group_a, group_b, method=p_val_approx,
+            alternative=alternative, nan_policy='raise')
+    else:
+        raise ValueError("Invalid `alternative` comparison selected."
+                         " Please either choose `two-sided`, `greater`"
+                         " or `less` as your alternative comparison.")
 
     return {
         'A:n': len(group_a),
@@ -227,10 +233,17 @@ def _compare_wilcoxon(group_a, group_b, alternative, p_val_approx) -> dict:
         'B:measure': group_b.median(),
         'n': len(filtered.index),
     }
-    #TODO: error on alternative ne greater, less or two-sided
-    stat, p_val = scipy.stats.wilcoxon(
-        filtered.iloc[:, 0], filtered.iloc[:, 1],
-        nan_policy='raise', mode=p_val_approx, alternative=alternative)
+
+    if (alternative == 'two-sided' or alternative == 'greater'
+            or alternative == 'less'):
+
+        stat, p_val = scipy.stats.wilcoxon(
+            filtered.iloc[:, 0], filtered.iloc[:, 1],
+            nan_policy='raise', mode=p_val_approx, alternative=alternative)
+    else:
+        raise ValueError("Invalid `alternative` comparison selected."
+                         " Please either choose `two-sided`, `greater`"
+                         " or `less` as your alternative comparison.")
 
     results['test-statistic'] = stat
     results['p-value'] = p_val
