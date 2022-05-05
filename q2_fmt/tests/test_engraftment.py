@@ -650,4 +650,4 @@ class TestStats(TestBase):
         with self.assertRaisesRegex(ValueError, "Invalid `alternative`"
                                     " comparison selected."):
             mann_whitney_u(distribution=self.faithpd_refdist,
-                         hypothesis='all-pairwise', alternative='foo')
+                           hypothesis='all-pairwise', alternative='foo')
