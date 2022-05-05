@@ -35,7 +35,7 @@ plots in a single step. To learn more, see the examples below this.
 qiime fmt engraftment \
   --i-diversity-measure div-measure.qza \
   --m-metadata-file md.tsv \
-  --p-hypothesis baseline \
+  --p-compare baseline \
   --p-time-column week \
   --p-reference-column InitialDonorSampleID \
   --p-subject-column SubjectID \
@@ -78,11 +78,11 @@ differentiated by the semantic type of the input to ensure the applicability of
 the test (i.e. only matched pairs for Wilcoxon, and independent groups for
 Mann-Whitney).
 
-Hypotheses for Wilcoxon Signed Rank:
+Comparisons for Wilcoxon Signed Rank:
  - baseline: Compare each timepoint against a reference timpoint
  - consecutive: Compare each timepoint against its next timepoint
 
-Hypotheses for Mann-Whitney U:
+Comparisons for Mann-Whitney U:
  - reference: Compare other groups against a particular reference group
  - all-pairwise: Compare all pairwise groups.
 
@@ -93,7 +93,7 @@ automatically.
 ```bash
 qiime fmt wilcoxon-srt \
   --i-distribution timepoint-dists.qza \
-  --p-hypothesis baseline \
+  --p-compare baseline \
   --p-baseline-group 0 \
   --p-p-val-approx asymptotic \
   --o-stats stats_baseline0.qza
