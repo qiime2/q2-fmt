@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
+import numpy as np
 from skbio.stats.distance import DistanceMatrix
 
 from qiime2.plugin.testing import TestPluginBase
@@ -515,6 +516,23 @@ class TestStats(TestBase):
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
+    def test_wilcoxon_pairwise_against_each_alternative_comparisons(self):
+        stats_data_greater = wilcoxon_srt(distribution=self.faithpd_timedist,
+                                          hypothesis='consecutive',
+                                          alternative='greater',
+                                          p_val_approx='asymptotic')
+        p_vals_greater = stats_data_greater['p-value']
+
+        stats_data_less = wilcoxon_srt(distribution=self.faithpd_timedist,
+                                       hypothesis='consecutive',
+                                       alternative='less',
+                                       p_val_approx='asymptotic')
+        p_vals_less = stats_data_less['p-value']
+
+        p_val_total = np.add(p_vals_greater, p_vals_less)
+        for p_val in p_val_total:
+            self.assertAlmostEqual(p_val, 1, places=1)
+
     def test_wilcoxon_with_faith_pd_consecutive_asymptotic(self):
         exp_stats_data = pd.DataFrame({
             'A:group': [0, 3, 10, 18],
@@ -603,6 +621,25 @@ class TestStats(TestBase):
                                     p_val_approx='asymptotic')
 
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
+
+    def test_mann_whitney_pairwise_against_each_alternative_comparisons(self):
+        stats_data_greater = mann_whitney_u(distribution=self.faithpd_refdist,
+                                    against_each=self.faithpd_timedist,
+                                    hypothesis='all-pairwise',
+                                    alternative='greater',
+                                    p_val_approx='asymptotic')
+        p_vals_greater = stats_data_greater['p-value']
+
+        stats_data_less = mann_whitney_u(distribution=self.faithpd_refdist,
+                                    against_each=self.faithpd_timedist,
+                                    hypothesis='all-pairwise',
+                                    alternative='less',
+                                    p_val_approx='asymptotic')
+        p_vals_less = stats_data_less['p-value']
+
+        p_val_total = np.add(p_vals_greater, p_vals_less)
+        for p_val in p_val_total:
+            self.assertAlmostEqual(p_val, 1, places=1)
 
     def test_mann_whitney_reference(self):
         exp_stats_data = pd.DataFrame({
