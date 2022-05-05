@@ -11,7 +11,7 @@ import pandas as pd
 import scipy.stats
 
 
-def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
+def mann_whitney_u(distribution: pd.DataFrame, compare: str,
                    reference_group: str = None,
                    against_each: pd.DataFrame = None,
                    alternative: str = 'two-sided',
@@ -22,21 +22,21 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
     if against_each is not None:
         dists.append(against_each)
 
-    if hypothesis == 'reference':
+    if compare == 'reference':
         comparisons = _comp_reference(distribution, reference_group,
                                       against_each=against_each)
-    elif hypothesis == 'all-pairwise':
+    elif compare == 'all-pairwise':
         if reference_group is not None:
-            raise ValueError("`all-pairwise` was selected as the hypothesis,"
+            raise ValueError("`all-pairwise` was selected as the comparison,"
                              " but a `reference_group` was added."
                              " Please either select `reference` as the"
-                             " hypothesis, or remove the `reference_group`"
+                             " comparison, or remove the `reference_group`"
                              " parameter from your command.")
         comparisons = _comp_all_pairwise(distribution,
                                          against_each=against_each)
     else:
-        raise ValueError("Invalid hypothesis. Please either choose `reference`"
-                         " or `all-pairwise` as your hypothesis.")
+        raise ValueError("Invalid comparison. Please either choose `reference`"
+                         " or `all-pairwise` as your comparison.")
 
     _alternative_comps(alternative=alternative)
 
@@ -78,7 +78,7 @@ def mann_whitney_u(distribution: pd.DataFrame, hypothesis: str,
     df['n'].attrs.update(dict(unit='count', description='...'))
     df['test-statistic'].attrs.update(dict(unit='Mann-Whitney U',
                                            description='...'))
-    pval = 'two-sided'
+    pval = alternative
     if p_val_approx != 'auto':
         pval += ', ' + p_val_approx
     df['p-value'].attrs.update(dict(unit=pval, description='...'))
@@ -129,24 +129,24 @@ def _compare_mannwhitneyu(group_a, group_b, alternative, p_val_approx):
     }
 
 
-def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
+def wilcoxon_srt(distribution: pd.DataFrame, compare: str,
                  baseline_group: str = None,
                  alternative: str = 'two-sided',
                  p_val_approx: str = 'auto') -> pd.DataFrame:
 
-    if hypothesis == 'baseline':
+    if compare == 'baseline':
         comparisons = _comp_baseline(distribution, baseline_group)
-    elif hypothesis == 'consecutive':
+    elif compare == 'consecutive':
         if baseline_group is not None:
-            raise ValueError("`consecutive` was selected as the hypothesis,"
+            raise ValueError("`consecutive` was selected as the comparison,"
                              " but a `baseline_group` was added. Please"
-                             " either select `baseline` as the hypothesis,"
+                             " either select `baseline` as the comparison,"
                              " or remove the `baseline_group` parameter"
                              " from your command.")
         comparisons = _comp_consecutive(distribution)
     else:
-        raise ValueError("Invalid hypothesis. Please either choose `baseline`"
-                         " or `consecutive` as your hypothesis.")
+        raise ValueError("Invalid comparison. Please either choose `baseline`"
+                         " or `consecutive` as your comparison.")
 
     _alternative_comps(alternative=alternative)
 
@@ -188,7 +188,7 @@ def wilcoxon_srt(distribution: pd.DataFrame, hypothesis: str,
     df['n'].attrs.update(dict(unit='count', description='...'))
     df['test-statistic'].attrs.update(dict(unit='Wilcoxon Signed Rank',
                                            description='...'))
-    pval = 'two-sided'
+    pval = alternative
     if p_val_approx != 'auto':
         pval += ', ' + p_val_approx
     df['p-value'].attrs.update(dict(unit=pval, description='...'))
@@ -252,9 +252,9 @@ def _fdr_correction(p_vals):
 def _alternative_comps(alternative):
     if not (alternative == 'two-sided' or alternative == 'greater'
             or alternative == 'less'):
-        raise ValueError("Invalid `alternative` comparison selected."
+        raise ValueError("Invalid `alternative` hypothesis selected."
                          " Please either choose `two-sided`, `greater`"
-                         " or `less` as your alternative comparison.")
+                         " or `less` as your alternative hypothesis.")
 
 
 def _get_reference_from_column(series, reference_value, param_name):
