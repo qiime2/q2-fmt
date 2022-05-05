@@ -624,17 +624,17 @@ class TestStats(TestBase):
 
     def test_mann_whitney_pairwise_against_each_alternative_comparisons(self):
         stats_data_greater = mann_whitney_u(distribution=self.faithpd_refdist,
-                                    against_each=self.faithpd_timedist,
-                                    hypothesis='all-pairwise',
-                                    alternative='greater',
-                                    p_val_approx='asymptotic')
+                                            against_each=self.faithpd_timedist,
+                                            hypothesis='all-pairwise',
+                                            alternative='greater',
+                                            p_val_approx='asymptotic')
         p_vals_greater = stats_data_greater['p-value']
 
         stats_data_less = mann_whitney_u(distribution=self.faithpd_refdist,
-                                    against_each=self.faithpd_timedist,
-                                    hypothesis='all-pairwise',
-                                    alternative='less',
-                                    p_val_approx='asymptotic')
+                                         against_each=self.faithpd_timedist,
+                                         hypothesis='all-pairwise',
+                                         alternative='less',
+                                         p_val_approx='asymptotic')
         p_vals_less = stats_data_less['p-value']
 
         p_val_total = np.add(p_vals_greater, p_vals_less)
