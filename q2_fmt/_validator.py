@@ -13,7 +13,8 @@ from q2_fmt.plugin_setup import plugin
 from q2_fmt import GroupDist, Ordered, Unordered, Matched, Independent
 
 
-@plugin.register_validator(GroupDist[Ordered | Unordered, Matched | Independent])
+@plugin.register_validator(GroupDist[Ordered | Unordered,
+                           Matched | Independent])
 def validate_all_dist_columns_present(data: pd.DataFrame, level):
     req_cols = ['id', 'measure', 'group']
     for col in req_cols:
