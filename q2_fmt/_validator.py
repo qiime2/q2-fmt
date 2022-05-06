@@ -10,7 +10,15 @@ import pandas as pd
 
 from qiime2.plugin import ValidationError
 from q2_fmt.plugin_setup import plugin
-from q2_fmt import GroupDist, Ordered, Unordered, Matched
+from q2_fmt import GroupDist, Ordered, Unordered, Matched, Independent
+
+
+@plugin.register_validator(GroupDist[Ordered | Unordered, Matched | Independent])
+def validate_all_dist_columns_present(data: pd.DataFrame, level):
+    req_cols = ['id', 'measure', 'group']
+    for col in req_cols:
+        if col not in data.columns:
+            raise ValidationError(f'"{col}" not found in distribution.')
 
 
 @plugin.register_validator(GroupDist[Ordered | Unordered, Matched])
@@ -24,4 +32,4 @@ def validate_unique_subjects_within_group(data: pd.DataFrame, level):
             raise ValidationError(
                 'Unique subject found more than once within an individual'
                 ' group. Group(s) where duplicated subject was found:'
-                f' {group_id}, Duplicated subjects:, {dupes}')
+                f' [{group_id}] Duplicated subjects: {dupes}')
