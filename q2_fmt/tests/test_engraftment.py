@@ -11,11 +11,15 @@ import numpy as np
 from skbio.stats.distance import DistanceMatrix
 
 from qiime2.plugin.testing import TestPluginBase
+from qiime2.plugin import ValidationError
 from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import wilcoxon_srt, mann_whitney_u
-from q2_fmt._examples import faithpd_timedist_factory, faithpd_refdist_factory
+from q2_fmt._examples import (faithpd_timedist_factory,
+                              faithpd_refdist_factory)
+from q2_fmt._validator import (validate_all_dist_columns_present,
+                               validate_unique_subjects_within_group)
 
 
 class TestBase(TestPluginBase):
@@ -688,3 +692,16 @@ class TestStats(TestBase):
                                     " hypothesis selected."):
             mann_whitney_u(distribution=self.faithpd_refdist,
                            compare='all-pairwise', alternative='foo')
+
+class TestValidators(TestBase):
+    def test_validators_missing_columns_in_dist(self):
+        with self.assertRaisesRegex(ValidationError, '"group" not found'
+                                    ' in distribution.'):
+            df = pd.DataFrame({
+                'id': [340445, 892825, 460691],
+                'measure': [7.662921088, 8.431734297, 8.513263823]
+            })
+            validate_all_dist_columns_present(df, level=min)
+
+    def test_validators_unique_subjects_not_duplicated_per_group(self):
+        pass

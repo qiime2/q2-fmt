@@ -25,7 +25,7 @@ def validate_all_dist_columns_present(data: pd.DataFrame, level):
 @plugin.register_validator(GroupDist[Ordered | Unordered, Matched])
 def validate_unique_subjects_within_group(data: pd.DataFrame, level):
     if 'subject' not in data.columns:
-        raise ValidationError('Subject column not found in data.')
+        raise ValidationError('"subject" not found in distribution.')
 
     for group_id, group_df in data.groupby('group'):
         if group_df['subject'].duplicated().any():
