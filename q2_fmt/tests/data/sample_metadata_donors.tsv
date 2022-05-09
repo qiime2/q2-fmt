@@ -1,8 +1,8 @@
 sample_name	barcode	patient_id	relevant_donor	relevant_donor_all	single_donor	control	single_control	subject	days_post_transplant	non_numeric_time_column	invalid_ref_control
 sampleA	GGTCTTAGCACC	135	donor1	donor1	donor1		control1	subject1	7	three	foo
-sampleB	ATTTACAATTGA	249	donor1	donor1		control1		subject1	7	three	bar
+sampleB	ATTTACAATTGA	249	donor1	donor1		control1		subject2	7	three	bar
 sampleC	GCATTCGGCGTT	336	donor2	donor1		control1		subject1	9	five	baz
-sampleD	ACCAGTGACTCA	971	donor3	donor1		control1		subject2	11	seven	foo
+sampleD	ACCAGTGACTCA	971	donor3	donor1		control1		subject1	11	seven	foo
 sampleE	GACCCGTTTCGC	680	donor2	donor1		control2		subject2	11	five	bar
 donor1	ATTGCCTTGATT	771
 donor2	TTAGGATTCTAT	472
