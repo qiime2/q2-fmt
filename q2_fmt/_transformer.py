@@ -40,7 +40,6 @@ def _4(df: AnnotatedTSVDirFmt) -> pd.DataFrame:
     metadata = metadata.set_index('column')
 
     for column in data.columns:
-        # not sure what the semantics are, so do our best
         data[column].attrs.update(metadata.loc[column].to_dict())
 
     return data

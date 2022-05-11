@@ -8,13 +8,11 @@
 
 from ._version import get_versions
 from ._format import RecordTSVFileFormat, AnnotatedTSVDirFmt
-from ._type import (StatsTable, Pairwise, GroupDist,
-                    Ordered, Unordered, Matched, Independent)
+from ._type import (GroupDist, Ordered, Unordered, Matched, Independent)
 from ._engraftment import engraftment
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['RecordTSVFileFormat', 'AnnotatedTSVDirFmt', 'StatsTable',
-           'Pairwise', 'GroupDist', 'Ordered', 'Unordered', 'Matched',
-           'Independent', 'engraftment']
+__all__ = ['RecordTSVFileFormat', 'AnnotatedTSVDirFmt', 'GroupDist', 'Ordered',
+           'Unordered', 'Matched', 'Independent', 'engraftment']
