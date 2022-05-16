@@ -42,8 +42,8 @@ def get_config():
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = ""
-    cfg.parentdir_prefix = "q2-diversity-"
-    cfg.versionfile_source = "q2_diversity/_version.py"
+    cfg.parentdir_prefix = "q2-fmt-"
+    cfg.versionfile_source = "q2_fmt/_version.py"
     cfg.verbose = False
     return cfg
 
