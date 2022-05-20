@@ -10,6 +10,8 @@ import pandas as pd
 import frictionless as fls
 from frictionless import Resource
 
+import skbio
+from q2_types.distance_matrix import LSMatFormat
 from q2_fmt.plugin_setup import plugin
 from ._format import (NDJSONFileFormat, DataResourceSchemaFileFormat,
                       TabularDataResourceDirFmt)
@@ -68,3 +70,9 @@ def _4(obj: pd.DataFrame) -> TabularDataResourceDirFmt:
     metadata_resource.to_json(str(dir_fmt.path/'dataresource.json'))
 
     return dir_fmt
+
+
+@plugin.register_transformer
+def _5(ff: LSMatFormat) -> pd.Series:
+    dm = skbio.DistanceMatrix.read(str(ff), format='lsmat', verify=False)
+    return dm.to_series()

@@ -66,24 +66,24 @@ def mann_whitney_u(distribution: pd.DataFrame, compare: str,
 
     df['A:group'].attrs.update(dists[idx_a]['group'].attrs)
     df['B:group'].attrs.update(dists[idx_b]['group'].attrs)
-    n = {'unit': 'count', 'description': '...'}
+    n = {'title': 'count', 'description': '...'}
     df['A:n'].attrs.update(n)
     df['B:n'].attrs.update(n)
     measure = {
-        'unit': 'Median ' + distribution['measure'].attrs['unit'],
+        'title': 'Median ' + distribution['measure'].attrs['title'],
         'description': '...'
     }
     df['A:measure'].attrs.update(measure)
     df['B:measure'].attrs.update(measure)
-    df['n'].attrs.update(dict(unit='count', description='...'))
-    df['test-statistic'].attrs.update(dict(unit='Mann-Whitney U',
+    df['n'].attrs.update(dict(title='count', description='...'))
+    df['test-statistic'].attrs.update(dict(title='Mann-Whitney U',
                                            description='...'))
     pval = alternative
     if p_val_approx != 'auto':
         pval += ', ' + p_val_approx
-    df['p-value'].attrs.update(dict(unit=pval, description='...'))
+    df['p-value'].attrs.update(dict(title=pval, description='...'))
     df['q-value'].attrs.update(
-        dict(unit='Benjamini–Hochberg', description='...'))
+        dict(title='Benjamini–Hochberg', description='...'))
 
     return df
 
@@ -176,24 +176,24 @@ def wilcoxon_srt(distribution: pd.DataFrame, compare: str,
 
     df['A:group'].attrs.update(distribution['group'].attrs)
     df['B:group'].attrs.update(distribution['group'].attrs)
-    n = {'unit': 'count', 'description': '...'}
+    n = {'title': 'count', 'description': '...'}
     df['A:n'].attrs.update(n)
     df['B:n'].attrs.update(n)
     measure = {
-        'unit': 'Median ' + distribution['measure'].attrs['unit'],
+        'title': 'Median ' + distribution['measure'].attrs['title'],
         'description': '...'
     }
     df['A:measure'].attrs.update(measure)
     df['B:measure'].attrs.update(measure)
-    df['n'].attrs.update(dict(unit='count', description='...'))
-    df['test-statistic'].attrs.update(dict(unit='Wilcoxon Signed Rank',
+    df['n'].attrs.update(dict(title='count', description='...'))
+    df['test-statistic'].attrs.update(dict(title='Wilcoxon Signed Rank',
                                            description='...'))
     pval = alternative
     if p_val_approx != 'auto':
         pval += ', ' + p_val_approx
-    df['p-value'].attrs.update(dict(unit=pval, description='...'))
+    df['p-value'].attrs.update(dict(title=pval, description='...'))
     df['q-value'].attrs.update(
-        dict(unit='Benjamini–Hochberg', description='...'))
+        dict(title='Benjamini–Hochberg', description='...'))
 
     return df
 
