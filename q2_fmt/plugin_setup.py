@@ -44,8 +44,9 @@ T_subject, T_dependence = TypeMap({
 })
 
 T_engraft_subject, T_compare, _ = TypeMap({
-    (Bool % Choices(False), Str % Choices("reference" , "all-pairwise")): Visualization,
-    (Str, Str % Choices("baseline","consecutive")): Visualization
+    (Bool % Choices(False), 
+    Str % Choices("reference", "all-pairwise")): Visualization,
+    (Str, Str % Choices("baseline", "consecutive")): Visualization
 })
 
 plugin.pipelines.register_function(
