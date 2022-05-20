@@ -83,8 +83,7 @@ def group_timepoints(
     })
     ordered_df['group'].attrs.update({
         'title': time_col.name,
-        'description': '...',
-        'foo': 'bar'
+        'description': '...'
     })
     if subject_col is not None:
         ordered_df['subject'].attrs.update({
