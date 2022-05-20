@@ -129,9 +129,9 @@ plugin.pipelines.register_function(
     },
     name='Engraftment Pipeline for FMT Analysis',
     description='Applies group timepoints to Fecal Microbiota Transplant data'
-         'and then applies statistical tests(Wilcoxon rank sum test or '
-         'Mann–Whitney U test) on alpha or beta diversity metrics to assess'
-         'engraftment success.',
+         ' and then applies statistical tests(Wilcoxon rank sum test or'
+         ' Mann–Whitney U test) on alpha or beta diversity metrics to assess'
+         ' engraftment success.',
     examples={
         'engraftment_baseline': ex.engraftment_baseline
     }
