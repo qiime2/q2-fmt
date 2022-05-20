@@ -7,58 +7,64 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
+import frictionless as fls
+from frictionless import Resource
 
-import skbio
-from q2_types.distance_matrix import LSMatFormat
 from q2_fmt.plugin_setup import plugin
-from . import RecordTSVFileFormat, AnnotatedTSVDirFmt
+from ._format import (NDJSONFileFormat, DataResourceSchemaFileFormat,
+                      TabularDataResourceDirFmt)
 
 
 @plugin.register_transformer
-def _1(ff: RecordTSVFileFormat) -> pd.DataFrame:
-    df = pd.read_csv(str(ff), sep='\t', skip_blank_lines=True, header=0)
-    return df
-
-
-@plugin.register_transformer
-def _2(obj: pd.DataFrame) -> RecordTSVFileFormat:
-    ff = RecordTSVFileFormat()
-    obj.to_csv(str(ff), sep='\t', index=False)
+def _1(obj: pd.DataFrame) -> NDJSONFileFormat:
+    ff = NDJSONFileFormat()
+    obj.to_json(str(ff), lines=True, orient='records')
     return ff
 
 
 @plugin.register_transformer
-def _3(ff: LSMatFormat) -> pd.Series:
-    dm = skbio.DistanceMatrix.read(str(ff), format='lsmat', verify=False)
-    return dm.to_series()
+def _2(obj: DataResourceSchemaFileFormat) -> fls.Resource:
+    return fls.Resource(str(obj))
 
 
 @plugin.register_transformer
-def _4(df: AnnotatedTSVDirFmt) -> pd.DataFrame:
-    data = df.data.view(pd.DataFrame)
-    metadata = df.metadata.view(pd.DataFrame)
-    metadata = metadata.set_index('column')
+def _3(df: TabularDataResourceDirFmt) -> pd.DataFrame:
+    path = df.data.view(NDJSONFileFormat)
+    data = pd.read_json(str(path), lines=True)
+    resource = df.metadata.view(fls.Resource)
 
-    for column in data.columns:
-        # not sure what the semantics are, so do our best
-        data[column].attrs.update(metadata.loc[column].to_dict())
+    for field in resource.schema.fields:
+        data[field['name']].attrs = field.to_dict()
 
     return data
 
 
 @plugin.register_transformer
-def _5(obj: pd.DataFrame) -> AnnotatedTSVDirFmt:
-    metadata = []
+def _4(obj: pd.DataFrame) -> TabularDataResourceDirFmt:
+    metadata_resource = Resource()
+
     for col in obj.columns:
-        metadata.append(obj[col].attrs)
+        series = obj[col]
+        dtype = series.convert_dtypes().dtype
+        metadata = series.attrs.copy()
 
-    metadata_df = pd.DataFrame(metadata, index=obj.columns.copy())
-    metadata_df.index.name = 'column'
-    metadata_df = metadata_df.reset_index()
+        if pd.api.types.is_float_dtype(dtype):
+            schema_dtype = 'number'
+        elif pd.api.types.is_integer_dtype(dtype):
+            schema_dtype = 'integer'
+        else:
+            schema_dtype = 'string'
 
-    dir_fmt = AnnotatedTSVDirFmt()
+        metadata['name'] = col
+        metadata['type'] = schema_dtype
+        metadata_resource.schema.add_field(source=metadata)
+
+    metadata_resource.data = 'data.ndjson'
+    metadata_resource.format = 'ndjson'
+
+    dir_fmt = TabularDataResourceDirFmt()
 
     dir_fmt.data.write_data(obj, pd.DataFrame)
-    dir_fmt.metadata.write_data(metadata_df, pd.DataFrame)
+    metadata_resource.to_json(str(dir_fmt.path/'dataresource.json'))
 
     return dir_fmt
