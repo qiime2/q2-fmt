@@ -637,10 +637,10 @@ class TestStats(TestBase):
         for p_val in p_val_total:
             self.assertAlmostEqual(p_val, 1, places=1)
 
-    # TODO: this test currently fails with the test data because there aren't multiple
-    # reference/control groups to compare. This functionality will be permitted in a
-    # PR coming soon (5/20/22) that will allow for single ref/control groups, and this
-    # test will be modified accordingly.
+    # TODO: this test currently fails with the test data because there aren't
+    #  multiple reference/control groups to compare. This functionality will
+    # be permitted in a PR coming soon (5/20/22) that will allow for single
+    # ref/control groups, and this test will be modified accordingly.
 
     # def test_mann_whitney_reference(self):
     #     exp_stats_data = pd.DataFrame({
