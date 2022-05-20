@@ -76,11 +76,11 @@ def json_replace(json_obj, **values):
 
 
 def _make_stats(stats):
-    method = stats['test-statistic'].attrs['unit']
+    method = stats['test-statistic'].attrs['title']
     group_unit = (stats['A:group'].attrs['title']
                   + ' vs ' + stats['B:group'].attrs['title'])
-    pval_method = stats['p-value'].attrs['unit']
-    qval_method = stats['q-value'].attrs['unit']
+    pval_method = stats['p-value'].attrs['title']
+    qval_method = stats['q-value'].attrs['title']
     table1 = (f'{method} tests between groups ({group_unit}), with'
               f' {pval_method} p-value calculations and {qval_method}'
               f' correction for multiple comparisons (q-value).')
