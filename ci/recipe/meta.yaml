@@ -28,6 +28,7 @@ requirements:
     - scipy
     - scikit-bio {{ scikit_bio }}
     - jinja2
+    - frictionless
     - qiime2 {{ qiime2_epoch }}.*
     - q2-types {{ qiime2_epoch }}.*
 
