@@ -158,13 +158,12 @@ class TestGroupTimepoints(TestBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_beta_dists_with_same_donor_for_all_samples(self):
-        with self.assertRaisesRegex(TypeError,
-                                    'Single reference value detected'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor_all',
-                             control_column='control')
+        _, ref_df = group_timepoints(diversity_measure=self.dm,
+                                     metadata=self.md_beta,
+                                     time_column='days_post_transplant',
+                                     reference_column='relevant_donor_all')
+
+        self.assertTrue(ref_df.empty)
 
     def test_beta_dists_with_one_donor_and_controls(self):
         with self.assertRaisesRegex(KeyError,
@@ -177,13 +176,21 @@ class TestGroupTimepoints(TestBase):
                              control_column='control')
 
     def test_beta_dists_with_donors_and_one_control(self):
-        with self.assertRaisesRegex(ValueError,
-                                    'One or less controls detected'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='single_control')
+        exp_ref_df = pd.DataFrame({
+            'id': ['donor1..donor2', 'donor1..donor3', 'donor2..donor3'],
+            'measure': [0.24, 0.41, 0.74],
+            'group': ['reference', 'reference', 'reference'],
+            'A': ['donor1', 'donor1', 'donor2'],
+            'B': ['donor2', 'donor3', 'donor3']
+        })
+
+        _, ref_df = group_timepoints(diversity_measure=self.dm,
+                                     metadata=self.md_beta,
+                                     time_column='days_post_transplant',
+                                     reference_column='relevant_donor',
+                                     control_column='single_control')
+
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_beta_dists_with_donors_no_controls(self):
         exp_time_df = pd.DataFrame({
