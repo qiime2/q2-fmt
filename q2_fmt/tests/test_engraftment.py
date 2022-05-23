@@ -629,7 +629,6 @@ class TestStats(TestBase):
                                     compare='all-pairwise',
                                     p_val_approx='asymptotic')
 
-        print(stats_data)
         pd.testing.assert_frame_equal(stats_data, exp_stats_data)
 
     def test_mann_whitney_pairwise_against_each_alternative_hypothesis(self):
