@@ -6,8 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from jsonschema import ValidationError
-from qiime2.plugin import model
+from qiime2.plugin import ValidationError, model
 
 from frictionless import validate
 
