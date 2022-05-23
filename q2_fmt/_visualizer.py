@@ -23,9 +23,9 @@ def plot_rainclouds(output_dir: str, data: pd.DataFrame,
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
 
-    x_label = data['measure'].attrs['unit']
-    y_label = data['group'].attrs['unit']
-    subject_unit = data['subject'].attrs['unit']
+    x_label = data['measure'].attrs['title']
+    y_label = data['group'].attrs['title']
+    subject_unit = data['subject'].attrs['title']
     title = f'{x_label} of {subject_unit} across {y_label}'
     figure1 = (
         f'Raincloud plots showing the distribution of subjects\''
@@ -76,11 +76,11 @@ def json_replace(json_obj, **values):
 
 
 def _make_stats(stats):
-    method = stats['test-statistic'].attrs['unit']
-    group_unit = (stats['A:group'].attrs['unit']
-                  + ' vs ' + stats['B:group'].attrs['unit'])
-    pval_method = stats['p-value'].attrs['unit']
-    qval_method = stats['q-value'].attrs['unit']
+    method = stats['test-statistic'].attrs['title']
+    group_unit = (stats['A:group'].attrs['title']
+                  + ' vs ' + stats['B:group'].attrs['title'])
+    pval_method = stats['p-value'].attrs['title']
+    qval_method = stats['q-value'].attrs['title']
     table1 = (f'{method} tests between groups ({group_unit}), with'
               f' {pval_method} p-value calculations and {qval_method}'
               f' correction for multiple comparisons (q-value).')
@@ -93,10 +93,10 @@ def _make_stats(stats):
     df['B'] = stats['B:measure']
     df = df.merge(stats.iloc[:, 6:], left_index=True, right_index=True)
     df.columns = pd.MultiIndex.from_tuples([
-        ('Group A', stats['A:group'].attrs['unit']),
-        ('Group B', stats['B:group'].attrs['unit']),
-        ('A', stats['A:measure'].attrs['unit']),
-        ('B', stats['B:measure'].attrs['unit']),
+        ('Group A', stats['A:group'].attrs['title']),
+        ('Group B', stats['B:group'].attrs['title']),
+        ('A', stats['A:measure'].attrs['title']),
+        ('B', stats['B:measure'].attrs['title']),
         ('', 'n'),
         ('', 'test-statistic'),
         ('', 'p-value'),

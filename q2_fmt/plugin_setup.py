@@ -14,10 +14,10 @@ from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
-from q2_fmt import RecordTSVFileFormat
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._stats import mann_whitney_u, wilcoxon_srt
-from q2_fmt._format import AnnotatedTSVDirFmt
+from q2_fmt._format import (NDJSONFileFormat, DataResourceSchemaFileFormat,
+                            TabularDataResourceDirFmt)
 from q2_fmt._visualizer import plot_rainclouds
 from q2_fmt._type import (GroupDist, Matched, Independent, Ordered,
                           Unordered, StatsTable, Pairwise)
@@ -30,13 +30,15 @@ plugin = Plugin(name='fmt',
                 description='This QIIME 2 plugin supports FMT analyses.',
                 short_description='Plugin for analyzing FMT data.')
 
-plugin.register_formats(RecordTSVFileFormat, AnnotatedTSVDirFmt)
+plugin.register_formats(NDJSONFileFormat, DataResourceSchemaFileFormat,
+                        TabularDataResourceDirFmt)
 plugin.register_semantic_types(StatsTable, Pairwise, GroupDist, Matched,
                                Independent, Ordered, Unordered)
+
 plugin.register_semantic_type_to_format(
     GroupDist[Ordered | Unordered,
-              Matched | Independent] | StatsTable[Pairwise], AnnotatedTSVDirFmt
-    )
+              Matched | Independent] | StatsTable[Pairwise],
+    TabularDataResourceDirFmt)
 
 T_subject, T_dependence = TypeMap({
     Bool % Choices(False): Independent,

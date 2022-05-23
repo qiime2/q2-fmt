@@ -6,13 +6,13 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import model
+from qiime2.plugin import ValidationError, model
 
-import pandas as pd
+from frictionless import validate
 
 
-class RecordTSVFileFormat(model.TextFileFormat):
-    """Format for TSV file.
+class NDJSONFileFormat(model.TextFileFormat):
+    """Format for JSON file.
 
     first line is headers
 
@@ -24,19 +24,25 @@ class RecordTSVFileFormat(model.TextFileFormat):
         pass
 
 
-class AnnotatedTSVDirFmt(model.DirectoryFormat):
-    data = model.File('data.tsv', format=RecordTSVFileFormat)
-    metadata = model.File('metadata.tsv', format=RecordTSVFileFormat)
+class DataResourceSchemaFileFormat(model.TextFileFormat):
+    """
+    Format for data resource schema.
+
+    More on this later.
+    """
+    def _validate_(self, level):
+        pass
+
+
+class TabularDataResourceDirFmt(model.DirectoryFormat):
+    data = model.File('data.ndjson', format=NDJSONFileFormat)
+    metadata = model.File('dataresource.json',
+                          format=DataResourceSchemaFileFormat)
 
     def _validate_(self, level='min'):
-        data = self.data.view(pd.DataFrame)
-        metadata = self.metadata.view(pd.DataFrame)
-
-        if list(data.columns) != list(metadata['column']):
+        try:
+            validate(str(self.path/'dataresource.json'))
+        except ValidationError:
             raise model.ValidationError(
-                'The metadata TSV does not completely describe the data TSV'
-                ' columns.')
-
-        if metadata.columns[0] != 'column':
-            raise model.ValidationError('The metadata TSV does not start with'
-                                        ' "column" on the header line.')
+                'The dataresource does not completely describe'
+                ' the data.ndjson file')
