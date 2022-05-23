@@ -280,15 +280,22 @@ def _independent_dists(diversity_measure, metadata,
     unique_references = sorted(used_references.unique())
 
     if is_beta:
-        try:
+        # try:
+        #     ref_idx = pd.MultiIndex.from_tuples(
+        #         itertools.combinations(unique_references, 2))
+        # except TypeError:
+        #     raise TypeError('Single reference value detected. More than one'
+        #                     ' unique reference must be provided for'
+        #                     ' successful grouping.')
+        if len(unique_references) > 1:
             ref_idx = pd.MultiIndex.from_tuples(
                 itertools.combinations(unique_references, 2))
-        except TypeError:
-            raise TypeError('Single reference value detected. More than one'
-                            ' unique reference must be provided for'
-                            ' successful grouping.')
+            ref_idx.names = ['A', 'B']
 
-        ref_idx.names = ['A', 'B']
+        else:
+            ref_idx = []
+
+        # ref_idx.names = ['A', 'B']
         diversity_measure.index.names = ['A', 'B']
 
         if used_controls is not None:
@@ -309,16 +316,22 @@ def _independent_dists(diversity_measure, metadata,
                 ctrl_series = pd.Series(group_id, index=ctrl_idx)
                 ctrl_list.append(ctrl_series)
 
-            try:
+            # try:
+            #     ctrl_series = pd.concat(ctrl_list)
+            # except ValueError:
+            #     raise ValueError('One or less controls detected.'
+            #                      ' When including controls in your data,'
+            #                      ' please include more than one for'
+            #                      ' successful grouping.')
+            if len(ctrl_list) > 1:
                 ctrl_series = pd.concat(ctrl_list)
-            except ValueError:
-                raise ValueError('One or less controls detected.'
-                                 ' When including controls in your data,'
-                                 ' please include more than one for'
-                                 ' successful grouping.')
+                ctrl_series.name = 'group'
+                ctrl_series.index.names = ['A', 'B']
+            else:
+                ctrl_series = []
 
-            ctrl_series.name = 'group'
-            ctrl_series.index.names = ['A', 'B']
+            # ctrl_series.name = 'group'
+            # ctrl_series.index.names = ['A', 'B']
 
     else:
         ref_idx = list(unique_references)
