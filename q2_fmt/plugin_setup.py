@@ -45,14 +45,19 @@ T_subject, T_dependence = TypeMap({
     Str: Matched
 })
 
+T_engraft_subject, T_compare, _ = TypeMap({
+    (Bool % Choices(False),
+        Str % Choices("reference", "all-pairwise")): Visualization,
+    (Str, Str % Choices("baseline", "consecutive")): Visualization
+})
+
 plugin.pipelines.register_function(
     function=q2_fmt.engraftment,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata,
-                'compare': Str % Choices('reference', 'all-pairwise',
-                                         'baseline', 'consecutive'),
+                'compare': T_compare,
                 'time_column': Str, 'reference_column': Str,
-                'subject_column': T_subject, 'control_column': Str,
+                'subject_column': T_engraft_subject, 'control_column': Str,
                 'filter_missing_references': Bool, 'where': Str,
                 'against_group': Str,
                 'alternative': Str % Choices('two-sided', 'greater', 'less'),
@@ -125,7 +130,10 @@ plugin.pipelines.register_function(
                           ' grouped diversity data and selected comparison.',
     },
     name='Engraftment Pipeline for FMT Analysis',
-    description='',
+    description='Applies group timepoints to Fecal Microbiota Transplant data'
+         ' and then applies statistical tests (Wilcoxon signed rank test or'
+         ' Mann–Whitney U test) on alpha or beta diversity metrics to assess'
+         ' engraftment success.',
     examples={
         'engraftment_baseline': ex.engraftment_baseline
     }
