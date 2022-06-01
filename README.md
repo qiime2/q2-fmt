@@ -8,18 +8,20 @@
 
 ## Installation
 
-Please note that this software is now an alpha release. Conda packages will
-be provided in the future. In the interim, use these commands in the latest
-QIIME 2 environment.
+Please note that this software is now an alpha release. Initial conda packages are available, but have not been tested in integration against our other plugins yet. For now, create a fresh conda environment for q2-fmt using the following command:
 
 ```bash
- conda install -c conda-forge frictionless
+ conda create -n q2-fmt-alpha \
+   -c conda-forge \
+   -c bioconda \
+   -c https://packages.qiime2.org/qiime2/2022.4/tested/ \
+   q2-fmt q2cli
 ```
-
+Then activate your new environment as usual.
 ```bash
-pip install git+https://github.com/qiime2/q2-fmt.git
+conda activate q2-fmt-alpha
 ```
-
+Please be aware that `q2-fmt` will be the only visible plugin in this environment.
 
 ## Examples
 Example data can be generated using the `--example-data` flag on each action
