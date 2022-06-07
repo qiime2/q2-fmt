@@ -79,10 +79,11 @@ qiime fmt group-timepoints \
 
 **Statistical Tests**
 
-Wilcoxon Signed Rank tests and Mann-Whitney U tests are available and
-differentiated by the semantic type of the input to ensure the applicability of
-the test (i.e. only matched pairs for Wilcoxon, and independent groups for
-Mann-Whitney).
+Wilcoxon Signed Rank tests and Mann-Whitney U tests are available through
+[q2-stats](https://github.com/qiime2/q2-stats) and can be used for FMT analysis.
+These two tests are differentiated by the semantic type of the input to ensure
+the applicability of the test (i.e. only matched pairs for Wilcoxon,
+and independent groups for Mann-Whitney).
 
 Comparisons for Wilcoxon Signed Rank:
  - baseline: Compare each timepoint against a reference timpoint
@@ -115,4 +116,3 @@ qiime fmt plot-rainclouds \
   --i-stats stats_baseline0.qza \
   --o-visualization raincloud-baseline0.qzv
 ```
-
