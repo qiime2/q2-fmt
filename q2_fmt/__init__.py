@@ -7,16 +7,9 @@
 # ----------------------------------------------------------------------------
 
 from ._version import get_versions
-from ._format import (NDJSONFileFormat, DataResourceSchemaFileFormat,
-                      TabularDataResourceDirFmt)
-from ._type import (StatsTable, Pairwise, GroupDist,
-                    Ordered, Unordered, Matched, Independent)
 from ._engraftment import engraftment
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['NDJSONFileFormat', 'TabularDataResourceDirFmt',
-           'DataResourceSchemaFileFormat', 'StatsTable',
-           'Pairwise', 'GroupDist', 'Ordered', 'Unordered', 'Matched',
-           'Independent', 'engraftment']
+__all__ = ['engraftment']
