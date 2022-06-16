@@ -180,4 +180,3 @@ plugin.methods.register_function(
 )
 
 importlib.import_module('q2_fmt._transformer')
-importlib.import_module('q2_fmt._validator')

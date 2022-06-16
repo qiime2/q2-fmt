@@ -10,12 +10,9 @@ import pandas as pd
 from skbio.stats.distance import DistanceMatrix
 
 from qiime2.plugin.testing import TestPluginBase
-from qiime2.plugin import ValidationError
 from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
-from q2_fmt._validator import (validate_all_dist_columns_present,
-                               validate_unique_subjects_within_group)
 
 
 class TestBase(TestPluginBase):
@@ -490,26 +487,3 @@ class TestGroupTimepoints(TestBase):
 
     def test_examples(self):
         self.execute_examples()
-
-
-class TestValidators(TestBase):
-    def test_validators_missing_columns_in_dist(self):
-        with self.assertRaisesRegex(ValidationError, '"group" not found'
-                                    ' in distribution.'):
-            df = pd.DataFrame({
-                'id': ['S340445', 'S892825', 'S460691'],
-                'measure': [7.662921088, 8.431734297, 8.513263823]
-            })
-            validate_all_dist_columns_present(df, level=min)
-
-    def test_validators_unique_subjects_not_duplicated_per_group(self):
-        with self.assertRaisesRegex(ValidationError, 'Unique subject found'
-                                    ' more than once within an individual'
-                                    ' group.*0.*P26'):
-            df = pd.DataFrame({
-                'id': ['S116625', 'S813956'],
-                'measure': [7.662921088, 8.431734297],
-                'group': [0, 0],
-                'subject': ['P26', 'P26']
-            })
-            validate_unique_subjects_within_group(df, level=min)
