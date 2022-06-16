@@ -14,6 +14,7 @@ from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
 
+
 class TestBase(TestPluginBase):
     package = 'q2_fmt.tests'
 
@@ -486,4 +487,3 @@ class TestGroupTimepoints(TestBase):
 
     def test_examples(self):
         self.execute_examples()
-
