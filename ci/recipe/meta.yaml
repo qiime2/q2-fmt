@@ -31,7 +31,8 @@ requirements:
     - frictionless
     - qiime2 {{ qiime2_epoch }}.*
     - q2-types {{ qiime2_epoch }}.*
-    #TODO: add epoch back in once q2-stats is included in a formal release
+    # right now q2-stats uses a non-epoch-based version identifier - once
+    # that has been addressed in q2-stats, uncomment the following line
     # - q2-stats {{ qiime2_epoch }}.*
     - q2-stats
 
