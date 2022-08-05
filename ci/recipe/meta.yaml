@@ -25,16 +25,9 @@ requirements:
   run:
     - python {{ python }}
     - pandas {{ pandas }}
-    - scipy
-    - scikit-bio {{ scikit_bio }}
-    - jinja2
-    - frictionless
     - qiime2 {{ qiime2_epoch }}.*
     - q2-types {{ qiime2_epoch }}.*
-    # right now q2-stats uses a non-epoch-based version identifier - once
-    # that has been addressed in q2-stats, uncomment the following line
-    # - q2-stats {{ qiime2_epoch }}.*
-    - q2-stats
+    - q2-stats {{ qiime2_epoch }}.*
 
 test:
   requires:
