@@ -31,7 +31,7 @@ requirements:
 
 test:
   requires:
-    - qiime2 >=2022.11.0.dev0
+    - qiime2 >={{ qiime2 }}
     - q2-types >={{ q2_types }}
     - pytest
 
