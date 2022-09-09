@@ -9,15 +9,17 @@
 import importlib
 
 from qiime2.plugin import (Str, Plugin, Metadata, TypeMap,
-                           Bool, Choices, Visualization)
+                           Bool, Choices, Visualization, Properties)
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
-from q2_fmt._engraftment import group_timepoints
+from q2_types.feature_table import (
+    FeatureTable, Frequency, RelativeFrequency, PresenceAbsence, Composition)
 from q2_stats._type import (GroupDist, Matched, Independent, Ordered,
                             Unordered, StatsTable, Pairwise)
 import q2_fmt._examples as ex
+
 
 plugin = Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -126,7 +128,7 @@ plugin.pipelines.register_function(
 )
 
 plugin.methods.register_function(
-    function=group_timepoints,
+    function=q2_fmt.group_timepoints,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
@@ -177,6 +179,53 @@ plugin.methods.register_function(
         'group_timepoints_alpha_ind': ex.group_timepoints_alpha_independent,
         'group_timepoints_beta': ex.group_timepoints_beta
     }
+)
+
+plugin.methods.register_function(
+    function=q2_fmt.sample_peds,
+    inputs={'table': FeatureTable[Frequency | RelativeFrequency |
+    PresenceAbsence | Composition]},
+    parameters={'metadata': Metadata, 'time_column': Str,
+                'reference_column': Str, 'subject_column': T_subject,
+                'filter_missing_references': Bool,
+                'drop_incomplete_subjects': Bool },
+    outputs=[('peds_dists', GroupDist[Ordered, Matched]%Properties("peds"))],
+    parameter_descriptions={
+        'metadata': 'The sample metadata.',
+        'time_column': 'The column within the `metadata` that the'
+                       ' `table` should be grouped by.This column'
+                       ' should contain simple integer values.',
+        'reference_column': 'The column within the `metadata` that contains'
+                            ' the sample to use as a reference'
+                            ' for a given `table`.'
+                            ' For example, this may be the relevant donor'
+                            ' sample to compare against.',
+        'subject_column': 'The column within the `metadata` that contains the'
+                          ' subject ID to be tracked against timepoints.',
+        'filter_missing_references': 'Filter out references contained within'
+                                     ' the metadata that are not present'
+                                     ' in the table.'
+                                     ' Default behavior is to raise an error.',
+        'drop_incomplete_subjects': 'Filter out subjects that do not have'
+                                    ' a sample at every timepoint.' 
+                                    ' Default behavior is to raise an error',
+    },
+     output_descriptions={
+        'peds_dists': 'The distributions for the peds measure,'
+                           ' grouped by the selected `time_column`.'
+                           ' also contains the Numerator and Denominator for'
+                           ' peds calulations. May also contain subject IDs,'
+                           ' if `subject_column` is provided in the `metadata`.'
+    },
+    name='',
+    description='',
+)
+plugin.visualizers.register_function(
+    function=q2_fmt.plot_heatmap,
+    inputs={'data': GroupDist[Ordered, Matched] % Properties('peds')},
+    parameters={},
+    name= 'Plot Heatmap',
+    description= ''
 )
 
 importlib.import_module('q2_fmt._transformer')

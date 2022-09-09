@@ -1,0 +1,100 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "A basic bar chart example, with value labels shown upon mouse hover.",
+  "width": {"signal": "ncolumns * columnwidth"},
+  "height": {"signal": "nrows * rowheight"},
+  "padding": 0,
+  "data": [
+    {"name": "table",
+     "values": {"{{REPLACE_PARAM}}": "data"}
+    },
+    {
+      "name": "rowtable",
+      "source": "table",
+      "transform": [{"type": "aggregate", "groupby": ["subject"]}]
+    },
+    {
+      "name": "columntable",
+      "source": "table",
+      "transform": [{"type": "aggregate", "groupby": ["measure"]}]
+    }
+  ],
+  "signals": [
+    {
+      "name": "palette",
+      "value": "Viridis",
+      "bind": {
+        "input": "select",
+        "options": ["Inferno", "Viridis", "Magma", "Greys", "Plasma", "Cividis"]
+      }
+    },
+    {"name": "nrows", "value": 1, "update": "length(data(\"rowtable\"))"},
+    {
+      "name": "rowheight",
+      "value": 15,
+      "bind": {"input": "range", "min": 5, "max": 100}
+    },
+    {"name": "ncolumns", "value": 1, "update": "length(data(\"columntable\"))"},
+    {
+      "name": "columnwidth",
+      "value": 30,
+      "bind": {"input": "range", "min": 5, "max": 100}
+    }
+  ],
+  "scales": [
+    {
+      "name": "subject",
+      "type": "band",
+      "domain": {"data": "table", "field": "subject"},
+      "range": "height",
+      "paddingInner": 0.05
+    },
+    {
+      "name": "time",
+      "type": "band",
+      "domain": {"data": "table", "field": "group", 
+                  "sort":{ "order": "ascending"}},
+      "range": "width",
+      "paddingInner": 0.01
+    },
+    {
+      "name": "color",
+      "type": "sequential",
+      "domain": {"data": "table", "field": "measure"},
+      "range": {"scheme": {"signal": "palette"}}
+    }
+  ],
+  "axes": [
+    {"scale": "subject", "orient": "left"},
+    {"scale": "time", "orient": "bottom"}
+  ],
+  "marks": [
+    {
+      "type": "rect",
+      "from": {"data": "table"},
+      "encode": {
+        "update": {
+          "y": {"field": "subject", "scale": "subject"},
+          "x": {"field": "group", "scale": "time"},
+          "height": {"band": 1, "scale": "subject"},
+          "width": {"band": 1, "scale": "time"},
+          "fill": {"scale": "color", "field": "measure"},
+          "tooltip": {
+            "signal": "datum"
+          }
+        }
+      }
+    }
+  ],
+  "legends": [
+    {
+      "fill": "color",
+      "type": "gradient",
+      "title": "Life Expectancy (Years)",
+      "titleFontSize": 12,
+      "titlePadding": 4,
+      "gradientLength": {"signal": "250"}
+    }
+  ],
+  "config": {}
+}
