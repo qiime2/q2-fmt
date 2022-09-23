@@ -343,7 +343,10 @@ def _independent_dists(diversity_measure, metadata,
         nominal_df = nominal_df.reset_index(drop=True)
 
     if 'A' in nominal_df.columns:
-        nominal_df['id'] = nominal_df[['A', 'B']].agg('..'.join, axis=1)
+        if not nominal_df.empty:
+            nominal_df['id'] = nominal_df[['A', 'B']].agg('..'.join, axis=1)
+        else:
+            nominal_df['id'] = []
         nominal_df = nominal_df[['id', 'measure', 'group', 'A', 'B']]
 
     return nominal_df
