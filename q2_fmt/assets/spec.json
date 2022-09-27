@@ -90,7 +90,7 @@
     {
       "fill": "color",
       "type": "gradient",
-      "title": "Life Expectancy (Years)",
+      "title": "PEDS(%)",
       "titleFontSize": 12,
       "titlePadding": 4,
       "gradientLength": {"signal": "250"}
