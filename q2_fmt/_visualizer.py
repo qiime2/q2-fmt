@@ -1,8 +1,17 @@
+# ----------------------------------------------------------------------------
+# Copyright (c) 2022-2022, QIIME 2 development team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+# ----------------------------------------------------------------------------
+
 import os
 import pkg_resources
 import jinja2
 import json
 import pandas as pd
+
 
 def plot_heatmap(output_dir: str, data: pd.DataFrame):
     J_ENV = jinja2.Environment(
@@ -18,14 +27,15 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
         'q2_fmt', os.path.join('assets', "spec.json")
     )
     with open(spec_fp) as fh:
-       json_obj = json.load(fh)
+        json_obj = json.load(fh)
 
-    full_spec = json_replace(json_obj, data = data, x_label = x_label,
-                                y_label = y_label, title = title )
+    full_spec = json_replace(json_obj, data=data, x_label=x_label,
+                             y_label=y_label, title=title)
 
     with open(os.path.join(output_dir, "index.html"), "w") as fh:
         spec_string = json.dumps(full_spec)
         fh.write(index.render(spec=spec_string))
+
 
 def json_replace(json_obj, **values):
     """

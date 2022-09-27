@@ -184,12 +184,12 @@ plugin.methods.register_function(
 plugin.methods.register_function(
     function=q2_fmt.sample_peds,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
-    PresenceAbsence | Composition]},
+                                  PresenceAbsence | Composition]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
                 'filter_missing_references': Bool,
-                'drop_incomplete_subjects': Bool },
-    outputs=[('peds_dists', GroupDist[Ordered, Matched]%Properties("peds"))],
+                'drop_incomplete_subjects': Bool},
+    outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -207,15 +207,15 @@ plugin.methods.register_function(
                                      ' in the table.'
                                      ' Default behavior is to raise an error.',
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
-                                    ' a sample at every timepoint.' 
+                                    ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error',
     },
-     output_descriptions={
+    output_descriptions={
         'peds_dists': 'The distributions for the peds measure,'
-                           ' grouped by the selected `time_column`.'
-                           ' also contains the Numerator and Denominator for'
-                           ' peds calulations. May also contain subject IDs,'
-                           ' if `subject_column` is provided in the `metadata`.'
+                      ' grouped by the selected `time_column`.'
+                      ' also contains the Numerator and Denominator for'
+                      ' peds calulations. May also contain subject IDs,'
+                      ' if `subject_column` is provided in the `metadata`.'
     },
     name='',
     description='',
@@ -224,8 +224,8 @@ plugin.visualizers.register_function(
     function=q2_fmt.plot_heatmap,
     inputs={'data': GroupDist[Ordered, Matched] % Properties('peds')},
     parameters={},
-    name= 'Plot Heatmap',
-    description= ''
+    name='Plot Heatmap',
+    description=''
 )
 
 importlib.import_module('q2_fmt._transformer')
