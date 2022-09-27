@@ -17,19 +17,23 @@ def sample_peds( table: pd.DataFrame, metadata: qiime2.Metadata,
 
     ## TODO: Make incomplete samples possible move this to heatmap 
     metadata = metadata.to_dataframe()
-    ## check for numeric
-    try: 
-        metadata[time_column].dropna().astype(int)
-    except:
-        raise KeyError('time_column must be numeric')
-
+    
     try: 
         num_timepoints = metadata[time_column].dropna().unique().size
     except: 
         raise KeyError('There was and error finding %s in the metadata'
                         % time_column)
-    subject_occcurance_df = (metadata[subject_column].value_counts()
+    ## check for numeric
+    try: 
+        metadata[time_column].dropna().astype(int)
+    except:
+        raise KeyError('%s must be numeric' % time_column)
+    try: 
+        subject_occcurance_df = (metadata[subject_column].value_counts()
             .to_frame())
+    except:
+         raise KeyError('There was and error finding %s in the metadata'
+                        % subject_column)
     if (subject_occcurance_df[subject_column]!=num_timepoints).any():
         if drop_incomplete_subjects:
             subject_to_keep = (subject_occcurance_df
@@ -63,16 +67,14 @@ def sample_peds( table: pd.DataFrame, metadata: qiime2.Metadata,
                            ' IDs where missing references were found:'
                            ' %s' % (tuple(nan_references),))
         
-        peds_df = _compute_peds(reference_series, table, metadata, time_column,
-            reference_column,subject_column, filter_missing_references,
-            drop_incomplete_subjects)
-        return peds_df
+    peds_df = _compute_peds(reference_series, table, metadata, time_column,
+            reference_column, subject_column)
+
+    return peds_df
 
 def _compute_peds(reference_series: pd.Series, table: pd.Series,
         metadata: qiime2.Metadata, time_column: str, reference_column: str,
-        subject_column: str, filter_missing_references: bool = False,
-        drop_incomplete_subjects: bool = False,
-         ) -> (pd.DataFrame):
+        subject_column: str) -> (pd.DataFrame):
 
     PEDSserieslist = []
     for sample in reference_series.index:
@@ -124,6 +126,7 @@ def _compute_peds(reference_series: pd.Series, table: pd.Series,
         'title': reference_column,
         'description': 'donor'
     }) 
+    print("i get to returning _compute_peds dataframe ")
     return PEDSdf
 
 
@@ -131,6 +134,7 @@ def _compute_peds(reference_series: pd.Series, table: pd.Series,
 def _get_observed_features(table, id):
     try:
         present = table.loc[id] > 0
+
     except:
         raise KeyError('There was an error finding the sample %s in'
                        ' your feature table' %id)
