@@ -21,7 +21,7 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
     y_label = data['subject'].attrs['title']
     measure = data['measure'].attrs['title']
     title = f'{measure} of {y_label} across {x_label}'
-    
+
     index = J_ENV.get_template('index.html')
     data = json.loads(data.to_json(orient='records'))
 
