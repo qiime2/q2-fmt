@@ -142,20 +142,3 @@ def _get_observed_features(table, id):
 def _count_observed_features(presentList):
     numPresent = presentList.sum()
     return numPresent
-
-    # Hark! These are decomissioned
-
-
-def _get_donor(metadata, sampleid, reference_column):
-    donor = metadata.loc[sampleid][reference_column]
-    return donor
-
-
-def _find_intersect(donorPresentList, samplePresentList):
-    intersect = (donorPresentList & samplePresentList).sum()
-    return intersect
-
-
-def _calculate_PEDS(donorNumPresent, numIntersect):
-    peds = (numIntersect/donorNumPresent)
-    return peds
