@@ -4,6 +4,7 @@
   "width": {"signal": "ncolumns * columnwidth"},
   "height": {"signal": "nrows * rowheight"},
   "padding": 0,
+  "title": {"text": {"signal": "title"}},
   "data": [
     {"name": "table",
      "values": {"{{REPLACE_PARAM}}": "data"}
@@ -39,7 +40,10 @@
       "name": "columnwidth",
       "value": 30,
       "bind": {"input": "range", "min": 5, "max": 100}
-    }
+    },
+    {"name": "title", "value": {"{{REPLACE_PARAM}}": "title"}, "bind": {"input": "input"}},
+    {"name": "y_label", "value": {"{{REPLACE_PARAM}}": "y_label"}, "bind": {"input": "input"}},
+    {"name": "x_label", "value": {"{{REPLACE_PARAM}}": "x_label"}, "bind": {"input": "input"}}
   ],
   "scales": [
     {
@@ -65,8 +69,8 @@
     }
   ],
   "axes": [
-    {"scale": "subject", "orient": "left"},
-    {"scale": "time", "orient": "bottom"}
+    {"scale": "subject", "orient": "left", "title":{"signal": "x_label"}},
+    {"scale": "time", "orient": "bottom", "title":{"signal": "y_label"}}
   ],
   "marks": [
     {
@@ -90,7 +94,7 @@
     {
       "fill": "color",
       "type": "gradient",
-      "title": "PEDS(%)",
+      "title": {"{{REPLACE_PARAM}}": "measure"},
       "titleFontSize": 12,
       "titlePadding": 4,
       "gradientLength": {"signal": "250"}

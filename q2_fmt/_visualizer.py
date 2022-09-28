@@ -19,7 +19,9 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
     )
     x_label = data['group'].attrs['title']
     y_label = data['subject'].attrs['title']
-    title = f'PEDS of {y_label} across {x_label}'
+    measure = data['measure'].attrs['title']
+    title = f'{measure} of {y_label} across {x_label}'
+    
     index = J_ENV.get_template('index.html')
     data = json.loads(data.to_json(orient='records'))
 
@@ -30,7 +32,7 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
         json_obj = json.load(fh)
 
     full_spec = json_replace(json_obj, data=data, x_label=x_label,
-                             y_label=y_label, title=title)
+                             y_label=y_label, title=title, measure=measure)
 
     with open(os.path.join(output_dir, "index.html"), "w") as fh:
         spec_string = json.dumps(full_spec)
