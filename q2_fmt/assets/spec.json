@@ -69,8 +69,8 @@
     }
   ],
   "axes": [
-    {"scale": "subject", "orient": "left", "title":{"signal": "x_label"}},
-    {"scale": "time", "orient": "bottom", "title":{"signal": "y_label"}}
+    {"scale": "subject", "orient": "left", "title":{"signal": "y_label"}},
+    {"scale": "time", "orient": "bottom", "title":{"signal": "x_label"}}
   ],
   "marks": [
     {
