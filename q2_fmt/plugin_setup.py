@@ -208,7 +208,7 @@ plugin.methods.register_function(
                                      ' Default behavior is to raise an error.',
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
-                                    ' Default behavior is to raise an error',
+                                    ' Default behavior is to raise an error.',
     },
     output_descriptions={
         'peds_dists': 'The distributions for the peds measure,'
