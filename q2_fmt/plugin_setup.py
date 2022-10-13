@@ -214,7 +214,7 @@ plugin.methods.register_function(
         'peds_dists': 'The distributions for the peds measure,'
                       ' grouped by the selected `time_column`.'
                       ' also contains the Numerator and Denominator for'
-                      ' peds calulations. May also contain subject IDs,'
+                      ' peds calulations. May also contain subject IDs'
                       ' if `subject_column` is provided in the `metadata`.'
     },
     name='',
