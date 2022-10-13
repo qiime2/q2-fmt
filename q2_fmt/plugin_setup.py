@@ -219,13 +219,19 @@ plugin.methods.register_function(
     },
     name='',
     description='',
+    examples={
+        'peds_methods': ex.peds_method
+    }
 )
 plugin.visualizers.register_function(
     function=q2_fmt.plot_heatmap,
     inputs={'data': GroupDist[Ordered, Matched] % Properties('peds')},
     parameters={},
     name='Plot Heatmap',
-    description=''
+    description='',
+    examples={
+        'peds_heatmap': ex.peds_heatmap
+     }
 )
 
 importlib.import_module('q2_fmt._transformer')

@@ -54,18 +54,20 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
         raise KeyError('There was and error finding %s in the metadata'
                        % reference_column)
 
-    if reference_series.isna().any():
+    used_references = reference_series[~metadata[time_column].isna()]
+
+    if used_references.isna().any():
         if filter_missing_references:
-            reference_series = reference_series.dropna()
+            used_references = used_references.dropna()
         else:
-            nan_references = reference_series.index[reference_series.isna()]
+            nan_references = used_references.index[used_references.isna()]
             raise KeyError('Missing references for the associated sample data.'
                            ' Please make sure that all samples with a'
                            ' timepoint value have an associated reference.'
                            ' IDs where missing references were found:'
                            ' %s' % (tuple(nan_references),))
 
-    peds_df = _compute_peds(reference_series, table, metadata, time_column,
+    peds_df = _compute_peds(used_references, table, metadata, time_column,
                             reference_column, subject_column)
     return peds_df
 

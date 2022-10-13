@@ -49,6 +49,25 @@ def faithpd_div_factory():
     )
 
 
+def peds_feature_table_factory():
+    return qiime2.Artifact.import_data(
+        'FeatureTable[Frequency]', _get_data_from_tests('feature-table.biom')
+    )
+
+
+def peds_md_factory():
+    return qiime2.Metadata.load(
+        _get_data_from_tests('md-peds-usage.txt')
+    )
+
+
+def peds_dist_factory():
+    return qiime2.Artifact.import_data(
+        "GroupDist[Ordered, Matched] % Properties('peds')",
+        _get_data_from_tests('peds_dist')
+    )
+
+
 def group_timepoints_alpha_independent(use):
     alpha = use.init_artifact('alpha', alpha_div_factory)
     metadata = use.init_metadata('metadata', alpha_md_factory)
@@ -90,7 +109,8 @@ def group_timepoints_beta(use):
             reference_dists='reference_dists'
         )
     )
-
+    print("this is what timepoints looks like: ")
+    print(timepoints)
     timepoints.assert_output_type('GroupDist[Ordered, Matched]')
     references.assert_output_type('GroupDist[Unordered, Independent]')
 
@@ -122,3 +142,44 @@ def engraftment_baseline(use):
 
     stats_table.assert_output_type('StatsTable[Pairwise]')
     raincloud.assert_output_type('Visualization')
+
+
+def peds_method(use):
+    md = use.init_metadata('md', peds_md_factory)
+    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+
+    peds_group_dists, = use.action(
+        use.UsageAction('fmt', 'sample_peds'),
+        use.UsageInputs(
+            table=peds_table,
+            metadata=md,
+            time_column='time_point',
+            reference_column='Donor',
+            subject_column='SubjectID'
+        ),
+        use.UsageOutputNames(
+            peds_dists='peds_dist'
+        )
+
+    )
+    print("this is what peds dist looks like: ")
+    print(peds_group_dists)
+    peds_group_dists.assert_output_type("GroupDist[Ordered, Matched] %"
+                                        " Properties('peds')")
+
+
+def peds_heatmap(use):
+    peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
+
+    peds_heatmap, = use.action(
+        use.UsageAction('fmt', 'plot_heatmap'),
+        use.UsageInputs(
+            data=peds_dist,
+        ),
+        use.UsageOutputNames(
+            visualization='heatmap',
+
+        )
+    )
+
+    peds_heatmap.assert_output_type('Visualization')
