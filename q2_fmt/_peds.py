@@ -85,7 +85,8 @@ def _compute_peds(reference_series: pd.Series, table: pd.Series,
 
         donorPresentList = _get_observed_features(table, donor)
         donorNumPresent = _count_observed_features(donorPresentList)
-
+        if donorNumPresent == 0:
+            raise ValueError('Donor Sample %s has no features in it.' % donor)
         samplePresentList = _get_observed_features(table, sample)
 
         intersect = (donorPresentList & samplePresentList).sum()

@@ -825,3 +825,27 @@ class TestPeds(TestBase):
         self.assertEqual(TDFs2, 1/3)
         self.assertEqual(TDFs1, 0)
         self.assertEqual(TDFs3, 1)
+
+    def test_check_no_feature_in_donor(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Feature1': [1, 0, 1, 1, 0, 1],
+            'Feature2': [1, 1, 1, 1, 0, 1],
+            'Feature3': [0, 0, 1, 1, 0, 1]}).set_index('id')
+        with self.assertRaisesRegex(ValueError, "Donor Sample donor1.*in it."):
+            sample_peds(table=table_df, metadata=metadata,
+                        time_column="group",
+                        reference_column="Ref",
+                        subject_column="subject",
+                        drop_incomplete_subjects=True)
