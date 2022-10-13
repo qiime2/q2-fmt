@@ -109,8 +109,7 @@ def group_timepoints_beta(use):
             reference_dists='reference_dists'
         )
     )
-    print("this is what timepoints looks like: ")
-    print(timepoints)
+
     timepoints.assert_output_type('GroupDist[Ordered, Matched]')
     references.assert_output_type('GroupDist[Unordered, Independent]')
 
@@ -162,8 +161,7 @@ def peds_method(use):
         )
 
     )
-    print("this is what peds dist looks like: ")
-    print(peds_group_dists)
+
     peds_group_dists.assert_output_type("GroupDist[Ordered, Matched] %"
                                         " Properties('peds')")
 
