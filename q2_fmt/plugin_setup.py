@@ -193,7 +193,7 @@ plugin.methods.register_function(
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
-                       ' `table` should be grouped by.This column'
+                       ' `table` should be grouped by. This column'
                        ' should contain simple integer values.',
         'reference_column': 'The column within the `metadata` that contains'
                             ' the sample to use as a reference'
