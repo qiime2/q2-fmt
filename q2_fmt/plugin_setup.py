@@ -211,10 +211,10 @@ plugin.methods.register_function(
                                     ' Default behavior is to raise an error',
     },
     output_descriptions={
-        'peds_dists': 'The distributions for the peds measure,'
+        'peds_dists': 'The distributions for the PEDS measure,'
                       ' grouped by the selected `time_column`.'
                       ' also contains the Numerator and Denominator for'
-                      ' peds calulations. May also contain subject IDs,'
+                      ' PEDS calulations. May also contain subject IDs,'
                       ' if `subject_column` is provided in the `metadata`.'
     },
     name='',

@@ -649,8 +649,8 @@ class TestPeds(TestBase):
         exp_peds_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3'],
             'measure': [0.666667, 0.333333, 1],
-            'Transfered_Donor_Features': [2, 1, 3],
-            'Total_Donor_Features': [3, 3, 3],
+            'transfered_donor_features': [2, 1, 3],
+            'total_donor_features': [3, 3, 3],
             'donor': ["donor1", "donor1", "donor1"],
             'subject': ["sub1", "sub1", "sub1"],
             'group': [1.0, 2.0, 3.0]
@@ -754,8 +754,8 @@ class TestPeds(TestBase):
         exp_peds_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3'],
             'measure': [0, 0.333333, 1],
-            'Transfered_Donor_Features': [0, 1, 3],
-            'Total_Donor_Features': [3, 3, 3],
+            'transfered_donor_features': [0, 1, 3],
+            'total_donor_features': [3, 3, 3],
             'donor': ["donor1", "donor1", "donor1"],
             'subject': ["sub1", "sub1", "sub1"],
             'group': [1.0, 2.0, 3.0]
@@ -785,11 +785,11 @@ class TestPeds(TestBase):
                                      subject_column="subject",
                                      drop_incomplete_subjects=True)
         TDFs1 = sample_peds_df.set_index("id").at['sample1',
-                                                  'Transfered_Donor_Features']
+                                                  'transfered_donor_features']
         TDFs2 = sample_peds_df.set_index("id").at['sample2',
-                                                  'Transfered_Donor_Features']
+                                                  'transfered_donor_features']
         TDFs3 = sample_peds_df.set_index("id").at['sample3',
-                                                  'Transfered_Donor_Features']
+                                                  'transfered_donor_features']
         self.assertEqual(TDFs2, 1)
         self.assertEqual(TDFs1, 0)
         self.assertEqual(TDFs3, 3)
