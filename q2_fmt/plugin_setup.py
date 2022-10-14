@@ -193,7 +193,7 @@ plugin.methods.register_function(
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
-                       ' `table` should be grouped by.This column'
+                       ' `table` should be grouped by. This column'
                        ' should contain simple integer values.',
         'reference_column': 'The column within the `metadata` that contains'
                             ' the sample to use as a reference'
@@ -208,7 +208,7 @@ plugin.methods.register_function(
                                      ' Default behavior is to raise an error.',
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
-                                    ' Default behavior is to raise an error',
+                                    ' Default behavior is to raise an error.',
     },
     output_descriptions={
         'peds_dists': 'The distributions for the PEDS measure,'
