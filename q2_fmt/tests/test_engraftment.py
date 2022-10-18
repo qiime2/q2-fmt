@@ -825,7 +825,7 @@ class TestPeds(TestBase):
         self.assertEqual(TDFs1, 0)
         self.assertEqual(TDFs3, 1)
 
-    def test_check_no_feature_in_donor(self):
+    def test_no_feature_in_donor(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
