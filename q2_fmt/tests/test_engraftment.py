@@ -517,7 +517,7 @@ class TestPeds(TestBase):
         donor = peds_df.at["sample1", "donor"]
         self.assertEqual(donor, "donor1")
 
-    def test_check_get_subject(self):
+    def test_get_subject(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
