@@ -501,7 +501,6 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 1, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        print(metadata_df)
         reference_series = metadata_df['Ref'].dropna()
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
