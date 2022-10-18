@@ -491,7 +491,7 @@ class TestGroupTimepoints(TestBase):
 
 
 class TestPeds(TestBase):
-    def test_check_get_donor(self):
+    def test_get_donor(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
