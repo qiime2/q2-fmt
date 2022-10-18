@@ -128,7 +128,7 @@ def _compute_peds(reference_series: pd.Series, table: pd.Series,
     })
     peds_df['donor'].attrs.update({
         'title': reference_column,
-        'description': 'donor'
+        'description': 'Donor'
     })
     return peds_df
 
