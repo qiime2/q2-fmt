@@ -568,7 +568,7 @@ class TestPeds(TestBase):
         tp = peds_df.at["sample3", "group"]
         self.assertEqual(tp, 1)
 
-    def test_check_no_donors(self):
+    def test_no_donors(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
