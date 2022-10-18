@@ -679,7 +679,7 @@ class TestPeds(TestBase):
                         subject_column="subject",
                         drop_incomplete_subjects=True)
 
-    def test_check_incorrect_group_column_name(self):
+    def test_incorrect_group_column_name(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
