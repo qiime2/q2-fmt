@@ -542,7 +542,7 @@ class TestPeds(TestBase):
         subject = peds_df.at["sample1", "subject"]
         self.assertEqual(subject, "sub1")
 
-    def test_check_timepoint(self):
+    def test_timepoint(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
