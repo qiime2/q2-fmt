@@ -622,7 +622,7 @@ class TestPeds(TestBase):
                         reference_column="Ref",
                         subject_column="subject")
 
-    def test_check_imcomplete_timepoints_with_flag(self):
+    def test_incomplete_timepoints_with_flag(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
