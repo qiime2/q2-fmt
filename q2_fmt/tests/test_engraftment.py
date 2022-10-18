@@ -761,7 +761,7 @@ class TestPeds(TestBase):
             })
         pd.testing.assert_frame_equal(sample_peds_df, exp_peds_df)
 
-    def test_check_feature_overlap(self):
+    def test_feature_overlap(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
