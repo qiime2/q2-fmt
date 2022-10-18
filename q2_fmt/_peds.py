@@ -104,7 +104,7 @@ def _compute_peds(reference_series: pd.Series, table: pd.Series,
     # use title for correcting ugly names
     peds_df['id'].attrs.update({
         'title': reference_series.index.name,
-        'description': 'Sample IDS'
+        'description': 'Sample IDs'
     })
     peds_df['measure'].attrs.update({
         'title': "PEDS",
