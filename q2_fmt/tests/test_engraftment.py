@@ -728,7 +728,7 @@ class TestPeds(TestBase):
                         subject_column="sub",
                         drop_incomplete_subjects=True)
 
-    def test_check_no_feature_overlap(self):
+    def test_no_feature_overlap(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
