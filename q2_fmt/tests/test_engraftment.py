@@ -793,7 +793,7 @@ class TestPeds(TestBase):
         self.assertEqual(TDFs1, 0)
         self.assertEqual(TDFs3, 3)
 
-    def test_check_peds_calc(self):
+    def test_peds_calc(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
