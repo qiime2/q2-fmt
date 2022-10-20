@@ -32,17 +32,17 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
         raise KeyError('There was an error finding %s in the metadata'
                        % subject_column) from e
     used_subject_series = subject_series[~metadata[time_column].isna()]
-    subject_occcurance_df = (used_subject_series.value_counts()
+    subject_occurrence_df = (used_subject_series.value_counts()
                              .to_frame())
-    if (subject_occcurance_df[subject_column] != num_timepoints).any():
+    if (subject_occurrence_df[subject_column] != num_timepoints).any():
         if drop_incomplete_subjects:
-            subject_to_keep = (subject_occcurance_df
-                               .loc[subject_occcurance_df[subject_column]
+            subject_to_keep = (subject_occurrence_df
+                               .loc[subject_occurrence_df[subject_column]
                                     == num_timepoints].index)
             metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
         elif (subject_occurrence_df[subject_column] < num_timepoints).any():
-            incomplete_subjects = (subject_occcurance_df
-                                   .loc[subject_occcurance_df[subject_column]
+            incomplete_subjects = (subject_occurrence_df
+                                   .loc[subject_occurrence_df[subject_column]
                                         < num_timepoints].index).to_list()
             raise KeyError('Missing timepoints for associated subjects.'
                            ' Please make sure that all subjects have all'
