@@ -49,7 +49,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                            ' timepoints or use drop_incomplete_subjects'
                            ' parameter. The incomplete subjects were %s'
                            % incomplete_subjects)
-        elif (subject_occcurance_df[subject_column] > num_timepoints).any():
+        elif (subject_occurrence_df[subject_column] > num_timepoints).any():
             raise KeyError('There is more subject occurences of subjects than'
                            'timepoints. Make sure that all of your relevant'
                            'samples have associated timepoints.')
