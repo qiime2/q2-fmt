@@ -40,7 +40,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                                .loc[subject_occcurance_df[subject_column]
                                     == num_timepoints].index)
             metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
-        elif (subject_occcurance_df[subject_column] < num_timepoints).any():
+        elif (subject_occurrence_df[subject_column] < num_timepoints).any():
             incomplete_subjects = (subject_occcurance_df
                                    .loc[subject_occcurance_df[subject_column]
                                         < num_timepoints].index).to_list()
