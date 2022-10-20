@@ -27,18 +27,20 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     except Exception as e:
         raise KeyError('%s must be numeric' % time_column) from e
     try:
-        subject_occcurance_df = (metadata[subject_column].value_counts()
-                                 .to_frame())
+        subject_series = metadata[subject_column]
     except Exception as e:
         raise KeyError('There was an error finding %s in the metadata'
                        % subject_column) from e
+    used_subject_series = subject_series[~metadata[time_column].isna()]
+    subject_occcurance_df = (used_subject_series.value_counts()
+                             .to_frame())
     if (subject_occcurance_df[subject_column] != num_timepoints).any():
         if drop_incomplete_subjects:
             subject_to_keep = (subject_occcurance_df
                                .loc[subject_occcurance_df[subject_column]
                                     == num_timepoints].index)
             metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
-        else:
+        elif (subject_occurrence_df[subject_column] < num_timepoints).any():
             incomplete_subjects = (subject_occcurance_df
                                    .loc[subject_occcurance_df[subject_column]
                                         < num_timepoints].index).to_list()
@@ -47,6 +49,10 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                            ' timepoints or use drop_incomplete_subjects'
                            ' parameter. The incomplete subjects were %s'
                            % incomplete_subjects)
+        elif (subject_occurrence_df[subject_column] > num_timepoints).any():
+            raise KeyError('There are more occurrences of subjects than'
+                           'timepoints. Make sure that all of your relevant'
+                           'samples have associated timepoints.')
 
     try:
         reference_series = metadata[reference_column]
