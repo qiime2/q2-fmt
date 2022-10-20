@@ -39,7 +39,7 @@
     {
       "name": "columnwidth",
       "value": 30,
-      "bind": {"input": "range", "min": 5, "max": "width-250" }
+      "bind": {"input": "range", "min": 5, "max": 100 }
     },
     {"name": "title", "value": {"{{REPLACE_PARAM}}": "title"}, "bind": {"input": "input"}},
     {"name": "y_label", "value": {"{{REPLACE_PARAM}}": "y_label"}, "bind": {"input": "input"}},
