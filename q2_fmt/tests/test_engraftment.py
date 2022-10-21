@@ -611,7 +611,7 @@ class TestPeds(TestBase):
                    'donor1', 'donor2'],
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, 'Missing timepoints for'
+        with self.assertRaisesRegex(ValueError, 'Missing timepoints for'
                                     ' associated subjects. Please make sure'
                                     ' that all subjects have all timepoints'
                                     ' or use drop_incomplete_subjects'
@@ -843,6 +843,31 @@ class TestPeds(TestBase):
             'Feature2': [1, 1, 1, 1, 0, 1],
             'Feature3': [0, 0, 1, 1, 0, 1]}).set_index('id')
         with self.assertRaisesRegex(ValueError, "Donor Sample donor1.*in it."):
+            sample_peds(table=table_df, metadata=metadata,
+                        time_column="group",
+                        reference_column="Ref",
+                        subject_column="subject",
+                        drop_incomplete_subjects=True)
+
+    def test_unique_subjects_in_timepoints(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 2, 1, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Feature1': [1, 0, 1, 1, 1, 1],
+            'Feature2': [1, 1, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
+        with self.assertRaisesRegex(ValueError, 'There is more than one'
+                                    ' occurrence of.*Subject sub1.*[1,2,2]'):
             sample_peds(table=table_df, metadata=metadata,
                         time_column="group",
                         reference_column="Ref",

@@ -25,34 +25,37 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     try:
         metadata[time_column].dropna().astype(int)
     except Exception as e:
-        raise KeyError('%s must be numeric' % time_column) from e
+        raise ValueError('%s must be numeric' % time_column) from e
     try:
         subject_series = metadata[subject_column]
     except Exception as e:
         raise KeyError('There was an error finding %s in the metadata'
                        % subject_column) from e
     used_subject_series = subject_series[~metadata[time_column].isna()]
-    subject_occurrence_df = (used_subject_series.value_counts()
-                             .to_frame())
-    if (subject_occurrence_df[subject_column] != num_timepoints).any():
+    for subject in used_subject_series:
+        subject_df = metadata[metadata[subject_column] == subject]
+        if not subject_df[time_column].is_unique:
+            timepoint_list = subject_df[time_column].to_list()
+            raise ValueError('There is more than one occurrence of a subject'
+                             ' in a timepoint. All subjects must occur only'
+                             ' once per timepoint. Subject %s appears in '
+                             ' timepoints: %s' % (subject, timepoint_list))
+    subject_occurrence_series = (used_subject_series.value_counts())
+    if (subject_occurrence_series < num_timepoints).any():
         if drop_incomplete_subjects:
-            subject_to_keep = (subject_occurrence_df
-                               .loc[subject_occurrence_df[subject_column]
+            subject_to_keep = (subject_occurrence_series
+                               .loc[subject_occurrence_series
                                     == num_timepoints].index)
             metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
-        elif (subject_occurrence_df[subject_column] < num_timepoints).any():
-            incomplete_subjects = (subject_occurrence_df
-                                   .loc[subject_occurrence_df[subject_column]
+        else:
+            incomplete_subjects = (subject_occurrence_series
+                                   .loc[subject_occurrence_series
                                         < num_timepoints].index).to_list()
-            raise KeyError('Missing timepoints for associated subjects.'
-                           ' Please make sure that all subjects have all'
-                           ' timepoints or use drop_incomplete_subjects'
-                           ' parameter. The incomplete subjects were %s'
-                           % incomplete_subjects)
-        elif (subject_occurrence_df[subject_column] > num_timepoints).any():
-            raise KeyError('There are more occurrences of subjects than'
-                           'timepoints. Make sure that all of your relevant'
-                           'samples have associated timepoints.')
+            raise ValueError('Missing timepoints for associated subjects.'
+                             ' Please make sure that all subjects have all'
+                             ' timepoints or use drop_incomplete_subjects'
+                             ' parameter. The incomplete subjects were %s'
+                             % incomplete_subjects)
 
     try:
         reference_series = metadata[reference_column]
