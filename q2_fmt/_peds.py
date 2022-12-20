@@ -26,36 +26,6 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
         metadata[time_column].dropna().astype(int)
     except Exception as e:
         raise ValueError('%s must be numeric' % time_column) from e
-    try:
-        subject_series = metadata[subject_column]
-    except Exception as e:
-        raise KeyError('There was an error finding %s in the metadata'
-                       % subject_column) from e
-    used_subject_series = subject_series[~metadata[time_column].isna()]
-    for subject in used_subject_series:
-        subject_df = metadata[metadata[subject_column] == subject]
-        if not subject_df[time_column].is_unique:
-            timepoint_list = subject_df[time_column].to_list()
-            raise ValueError('There is more than one occurrence of a subject'
-                             ' in a timepoint. All subjects must occur only'
-                             ' once per timepoint. Subject %s appears in '
-                             ' timepoints: %s' % (subject, timepoint_list))
-    subject_occurrence_series = (used_subject_series.value_counts())
-    if (subject_occurrence_series < num_timepoints).any():
-        if drop_incomplete_subjects:
-            subject_to_keep = (subject_occurrence_series
-                               .loc[subject_occurrence_series
-                                    == num_timepoints].index)
-            metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
-        else:
-            incomplete_subjects = (subject_occurrence_series
-                                   .loc[subject_occurrence_series
-                                        < num_timepoints].index).to_list()
-            raise ValueError('Missing timepoints for associated subjects.'
-                             ' Please make sure that all subjects have all'
-                             ' timepoints or use drop_incomplete_subjects'
-                             ' parameter. The incomplete subjects were %s'
-                             % incomplete_subjects)
 
     try:
         reference_series = metadata[reference_column]
@@ -67,6 +37,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
 
     if used_references.isna().any():
         if filter_missing_references:
+            metadata = metadata.dropna(subset=[reference_column])
             used_references = used_references.dropna()
         else:
             nan_references = used_references.index[used_references.isna()]
@@ -75,6 +46,40 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                            ' timepoint value have an associated reference.'
                            ' IDs where missing references were found:'
                            ' %s' % (tuple(nan_references),))
+
+    try:
+        subject_series = metadata[subject_column]
+    except Exception as e:
+        raise KeyError('There was an error finding %s in the metadata'
+                       % subject_column) from e
+    for subject in subject_series:
+        subject_df = metadata[metadata[subject_column] == subject]
+        if not subject_df[time_column].is_unique:
+            timepoint_list = subject_df[time_column].to_list()
+            raise ValueError('There is more than one occurrence of a subject'
+                             ' in a timepoint. All subjects must occur only'
+                             ' once per timepoint. Subject %s appears in '
+                             ' timepoints: %s' % (subject, timepoint_list))
+
+    subject_occurrence_series = (subject_series.value_counts())
+    if (subject_occurrence_series < num_timepoints).any():
+        if drop_incomplete_subjects:
+            subject_to_keep = (subject_occurrence_series
+                               .loc[subject_occurrence_series
+                                    == num_timepoints].index)
+            metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
+            used_references = reference_series.filter(axis=0,
+                                                      items=metadata.index)
+            print(metadata.index)
+        else:
+            incomplete_subjects = (subject_occurrence_series
+                                   .loc[subject_occurrence_series
+                                        < num_timepoints].index).to_list()
+            raise ValueError('Missing timepoints for associated subjects.'
+                             ' Please make sure that all subjects have all'
+                             ' timepoints or use drop_incomplete_subjects'
+                             ' parameter. The incomplete subjects were %s'
+                             % incomplete_subjects)
 
     peds_df = _compute_peds(used_references, table, metadata, time_column,
                             reference_column, subject_column)
@@ -85,7 +90,6 @@ def _compute_peds(reference_series: pd.Series, table: pd.Series,
                   metadata: qiime2.Metadata, time_column: str,
                   reference_column: str,
                   subject_column: str) -> (pd.DataFrame):
-
     peds_series_list = []
     for sample in reference_series.index:
         donor = metadata.loc[sample][reference_column]
