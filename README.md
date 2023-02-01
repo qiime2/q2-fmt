@@ -14,7 +14,7 @@ Please note that this software is now an alpha release. Initial conda packages a
  conda create -n q2-fmt-alpha \
    -c conda-forge \
    -c bioconda \
-   -c https://packages.qiime2.org/qiime2/2022.4/tested/ \
+   -c https://packages.qiime2.org/qiime2/2022.11/tested/ \
    q2-fmt q2cli
 ```
 Then activate your new environment as usual.
