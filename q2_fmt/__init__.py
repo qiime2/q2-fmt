@@ -7,9 +7,9 @@
 # ----------------------------------------------------------------------------
 
 from ._version import get_versions
-from ._engraftment import engraftment
+from ._engraftment import engraftment, group_timepoints
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['engraftment']
+__all__ = ['engraftment', 'group_timepoints']
