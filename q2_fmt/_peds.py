@@ -70,7 +70,6 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
             metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
             used_references = reference_series.filter(axis=0,
                                                       items=metadata.index)
-            print(metadata.index)
         else:
             incomplete_subjects = (subject_occurrence_series
                                    .loc[subject_occurrence_series
