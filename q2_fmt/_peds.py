@@ -73,7 +73,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
         else:
             incomplete_subjects = (subject_occurrence_series
                                    .loc[subject_occurrence_series
-                                        < num_timepoints].index).to_list()
+                                        != num_timepoints].index).to_list()
             raise ValueError('Missing timepoints for associated subjects.'
                              ' Please make sure that all subjects have all'
                              ' timepoints or use drop_incomplete_subjects'
