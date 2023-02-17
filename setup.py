@@ -16,7 +16,8 @@ setup(
     packages=find_packages(),
     package_data={
         'q2_fmt': ['assets/*'],
-        'q2_fmt.tests': ['data/*'],
+        'q2_fmt.tests': ['data/*', 'data/peds_dist/*'],
+
     },
     author='Liz Gehret',
     author_email='elizabeth.gehret@nau.edu',

@@ -8,8 +8,11 @@
 
 from ._version import get_versions
 from ._engraftment import engraftment, group_timepoints
+from ._visualizer import plot_heatmap
+from ._peds import sample_peds
+
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['engraftment', 'group_timepoints']
+__all__ = ['engraftment', 'sample_peds', 'plot_heatmap', 'group_timepoints']
