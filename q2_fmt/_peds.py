@@ -64,16 +64,16 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     subject_occurrence_series = (subject_series.value_counts())
     if (subject_occurrence_series < num_timepoints).any():
         if drop_incomplete_subjects:
-            subject_to_keep = (subject_occurrence_series
-                               .loc[subject_occurrence_series
-                                    == num_timepoints].index)
+            subject_to_keep = (subject_occurrence_series[
+                                subject_occurrence_series ==
+                                num_timepoints].index)
             metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
             used_references = reference_series.filter(axis=0,
                                                       items=metadata.index)
         else:
-            incomplete_subjects = (subject_occurrence_series
-                                   .loc[subject_occurrence_series
-                                        != num_timepoints].index).to_list()
+            incomplete_subjects = (subject_occurrence_series[
+                                    subject_occurrence_series
+                                    != num_timepoints].index).to_list()
             raise ValueError('Missing timepoints for associated subjects.'
                              ' Please make sure that all subjects have all'
                              ' timepoints or use drop_incomplete_subjects'
@@ -91,9 +91,10 @@ def _compute_peds(reference_series: pd.Series, table: pd.Series,
                   subject_column: str) -> (pd.DataFrame):
     peds_series_list = []
     for sample in reference_series.index:
-        donor = metadata.loc[sample][reference_column]
-        subject = metadata.loc[sample][subject_column]
-        timepoint = metadata.loc[sample][time_column]
+        sample_row = metadata.loc[sample]
+        donor = sample_row[reference_column]
+        subject = sample_row[subject_column]
+        timepoint = sample_row[time_column]
 
         donor_present_list = _get_observed_features(table, donor)
         donor_num_present = _count_observed_features(donor_present_list)
