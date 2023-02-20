@@ -9,7 +9,7 @@
 import importlib
 
 from qiime2.plugin import (Str, Plugin, Metadata, TypeMap,
-                           Bool, Choices, Visualization, Properties)
+                           Bool, Choices, Visualization, Properties, Citations)
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
@@ -20,6 +20,7 @@ from q2_stats._type import (GroupDist, Matched, Independent, Ordered,
                             Unordered, StatsTable, Pairwise)
 import q2_fmt._examples as ex
 
+citations = Citations.load('citations.bib', package='q2_fmt')
 
 plugin = Plugin(name='fmt',
                 version=q2_fmt.__version__,
@@ -219,6 +220,7 @@ plugin.methods.register_function(
     },
     name='',
     description='',
+    citations=[citations['wilson_strain_2021']],
     examples={
         'peds_methods': ex.peds_method
     }
