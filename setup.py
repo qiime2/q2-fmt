@@ -15,7 +15,9 @@ setup(
     version=versioneer.get_version(),
     packages=find_packages(),
     package_data={
-        'q2_fmt': ['assets/*'],
+        'q2_fmt': [
+            'assets/*',
+            'citations.bib'],
         'q2_fmt.tests': ['data/*', 'data/peds_dist/*'],
 
     },
