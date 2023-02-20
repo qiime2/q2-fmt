@@ -220,7 +220,7 @@ plugin.methods.register_function(
     },
     name='',
     description='',
-    citations=[citations['wilson_strain_2021']],
+    citations=[citations['aggarwala_precise_2021']],
     examples={
         'peds_methods': ex.peds_method
     }
