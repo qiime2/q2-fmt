@@ -8,12 +8,15 @@
 
 import qiime2
 import pandas as pd
+import numpy as np
+import warnings
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                 time_column: str, reference_column: str, subject_column: str,
                 filter_missing_references: bool = False,
                 drop_incomplete_subjects: bool = False) -> (pd.DataFrame):
+
     # TODO: Make incomplete samples possible move this to heatmap
     metadata = metadata.to_dataframe()
 
@@ -21,37 +24,142 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     num_timepoints = _check_for_time_column(metadata, time_column)
 
     # is time_column numeric
-    _check_time_colum_numeric(metadata, time_column)
+    _check_time_column_numeric(metadata, time_column)
 
     # is reference column
+
     reference_series = _check_reference_column(metadata, reference_column)
 
     # have associated reference
+    # things that should be removed
     metadata, used_references = \
         _check_associated_reference(reference_series, metadata, time_column,
                                     filter_missing_references,
                                     reference_column)
-
 # is subject column?
-    subject_series = check_subject_colum(metadata, subject_column)
+    subject_series = _check_subject_column(metadata, subject_column)
 # is double subjects
     _check_dupilicate_subject_timepoint(subject_series, metadata,
                                         subject_column, time_column)
 # is subject all timepoints
+# things that should be removed
     metadata, used_references = \
         _check_subjects_in_all_timepoint(subject_series, num_timepoints,
                                          drop_incomplete_subjects, metadata,
-                                         subject_column, reference_series)
+                                         subject_column, used_references)
 
-    peds_df = _compute_peds(used_references, table, metadata, time_column,
-                            reference_column, subject_column)
+    peds_df = pd.DataFrame(columns=['id', 'measure',
+                                    'transfered_donor_features',
+                                    'total_donor_features', 'donor', 'subject',
+                                    'group'])
+    peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
+                            peds_time=np.nan, reference_series=used_references,
+                            table=table, metadata=metadata,
+                            time_column=time_column,
+                            subject_column=subject_column,
+                            reference_column=reference_column)
     return peds_df
 
 
-def _compute_peds(reference_series: pd.Series, table: pd.Series,
+def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
+                 time_column: str, reference_column: str, subject_column: str,
+                 filter_missing_references: bool = False) -> (pd.DataFrame):
+    metadata = metadata.to_dataframe()
+    _ = _check_for_time_column(metadata, time_column)
+    _check_time_column_numeric(metadata, time_column)
+    reference_series = _check_reference_column(metadata, reference_column)
+    metadata, used_references = \
+        _check_associated_reference(reference_series, metadata, time_column,
+                                    filter_missing_references,
+                                    reference_column)
+    peds_df = pd.DataFrame(columns=["FeatureID", "Timepoint", "Numerator",
+                                    "Denominator", "PEDS"])
+    for time, time_metadata in metadata.groupby(time_column):
+        peds_df = _compute_peds(peds_df=peds_df, peds_type="Feature",
+                                peds_time=time,
+                                reference_series=used_references, table=table,
+                                metadata=time_metadata,
+                                time_column=time_column,
+                                subject_column=subject_column,
+                                reference_column=reference_column)
+    return peds_df
+
+
+def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
+                  reference_series: pd.Series, table: pd.Series,
                   metadata: qiime2.Metadata, time_column: str,
-                  reference_column: str,
-                  subject_column: str) -> (pd.DataFrame):
+                  subject_column: str,
+                  reference_column: str) -> (pd.DataFrame):
+    table = table > 0
+    donordf = table[table.index.isin(reference_series)]
+    recipdf = _create_recipient_table(reference_series, metadata, table)
+
+    donormask = _create_masking(time_metadata=metadata, donordf=donordf,
+                                recipdf=recipdf,
+                                reference_column=reference_column)
+    maskedrecip = donormask & recipdf
+    if peds_type == "Sample":
+        num_sum = np.sum(maskedrecip, axis=1)
+        donor_sum = np.sum(donormask, axis=1)
+        for count, sample in enumerate(recipdf.index):
+            sample_row = metadata.loc[sample]
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                peds = num_sum[count] / donor_sum[count]
+
+            peds_df.loc[len(peds_df)] = [sample, peds, num_sum[count],
+                                         donor_sum[count],
+                                         sample_row[reference_column],
+                                         sample_row[subject_column],
+                                         sample_row[time_column]]
+        peds_df['id'].attrs.update({
+            'title': reference_series.index.name,
+            'description': 'Sample IDs'
+        })
+        peds_df['measure'].attrs.update({
+            'title': "PEDS",
+            'description': 'Proportional Engraftment of Donor Strains '
+        })
+        peds_df['group'].attrs.update({
+            'title': time_column,
+            'description': 'Time'
+        })
+        peds_df["subject"].attrs.update({
+            'title': subject_column,
+            'description': 'ID to link samples across time'
+        })
+        peds_df["transfered_donor_features"].attrs.update({
+            'title': "Transfered Donor Features",
+            'description': '...'
+        })
+        peds_df['total_donor_features'].attrs.update({
+            'title': "Total Donor Features",
+            'description': '...'
+        })
+        peds_df['donor'].attrs.update({
+            'title': reference_column,
+            'description': 'Donor'
+        })
+
+    elif peds_type == "Feature":
+        num_sum = np.sum(maskedrecip, axis=0)
+        donor_sum = np.sum(donormask, axis=0)
+        for count, feature in enumerate(recipdf.columns):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                peds = num_sum[count] / donor_sum[count]
+            peds_df.loc[len(peds_df)] = [feature, peds_time, num_sum[count],
+                                         donor_sum[count], peds]
+    else:
+        raise KeyError('There was an error finding which PEDS methods to use')
+    return peds_df
+
+
+def _compute_sample_peds(reference_series: pd.Series, table: pd.Series,
+                         metadata: qiime2.Metadata, time_column: str,
+                         reference_column: str,
+                         subject_column: str) -> (pd.DataFrame):
+
     peds_series_list = []
     for sample in reference_series.index:
         sample_row = metadata.loc[sample]
@@ -109,6 +217,28 @@ def _compute_peds(reference_series: pd.Series, table: pd.Series,
     return peds_df
 
 
+def _compute_feature_peds(reference_series: pd.Series, table: pd.Series,
+                          metadata: qiime2.Metadata) -> (pd.DataFrame):
+    table = table > 0
+    pedsdf = pd.DataFrame(columns=["FeatureID", "Timepoint", "Numerator",
+                                   "Denominator", "PEDS"])
+    for time, time_metadata in metadata.groupby("TPO"):
+        donordf = table[table.index.isin(reference_series)]
+        recipdf = _create_recipient_table(time_metadata, table)
+        donormask = _create_masking(time_metadata, donordf, recipdf)
+        maskedrecip = _mask_recipient(donormask, recipdf)
+        num_sum = np.sum(maskedrecip, axis=0)
+        donor_sum = np.sum(donormask, axis=0)
+
+        for count, feature in enumerate(recipdf.columns):
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                peds = num_sum[count] / donor_sum[count]
+            pedsdf.loc[len(pedsdf)] = [feature, time, num_sum[count],
+                                       donor_sum[count], peds]
+    return pedsdf
+
+
 def _get_observed_features(table, id):
     try:
         present = table.loc[id] > 0
@@ -123,6 +253,7 @@ def _count_observed_features(present_list):
     return num_present
 
 
+# Filtering methods
 def _check_for_time_column(metadata, time_column):
     try:
         num_timepoints = metadata[time_column].dropna().unique().size
@@ -132,7 +263,7 @@ def _check_for_time_column(metadata, time_column):
     return num_timepoints
 
 
-def _check_time_colum_numeric(metadata, time_column):
+def _check_time_column_numeric(metadata, time_column):
     try:
         metadata[time_column].dropna().astype(int)
     except Exception as e:
@@ -150,6 +281,7 @@ def _check_reference_column(metadata, reference_column):
 
 def _check_associated_reference(reference_series, metadata, time_column,
                                 filter_missing_references, reference_column):
+
     used_references = reference_series[~metadata[time_column].isna()]
 
     if used_references.isna().any():
@@ -163,10 +295,10 @@ def _check_associated_reference(reference_series, metadata, time_column,
                            ' timepoint value have an associated reference.'
                            ' IDs where missing references were found:'
                            ' %s' % (tuple(nan_references),))
-        return metadata, used_references
+    return metadata, used_references
 
 
-def check_subject_colum(metadata, subject_column):
+def _check_subject_column(metadata, subject_column):
     try:
         subject_series = metadata[subject_column]
     except Exception as e:
@@ -187,10 +319,10 @@ def _check_dupilicate_subject_timepoint(subject_series, metadata,
                              ' timepoints: %s' % (subject, timepoint_list))
 
 
-def _check_subjects_in_all_timepoint(subject_series, subject_occurrence_series,
-                                     num_timepoints, drop_incomplete_subjects,
-                                     metadata, subject_column,
-                                     reference_series):
+def _check_subjects_in_all_timepoint(subject_series, num_timepoints,
+                                     drop_incomplete_subjects, metadata,
+                                     subject_column, used_references):
+
     subject_occurrence_series = (subject_series.value_counts())
     if (subject_occurrence_series < num_timepoints).any():
         if drop_incomplete_subjects:
@@ -198,8 +330,8 @@ def _check_subjects_in_all_timepoint(subject_series, subject_occurrence_series,
                                 subject_occurrence_series ==
                                 num_timepoints].index)
             metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
-            used_references = reference_series.filter(axis=0,
-                                                      items=metadata.index)
+            used_references = used_references.filter(axis=0,
+                                                     items=metadata.index)
         else:
             incomplete_subjects = (subject_occurrence_series[
                                     subject_occurrence_series
@@ -209,4 +341,30 @@ def _check_subjects_in_all_timepoint(subject_series, subject_occurrence_series,
                              ' timepoints or use drop_incomplete_subjects'
                              ' parameter. The incomplete subjects were %s'
                              % incomplete_subjects)
-        return metadata, used_references
+    return metadata, used_references
+
+
+# PEDS calculation methods
+def _create_recipient_table(refernce_series, time_metadata, tabledf):
+    subset_reference_series = \
+        refernce_series[refernce_series.index.isin(time_metadata.index)]
+    recipdf = tabledf[tabledf.index.isin(subset_reference_series.index)]
+    return recipdf
+
+
+def _create_masking(time_metadata, donordf, recipdf, reference_column):
+    donor_index_masking = []
+    for sample in recipdf.index:
+        donor = time_metadata.loc[sample, reference_column]
+        donor_index_masking.append(donordf.index.get_loc(donor))
+    donordf = donordf.to_numpy()
+    donormask = donordf[donor_index_masking]
+    donormask = donormask.astype(int)
+    recipdf = recipdf.to_numpy()
+    recipdf = recipdf.astype(int)
+    return donormask
+
+
+def _mask_recipient(donormask, recipdf):
+    maskedrecip = donormask & recipdf
+    return maskedrecip
