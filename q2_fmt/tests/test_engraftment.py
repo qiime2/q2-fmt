@@ -7,13 +7,14 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
+import numpy as np
 from skbio.stats.distance import DistanceMatrix
 
 from qiime2.plugin.testing import TestPluginBase
 from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
-from q2_fmt._peds import _compute_sample_peds, sample_peds
+from q2_fmt._peds import _compute_peds, sample_peds
 
 
 class TestBase(TestPluginBase):
@@ -508,11 +509,16 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = _compute_sample_peds(reference_series=reference_series,
-                                       table=table_df, metadata=metadata_df,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
+        peds_df = pd.DataFrame(columns=['id', 'measure',
+                                        'transfered_donor_features',
+                                        'total_donor_features', 'donor',
+                                        'subject', 'group'])
+        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
+                                peds_time=np.nan,
+                                reference_series=reference_series,
+                                table=table_df, metadata=metadata_df,
+                                time_column="group", reference_column="Ref",
+                                subject_column="subject")
         peds_df = peds_df.set_index("id")
         donor = peds_df.at["sample1", "donor"]
         self.assertEqual(donor, "donor1")
@@ -533,11 +539,17 @@ class TestPeds(TestBase):
                    'donor1', 'donor2'],
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature3': [1, 1, 1, 1, 1, 1]}).set_index('id')
-        peds_df = _compute_sample_peds(reference_series=reference_series,
-                                       table=table_df, metadata=metadata_df,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
+        peds_df = pd.DataFrame(columns=['id', 'measure',
+                                        'transfered_donor_features',
+                                        'total_donor_features', 'donor',
+                                        'subject',
+                                        'group'])
+        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
+                                peds_time=np.nan,
+                                reference_series=reference_series,
+                                table=table_df, metadata=metadata_df,
+                                time_column="group", reference_column="Ref",
+                                subject_column="subject")
         peds_df = peds_df.set_index("id")
         subject = peds_df.at["sample1", "subject"]
         self.assertEqual(subject, "sub1")
@@ -559,11 +571,16 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = _compute_sample_peds(reference_series=reference_series,
-                                       table=table_df, metadata=metadata_df,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
+        peds_df = pd.DataFrame(columns=['id', 'measure',
+                                        'transfered_donor_features',
+                                        'total_donor_features', 'donor',
+                                        'subject', 'group'])
+        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
+                                peds_time=np.nan,
+                                reference_series=reference_series,
+                                table=table_df, metadata=metadata_df,
+                                time_column="group", reference_column="Ref",
+                                subject_column="subject")
         peds_df = peds_df.set_index("id")
         tp = peds_df.at["sample3", "group"]
         self.assertEqual(tp, 1)
