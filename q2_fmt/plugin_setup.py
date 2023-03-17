@@ -15,7 +15,7 @@ from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
 from q2_types.feature_table import (
-    FeatureTable, Frequency, RelativeFrequency, PresenceAbsence, Composition)
+    FeatureTable, Frequency, RelativeFrequency, PresenceAbsence)
 from q2_stats._type import (GroupDist, Matched, Independent, Ordered,
                             Unordered, StatsTable, Pairwise)
 import q2_fmt._examples as ex
@@ -185,7 +185,7 @@ plugin.methods.register_function(
 plugin.methods.register_function(
     function=q2_fmt.sample_peds,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
-                                  PresenceAbsence | Composition]},
+                                  PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
                 'filter_missing_references': Bool,
