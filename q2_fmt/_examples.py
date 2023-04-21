@@ -166,6 +166,29 @@ def peds_method(use):
                                         " Properties('peds')")
 
 
+def feature_peds_method(use):
+    md = use.init_metadata('md', peds_md_factory)
+    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+
+    peds_group_dists, = use.action(
+        use.UsageAction('fmt', 'feature_peds'),
+        use.UsageInputs(
+            table=peds_table,
+            metadata=md,
+            time_column='time_point',
+            reference_column='Donor',
+            subject_column='SubjectID'
+        ),
+        use.UsageOutputNames(
+            peds_dists='peds_dist'
+        )
+
+    )
+
+    peds_group_dists.assert_output_type("GroupDist[Ordered, Matched] %"
+                                        " Properties('peds')")
+
+
 def peds_heatmap(use):
     peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
 

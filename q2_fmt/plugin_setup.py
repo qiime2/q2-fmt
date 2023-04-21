@@ -259,9 +259,8 @@ plugin.methods.register_function(
     },
     name='',
     description='',
-    citations=[citations['aggarwala_precise_2021']],
     examples={
-        'peds_methods': ex.peds_method
+        'peds_methods': ex.feature_peds_method
     }
 )
 
