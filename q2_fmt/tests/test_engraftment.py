@@ -877,7 +877,6 @@ class TestPeds(TestBase):
                                        time_column="group",
                                        reference_column="Ref",
                                        subject_column="subject")
-        print(feature_peds_df)
         TDFs1 = feature_peds_df.set_index("id").at['Feature1',
                                                    'measure']
         TDFs2 = feature_peds_df.set_index("id").at['Feature2',
