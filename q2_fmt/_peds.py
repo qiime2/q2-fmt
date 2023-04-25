@@ -111,7 +111,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
         })
         peds_df['measure'].attrs.update({
             'title': "PEDS",
-            'description': 'Proportional Engraftment of Donor Strains '
+            'description': 'Proportional Engraftment of Donor Strains'
         })
         peds_df['group'].attrs.update({
             'title': time_column,
