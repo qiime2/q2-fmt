@@ -231,7 +231,7 @@ def _check_duplicate_subject_timepoint(subject_series, metadata,
                              ' timepoints: %s' % (subject, timepoint_list))
 
 
-def _check_subjects_in_all_timepoint(subject_series, num_timepoints,
+def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
                                      drop_incomplete_subjects, metadata,
                                      subject_column, used_references):
 
