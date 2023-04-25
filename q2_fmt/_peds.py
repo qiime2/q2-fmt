@@ -219,7 +219,7 @@ def _check_subject_column(metadata, subject_column):
     return subject_series
 
 
-def _check_dupilicate_subject_timepoint(subject_series, metadata,
+def _check_duplicate_subject_timepoint(subject_series, metadata,
                                         subject_column, time_column):
     for subject in subject_series:
         subject_df = metadata[metadata[subject_column] == subject]
