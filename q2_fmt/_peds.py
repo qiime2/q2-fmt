@@ -145,7 +145,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
                                          donor_sum[count], peds_time, feature]
             peds_df = peds_df.dropna()
         peds_df['id'].attrs.update({
-            'title': "FeatureID",
+            'title': "Feature ID",
             'description': ''
         })
         peds_df['measure'].attrs.update({
