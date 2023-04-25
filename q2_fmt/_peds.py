@@ -257,7 +257,7 @@ def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
 
 
 # PEDS calculation methods
-def _create_recipient_table(refernce_series, time_metadata, tabledf):
+def _create_recipient_table(reference_series, time_metadata, tabledf):
     subset_reference_series = \
         reference_series[reference_series.index.isin(time_metadata.index)]
     recipdf = tabledf[tabledf.index.isin(subset_reference_series.index)]
