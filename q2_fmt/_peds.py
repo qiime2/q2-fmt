@@ -29,7 +29,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                                     filter_missing_references,
                                     reference_column)
     subject_series = _check_subject_column(metadata, subject_column)
-    _check_dupilicate_subject_timepoint(subject_series, metadata,
+    _check_duplicate_subject_timepoint(subject_series, metadata,
                                         subject_column, time_column)
     # return things that should be removed
     metadata, used_references = \
