@@ -119,7 +119,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
         })
         peds_df["subject"].attrs.update({
             'title': subject_column,
-            'description': 'ID to link samples across time'
+            'description': 'Subject IDs linking samples across time'
         })
         peds_df["transfered_donor_features"].attrs.update({
             'title': "Transfered Donor Features",
