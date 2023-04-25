@@ -25,17 +25,17 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     reference_series = _check_reference_column(metadata, reference_column)
     # return things that should be removed
     metadata, used_references = \
-        _check_associated_reference(reference_series, metadata, time_column,
-                                    filter_missing_references,
-                                    reference_column)
+        _filter_associated_reference(reference_series, metadata, time_column,
+                                     filter_missing_references,
+                                     reference_column)
     subject_series = _check_subject_column(metadata, subject_column)
     _check_duplicate_subject_timepoint(subject_series, metadata,
-                                        subject_column, time_column)
+                                       subject_column, time_column)
     # return things that should be removed
     metadata, used_references = \
-        _check_subjects_in_all_timepoint(subject_series, num_timepoints,
-                                         drop_incomplete_subjects, metadata,
-                                         subject_column, used_references)
+        _check_subjects_in_all_timepoints(subject_series, num_timepoints,
+                                          drop_incomplete_subjects, metadata,
+                                          subject_column, used_references)
 
     peds_df = pd.DataFrame(columns=['id', 'measure',
                                     'transfered_donor_features',
@@ -61,9 +61,9 @@ def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     _check_time_column_numeric(metadata, time_column)
     reference_series = _check_reference_column(metadata, reference_column)
     metadata, used_references = \
-        _check_associated_reference(reference_series, metadata, time_column,
-                                    filter_missing_references,
-                                    reference_column)
+        _filter_associated_reference(reference_series, metadata, time_column,
+                                     filter_missing_references,
+                                     reference_column)
     peds_df = pd.DataFrame(columns=['id', 'measure', 'recipients with feature',
                                     'all possible recipients with feature',
                                     'group', 'subject'])
@@ -191,8 +191,8 @@ def _check_reference_column(metadata, reference_column):
     return reference_series
 
 
-def _check_associated_reference(reference_series, metadata, time_column,
-                                filter_missing_references, reference_column):
+def _filter_associated_reference(reference_series, metadata, time_column,
+                                 filter_missing_references, reference_column):
 
     used_references = reference_series[~metadata[time_column].isna()]
 
@@ -220,7 +220,7 @@ def _check_subject_column(metadata, subject_column):
 
 
 def _check_duplicate_subject_timepoint(subject_series, metadata,
-                                        subject_column, time_column):
+                                       subject_column, time_column):
     for subject in subject_series:
         subject_df = metadata[metadata[subject_column] == subject]
         if not subject_df[time_column].is_unique:
@@ -232,8 +232,8 @@ def _check_duplicate_subject_timepoint(subject_series, metadata,
 
 
 def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
-                                     drop_incomplete_subjects, metadata,
-                                     subject_column, used_references):
+                                      drop_incomplete_subjects, metadata,
+                                      subject_column, used_references):
 
     subject_occurrence_series = (subject_series.value_counts())
     if (subject_occurrence_series < num_timepoints).any():
