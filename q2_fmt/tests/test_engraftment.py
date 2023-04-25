@@ -15,8 +15,9 @@ from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._peds import (_compute_peds, sample_peds,
-                          _filter_associated_reference, _check_reference_column,
-                          _check_for_time_column, _check_subject_column,
+                          _filter_associated_reference,
+                          _check_reference_column, _check_for_time_column,
+                          _check_subject_column,
                           feature_peds)
 
 
