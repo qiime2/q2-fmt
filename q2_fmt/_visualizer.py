@@ -17,7 +17,6 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
     J_ENV = jinja2.Environment(
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
-    print(data)
     x_label = data['group'].attrs['title']
     y_label = data['subject'].attrs['title']
     measure = data['measure'].attrs['title']
