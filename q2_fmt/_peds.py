@@ -157,7 +157,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             'description': 'Time'
         })
         peds_df['subject'].attrs.update({
-            'title': "FeatureID",
+            'title': "Feature ID",
             'description': ''
         })
     else:
