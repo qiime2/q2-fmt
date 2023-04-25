@@ -606,10 +606,10 @@ class TestPeds(TestBase):
                                     ' IDs where missing references were found'
                                     ':.*'):
             _filter_associated_reference(reference_series=reference_series,
-                                        metadata=metadata_df,
-                                        time_column="group",
-                                        filter_missing_references=False,
-                                        reference_column="Ref")
+                                         metadata=metadata_df,
+                                         time_column="group",
+                                         filter_missing_references=False,
+                                         reference_column="Ref")
 
     def test_incomplete_timepoints(self):
         metadata_df = pd.DataFrame({
