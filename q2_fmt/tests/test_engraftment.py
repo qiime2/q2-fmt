@@ -15,7 +15,7 @@ from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._peds import (_compute_peds, sample_peds,
-                          _check_associated_reference, _check_reference_column,
+                          _filter_associated_reference, _check_reference_column,
                           _check_for_time_column, _check_subject_column,
                           feature_peds)
 
@@ -605,7 +605,7 @@ class TestPeds(TestBase):
                                     ' value have an associated reference.'
                                     ' IDs where missing references were found'
                                     ':.*'):
-            _check_associated_reference(reference_series=reference_series,
+            _filter_associated_reference(reference_series=reference_series,
                                         metadata=metadata_df,
                                         time_column="group",
                                         filter_missing_references=False,

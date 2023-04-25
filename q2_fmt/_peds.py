@@ -84,17 +84,17 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
                   subject_column: str,
                   reference_column: str) -> (pd.DataFrame):
     table = table > 0
-    donordf = table[table.index.isin(reference_series)]
-    recipdf = _create_recipient_table(reference_series, metadata, table)
+    donor_df = table[table.index.isin(reference_series)]
+    recip_df = _create_recipient_table(reference_series, metadata, table)
 
-    donormask = _create_masking(time_metadata=metadata, donordf=donordf,
-                                recipdf=recipdf,
+    donormask = _create_masking(time_metadata=metadata, donor_df=donor_df,
+                                recip_df=recip_df,
                                 reference_column=reference_column)
-    maskedrecip = donormask & recipdf
+    maskedrecip = donormask & recip_df
     if peds_type == "Sample":
         num_sum = np.sum(maskedrecip, axis=1)
         donor_sum = np.sum(donormask, axis=1)
-        for count, sample in enumerate(recipdf.index):
+        for count, sample in enumerate(recip_df.index):
             sample_row = metadata.loc[sample]
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -137,7 +137,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
     elif peds_type == "Feature":
         num_sum = np.sum(maskedrecip, axis=0)
         donor_sum = np.sum(donormask, axis=0)
-        for count, feature in enumerate(recipdf.columns):
+        for count, feature in enumerate(recip_df.columns):
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 peds = num_sum[count] / donor_sum[count]
@@ -257,125 +257,26 @@ def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
 
 
 # PEDS calculation methods
-def _create_recipient_table(reference_series, time_metadata, tabledf):
+def _create_recipient_table(reference_series, time_metadata, table_df):
     subset_reference_series = \
         reference_series[reference_series.index.isin(time_metadata.index)]
-    recipdf = tabledf[tabledf.index.isin(subset_reference_series.index)]
-    return recipdf
+    recip_df = table_df[table_df.index.isin(subset_reference_series.index)]
+    return recip_df
 
 
-def _create_masking(time_metadata, donordf, recipdf, reference_column):
+def _create_masking(time_metadata, donor_df, recip_df, reference_column):
     donor_index_masking = []
-    for sample in recipdf.index:
+    for sample in recip_df.index:
         donor = time_metadata.loc[sample, reference_column]
-        donor_index_masking.append(donordf.index.get_loc(donor))
-    donordf = donordf.to_numpy()
-    donormask = donordf[donor_index_masking]
-    donormask = donormask.astype(int)
-    recipdf = recipdf.to_numpy()
+        donor_index_masking.append(donor_df.index.get_loc(donor))
+    donor_df = donor_df.to_numpy()
+    donor_mask = donor_df[donor_index_masking]
+    donor_mask = donor_mask.astype(int)
+    recipdf = recip_df.to_numpy()
     recipdf = recipdf.astype(int)
-    return donormask
+    return donor_mask
 
 
-def _mask_recipient(donormask, recipdf):
-    maskedrecip = donormask & recipdf
+def _mask_recipient(donor_mask, recip_df):
+    maskedrecip = donor_mask & recip_df
     return maskedrecip
-
-
-# Decommissioned Methods
-def _compute_feature_peds(reference_series: pd.Series, table: pd.Series,
-                          metadata: qiime2.Metadata) -> (pd.DataFrame):
-    table = table > 0
-    pedsdf = pd.DataFrame(columns=["FeatureID", "Timepoint", "Numerator",
-                                   "Denominator", "PEDS"])
-    for time, time_metadata in metadata.groupby("TPO"):
-        donordf = table[table.index.isin(reference_series)]
-        recipdf = _create_recipient_table(time_metadata, table)
-        donormask = _create_masking(time_metadata, donordf, recipdf)
-        maskedrecip = _mask_recipient(donormask, recipdf)
-        num_sum = np.sum(maskedrecip, axis=0)
-        donor_sum = np.sum(donormask, axis=0)
-
-        for count, feature in enumerate(recipdf.columns):
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                peds = num_sum[count] / donor_sum[count]
-            pedsdf.loc[len(pedsdf)] = [feature, time, num_sum[count],
-                                       donor_sum[count], peds]
-    return pedsdf
-
-
-def _get_observed_features(table, id):
-    try:
-        present = table.loc[id] > 0
-    except Exception as e:
-        raise KeyError('There was an error finding the sample %s in'
-                       ' your feature table' % id) from e
-    return present
-
-
-def _count_observed_features(present_list):
-    num_present = present_list.sum()
-    return num_present
-
-
-def _compute_sample_peds(reference_series: pd.Series, table: pd.Series,
-                         metadata: qiime2.Metadata, time_column: str,
-                         reference_column: str,
-                         subject_column: str) -> (pd.DataFrame):
-
-    peds_series_list = []
-    for sample in reference_series.index:
-        sample_row = metadata.loc[sample]
-        donor = sample_row[reference_column]
-        subject = sample_row[subject_column]
-        timepoint = sample_row[time_column]
-
-        donor_present_list = _get_observed_features(table, donor)
-        donor_num_present = _count_observed_features(donor_present_list)
-        if donor_num_present == 0:
-            raise ValueError('Donor Sample %s has no features in it.' % donor)
-        sample_present_list = _get_observed_features(table, sample)
-
-        intersect = (donor_present_list & sample_present_list).sum()
-        intersect_num_present = _count_observed_features(intersect)
-
-        peds = (intersect_num_present/donor_num_present)
-        peds_series_list.append((sample, peds, intersect_num_present,
-                                 donor_num_present, donor, subject, timepoint))
-    peds_df = pd.DataFrame(peds_series_list,
-                           columns=['id', 'measure',
-                                    'transfered_donor_features',
-                                    'total_donor_features', 'donor', 'subject',
-                                    'group'])
-
-    # use title for correcting ugly names
-    peds_df['id'].attrs.update({
-        'title': reference_series.index.name,
-        'description': 'Sample IDs'
-    })
-    peds_df['measure'].attrs.update({
-        'title': "PEDS",
-        'description': 'Proportional Engraftment of Donor Strains '
-    })
-    peds_df['group'].attrs.update({
-        'title': time_column,
-        'description': 'Time'
-    })
-    peds_df["subject"].attrs.update({
-        'title': subject_column,
-        'description': 'ID to link samples across time'
-    })
-    peds_df["transfered_donor_features"].attrs.update({
-        'title': "Transfered Donor Features",
-        'description': '...'
-    })
-    peds_df['total_donor_features'].attrs.update({
-        'title': "Total Donor Features",
-        'description': '...'
-    })
-    peds_df['donor'].attrs.update({
-        'title': reference_column,
-        'description': 'Donor'
-    })
-    return peds_df
