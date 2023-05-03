@@ -18,17 +18,20 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                 drop_incomplete_subjects: bool = False) -> (pd.DataFrame):
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
+    column_properties = metadata.columns
     # TODO: Make incomplete samples possible move this to heatmap
     metadata = metadata.to_dataframe()
     num_timepoints = _check_for_time_column(metadata, time_column)
-    _check_time_column_numeric(metadata, time_column)
+    _check_time_column_numeric(column_properties, time_column)
     reference_series = _check_reference_column(metadata, reference_column)
+    _check_reference_column_categorical(column_properties, reference_column)
     # return things that should be removed
     metadata, used_references = \
         _filter_associated_reference(reference_series, metadata, time_column,
                                      filter_missing_references,
                                      reference_column)
     subject_series = _check_subject_column(metadata, subject_column)
+    _check_subject_column_categorical(column_properties, subject_column)
     _check_duplicate_subject_timepoint(subject_series, metadata,
                                        subject_column, time_column)
     # return things that should be removed
@@ -55,15 +58,19 @@ def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                  filter_missing_references: bool = False) -> (pd.DataFrame):
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
+    column_properties = metadata.columns
     metadata = metadata.to_dataframe()
 
     _ = _check_for_time_column(metadata, time_column)
-    _check_time_column_numeric(metadata, time_column)
+    _check_time_column_numeric(column_properties, time_column)
     reference_series = _check_reference_column(metadata, reference_column)
+    _check_reference_column_categorical(column_properties, reference_column)
     metadata, used_references = \
         _filter_associated_reference(reference_series, metadata, time_column,
                                      filter_missing_references,
                                      reference_column)
+    _ = _check_subject_column(metadata, subject_column)
+    _check_subject_column_categorical(column_properties, subject_column)
     peds_df = pd.DataFrame(columns=['id', 'measure', 'recipients with feature',
                                     'all possible recipients with feature',
                                     'group', 'subject'])
@@ -84,6 +91,15 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
                   subject_column: str,
                   reference_column: str) -> (pd.DataFrame):
     table = table > 0
+    reference_overlap = reference_series.isin(table.index)
+    try:
+        assert all(reference_overlap)
+    except AssertionError as e:
+        missing_ref = reference_series[~reference_overlap].to_list()
+        raise AssertionError('Reference IDs: %s provided were not found in'
+                             ' the feature table. Please confirm that all'
+                             ' values in reference column are present in the'
+                             ' feature table' % missing_ref) from e
     donor_df = table[table.index.isin(reference_series)]
     recip_df = _create_recipient_table(reference_series, metadata, table)
 
@@ -170,24 +186,43 @@ def _check_for_time_column(metadata, time_column):
     try:
         num_timepoints = metadata[time_column].dropna().unique().size
     except Exception as e:
-        raise KeyError('There was an error finding %s in the metadata'
-                       % time_column) from e
+        if time_column == metadata.index.name:
+            raise KeyError('The `--p-time-column` input provided was the same'
+                           ' as the index of the metadata. `--p-time-column`'
+                           ' can not be the same as the index of metadata:'
+                           ' `%s`' % time_column) from e
+        else:
+            raise KeyError('There was an error finding the provided'
+                           ' `--p-time-column`: `%s` in the metadata'
+                           % time_column) from e
     return num_timepoints
 
 
-def _check_time_column_numeric(metadata, time_column):
+def _check_time_column_numeric(column_properties, time_column):
     try:
-        metadata[time_column].dropna().astype(int)
-    except Exception as e:
-        raise ValueError('%s must be numeric' % time_column) from e
+        assert column_properties[time_column].type == 'numeric'
+    except AssertionError as e:
+        raise AssertionError('Non-numeric values found in `--p-time-column`.'
+                             ' Please make sure the column selected contains'
+                             ' only simple integer values. Column with'
+                             ' non-numeric values that was'
+                             ' selected: %s' % time_column) from e
 
 
 def _check_reference_column(metadata, reference_column):
     try:
         reference_series = metadata[reference_column]
     except Exception as e:
-        raise KeyError('There was an error finding %s in the metadata'
-                       % reference_column) from e
+        if reference_column == metadata.index.name:
+            raise KeyError('The `--p-reference-column` input provided was the'
+                           ' same as the index of the metadata.'
+                           ' `--p-reference-column` can not be the same as the'
+                           ' index of metadata:'
+                           ' `%s`' % reference_column) from e
+        else:
+            raise KeyError('There was an error finding the provided'
+                           ' `--p-reference-column`: `%s` in the metadata'
+                           % reference_column) from e
     return reference_series
 
 
@@ -210,12 +245,29 @@ def _filter_associated_reference(reference_series, metadata, time_column,
     return metadata, used_references
 
 
+def _check_reference_column_categorical(column_properties, reference_column):
+    try:
+        assert column_properties[reference_column].type == 'categorical'
+    except AssertionError as e:
+        raise AssertionError('Numeric values found in `--p-reference-column`.'
+                             ' Please make sure the column selected is'
+                             ' categorical. Column with numeric values that'
+                             ' was selected: `%s`' % reference_column) from e
+
+
 def _check_subject_column(metadata, subject_column):
     try:
         subject_series = metadata[subject_column]
     except Exception as e:
-        raise KeyError('There was an error finding %s in the metadata'
-                       % subject_column) from e
+        if subject_column == metadata.index.name:
+            raise KeyError('The `--p-subject-column` input provided was the'
+                           ' same as the index of the metadata.'
+                           ' `--p-subject-column` can not be the same as the'
+                           ' index of metadata: `%s`' % subject_column) from e
+        else:
+            raise KeyError('There was an error finding the provided'
+                           ' `--p-subject-column`: `%s` in the metadata'
+                           % subject_column) from e
     return subject_series
 
 
@@ -254,6 +306,17 @@ def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
                              ' parameter. The incomplete subjects were %s'
                              % incomplete_subjects)
     return metadata, used_references
+
+
+def _check_subject_column_categorical(column_properties, subject_column):
+    try:
+        print(column_properties[subject_column].type)
+        assert column_properties[subject_column].type == 'categorical'
+    except AssertionError as e:
+        raise AssertionError('Numeric values found in `--p-subject-column`.'
+                             ' Please make sure the column selected is'
+                             ' categorical. Column with numeric values that'
+                             ' was selected: `%s`' % subject_column) from e
 
 
 # PEDS calculation methods

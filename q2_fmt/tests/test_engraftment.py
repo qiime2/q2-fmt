@@ -17,8 +17,9 @@ from q2_fmt._engraftment import group_timepoints
 from q2_fmt._peds import (_compute_peds, sample_peds,
                           _filter_associated_reference,
                           _check_reference_column, _check_for_time_column,
-                          _check_subject_column,
-                          feature_peds)
+                          _check_subject_column, _check_time_column_numeric,
+                          _check_reference_column_categorical,
+                          _check_subject_column_categorical, feature_peds)
 
 
 class TestBase(TestPluginBase):
@@ -683,7 +684,9 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 3, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, ".*finding R in the metadata"):
+        with self.assertRaisesRegex(KeyError, ".*the provided"
+                                    " `--p-reference-column`: `R` in the"
+                                    " metadata"):
             _check_reference_column(metadata_df, "R")
 
     def test_incorrect_group_column_name(self):
@@ -697,7 +700,8 @@ class TestPeds(TestBase):
             'group': [1, 2, 3, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
         with self.assertRaisesRegex(KeyError,
-                                    ".*finding time in the metadata"):
+                                    ".*the provided `--p-time-column`: `time`"
+                                    " in the metadata"):
             _check_for_time_column(metadata_df, 'time')
 
     def test_incorrect_subject_column_name(self):
@@ -710,7 +714,9 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 3, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, ".*finding sub in the metadata"):
+        with self.assertRaisesRegex(KeyError, ".*the provided"
+                                    " `--p-subject-column`: `sub` in the"
+                                    " metadata"):
             _check_subject_column(metadata_df, 'sub')
 
     def test_no_feature_overlap(self):
@@ -909,3 +915,126 @@ class TestPeds(TestBase):
                          time_column="group",
                          reference_column="Ref",
                          subject_column="subject")
+
+    def test_group_column_categorical(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': ["t1", "t2", "t3", "t2", float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata_obj = Metadata(metadata_df)
+        column_properties = metadata_obj.columns
+        with self.assertRaisesRegex(AssertionError, ".*Column with non-numeric"
+                                    " values that was selected: group"):
+            _check_time_column_numeric(column_properties, 'group')
+
+    def test_subject_column_numeric(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': [1, 1, 1, 2, float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata_obj = Metadata(metadata_df)
+        column_properties = metadata_obj.columns
+        with self.assertRaisesRegex(AssertionError, ".*Column with numeric"
+                                    " values that was selected: `subject`"):
+            _check_subject_column_categorical(column_properties, 'subject')
+
+    def test_reference_column_numeric(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   "1", "2"],
+            'Ref': [1, 1, 1, 2, float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata_obj = Metadata(metadata_df)
+        column_properties = metadata_obj.columns
+        with self.assertRaisesRegex(AssertionError, ".*Column with numeric"
+                                    " values that was selected: `Ref`"):
+            _check_reference_column_categorical(column_properties, 'Ref')
+
+    def test_reference_series_not_in_table(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['1', '1', '2', '2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 1, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        reference_series = metadata_df['Ref'].dropna()
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Feature1': [1, 0, 1, 1, 1, 1],
+            'Feature2': [1, 1, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
+        peds_df = pd.DataFrame(columns=['id', 'measure',
+                                        'transfered_donor_features',
+                                        'total_donor_features', 'donor',
+                                        'subject', 'group'])
+        with self.assertRaisesRegex(AssertionError, ".*['1', '1',"
+                                    " '2', '2']"):
+            _compute_peds(peds_df=peds_df, peds_type="Sample",
+                          peds_time=np.nan,
+                          reference_series=reference_series,
+                          table=table_df, metadata=metadata_df,
+                          time_column="group", reference_column="Ref",
+                          subject_column="subject")
+
+    def test_subject_column_name_is_ID(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        with self.assertRaisesRegex(KeyError, ".*`--p-subject-column` can not"
+                                    " be the same as the index of"
+                                    " metadata: `id`"):
+            _check_subject_column(metadata_df, 'id')
+
+    def test_group_column_name_is_ID(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        with self.assertRaisesRegex(KeyError, ".*`--p-time-column` can not"
+                                    " be the same as the index of"
+                                    " metadata: `id`"):
+            _check_for_time_column(metadata_df, 'id')
+
+    def test_reference_column_name_is_ID(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        with self.assertRaisesRegex(KeyError, ".*`--p-reference-column` can"
+                                    " not be the same as the index of"
+                                    " metadata: `id`"):
+            _check_reference_column(metadata_df, "id")
