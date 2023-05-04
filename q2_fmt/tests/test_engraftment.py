@@ -985,8 +985,7 @@ class TestPeds(TestBase):
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
-        with self.assertRaisesRegex(AssertionError, ".*['1', '1',"
-                                    " '2', '2']"):
+        with self.assertRaisesRegex(AssertionError, ".*['1' '2'].*"):
             _compute_peds(peds_df=peds_df, peds_type="Sample",
                           peds_time=np.nan,
                           reference_series=reference_series,

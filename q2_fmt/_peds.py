@@ -95,7 +95,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
     try:
         assert all(reference_overlap)
     except AssertionError as e:
-        missing_ref = reference_series[~reference_overlap].to_list()
+        missing_ref = reference_series[~reference_overlap].unique()
         raise AssertionError('Reference IDs: %s provided were not found in'
                              ' the feature table. Please confirm that all'
                              ' values in reference column are present in the'
