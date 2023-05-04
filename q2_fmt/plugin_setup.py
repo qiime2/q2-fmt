@@ -225,6 +225,45 @@ plugin.methods.register_function(
         'peds_methods': ex.peds_method
     }
 )
+plugin.methods.register_function(
+    function=q2_fmt.feature_peds,
+    inputs={'table': FeatureTable[Frequency | RelativeFrequency |
+                                  PresenceAbsence]},
+    parameters={'metadata': Metadata, 'time_column': Str,
+                'reference_column': Str, 'subject_column': T_subject,
+                'filter_missing_references': Bool},
+    outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
+    parameter_descriptions={
+        'metadata': 'The sample metadata.',
+        'time_column': 'The column within the `metadata` that the'
+                       ' `table` should be grouped by. This column'
+                       ' should contain simple integer values.',
+        'reference_column': 'The column within the `metadata` that contains'
+                            ' the sample to use as a reference'
+                            ' for a given `table`.'
+                            ' For example, this may be the relevant donor'
+                            ' sample to compare against.',
+        'subject_column': 'The column within the `metadata` that contains the'
+                          ' subject ID to be tracked against timepoints.',
+        'filter_missing_references': 'Filter out references contained within'
+                                     ' the metadata that are not present'
+                                     ' in the table.'
+                                     ' Default behavior is to raise an error.',
+    },
+    output_descriptions={
+        'peds_dists': 'The distributions for the PEDS measure,'
+                      ' grouped by the selected `time_column`.'
+                      ' also contains the Numerator and Denominator for'
+                      ' PEDS calulations. May also contain subject IDs,'
+                      ' if `subject_column` is provided in the `metadata`.'
+    },
+    name='',
+    description='',
+    examples={
+        'peds_methods': ex.feature_peds_method
+    }
+)
+
 plugin.visualizers.register_function(
     function=q2_fmt.plot_heatmap,
     inputs={'data': GroupDist[Ordered, Matched] % Properties('peds')},

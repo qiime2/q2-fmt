@@ -7,13 +7,19 @@
 # ----------------------------------------------------------------------------
 
 import pandas as pd
+import numpy as np
 from skbio.stats.distance import DistanceMatrix
 
 from qiime2.plugin.testing import TestPluginBase
 from qiime2 import Metadata
 
 from q2_fmt._engraftment import group_timepoints
-from q2_fmt._peds import _compute_peds, sample_peds
+from q2_fmt._peds import (_compute_peds, sample_peds,
+                          _filter_associated_reference,
+                          _check_reference_column, _check_for_time_column,
+                          _check_subject_column, _check_time_column_numeric,
+                          _check_reference_column_categorical,
+                          _check_subject_column_categorical, feature_peds)
 
 
 class TestBase(TestPluginBase):
@@ -508,10 +514,15 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = _compute_peds(reference_series=reference_series,
+        peds_df = pd.DataFrame(columns=['id', 'measure',
+                                        'transfered_donor_features',
+                                        'total_donor_features', 'donor',
+                                        'subject', 'group'])
+        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
+                                peds_time=np.nan,
+                                reference_series=reference_series,
                                 table=table_df, metadata=metadata_df,
-                                time_column="group",
-                                reference_column="Ref",
+                                time_column="group", reference_column="Ref",
                                 subject_column="subject")
         peds_df = peds_df.set_index("id")
         donor = peds_df.at["sample1", "donor"]
@@ -533,10 +544,16 @@ class TestPeds(TestBase):
                    'donor1', 'donor2'],
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature3': [1, 1, 1, 1, 1, 1]}).set_index('id')
-        peds_df = _compute_peds(reference_series=reference_series,
+        peds_df = pd.DataFrame(columns=['id', 'measure',
+                                        'transfered_donor_features',
+                                        'total_donor_features', 'donor',
+                                        'subject',
+                                        'group'])
+        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
+                                peds_time=np.nan,
+                                reference_series=reference_series,
                                 table=table_df, metadata=metadata_df,
-                                time_column="group",
-                                reference_column="Ref",
+                                time_column="group", reference_column="Ref",
                                 subject_column="subject")
         peds_df = peds_df.set_index("id")
         subject = peds_df.at["sample1", "subject"]
@@ -559,10 +576,15 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = _compute_peds(reference_series=reference_series,
+        peds_df = pd.DataFrame(columns=['id', 'measure',
+                                        'transfered_donor_features',
+                                        'total_donor_features', 'donor',
+                                        'subject', 'group'])
+        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
+                                peds_time=np.nan,
+                                reference_series=reference_series,
                                 table=table_df, metadata=metadata_df,
-                                time_column="group",
-                                reference_column="Ref",
+                                time_column="group", reference_column="Ref",
                                 subject_column="subject")
         peds_df = peds_df.set_index("id")
         tp = peds_df.at["sample3", "group"]
@@ -578,22 +600,18 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 1, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        metadata = Metadata(metadata_df)
-        table_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3', 'sample4',
-                   'donor1', 'donor2'],
-            'Feature1': [1, 0, 1, 1, 1, 1],
-            'Feature2': [1, 1, 1, 1, 1, 1]}).set_index('id')
+        reference_series = metadata_df['Ref']
         with self.assertRaisesRegex(KeyError, 'Missing references for'
                                     ' the associated sample data. Please make'
                                     ' sure that all samples with a timepoint'
                                     ' value have an associated reference.'
                                     ' IDs where missing references were found'
                                     ':.*'):
-            sample_peds(table=table_df, metadata=metadata,
-                        time_column="group",
-                        reference_column="Ref",
-                        subject_column="subject")
+            _filter_associated_reference(reference_series=reference_series,
+                                         metadata=metadata_df,
+                                         time_column="group",
+                                         filter_missing_references=False,
+                                         reference_column="Ref")
 
     def test_incomplete_timepoints(self):
         metadata_df = pd.DataFrame({
@@ -666,18 +684,10 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 3, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        metadata = Metadata(metadata_df)
-        table_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3', 'sample4',
-                   'donor1', 'donor2'],
-            'Feature1': [1, 0, 1, 1, 1, 1],
-            'Feature2': [1, 1, 1, 1, 1, 1],
-            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, ".*finding R in the metadata"):
-            sample_peds(table=table_df, metadata=metadata,
-                        time_column="group", reference_column="R",
-                        subject_column="subject",
-                        drop_incomplete_subjects=True)
+        with self.assertRaisesRegex(KeyError, ".*the provided"
+                                    " `--p-reference-column`: `R` in the"
+                                    " metadata"):
+            _check_reference_column(metadata_df, "R")
 
     def test_incorrect_group_column_name(self):
         metadata_df = pd.DataFrame({
@@ -689,20 +699,10 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 3, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        metadata = Metadata(metadata_df)
-        table_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3', 'sample4',
-                   'donor1', 'donor2'],
-            'Feature1': [1, 0, 1, 1, 1, 1],
-            'Feature2': [1, 1, 1, 1, 1, 1],
-            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
         with self.assertRaisesRegex(KeyError,
-                                    ".*finding time in the metadata"):
-            sample_peds(table=table_df, metadata=metadata,
-                        time_column="time",
-                        reference_column="Ref",
-                        subject_column="subject",
-                        drop_incomplete_subjects=True)
+                                    ".*the provided `--p-time-column`: `time`"
+                                    " in the metadata"):
+            _check_for_time_column(metadata_df, 'time')
 
     def test_incorrect_subject_column_name(self):
         metadata_df = pd.DataFrame({
@@ -714,19 +714,10 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 3, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        metadata = Metadata(metadata_df)
-        table_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3', 'sample4',
-                   'donor1', 'donor2'],
-            'Feature1': [1, 0, 1, 1, 1, 1],
-            'Feature2': [1, 1, 1, 1, 1, 1],
-            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, ".*finding sub in the metadata"):
-            sample_peds(table=table_df, metadata=metadata,
-                        time_column="group",
-                        reference_column="Ref",
-                        subject_column="sub",
-                        drop_incomplete_subjects=True)
+        with self.assertRaisesRegex(KeyError, ".*the provided"
+                                    " `--p-subject-column`: `sub` in the"
+                                    " metadata"):
+            _check_subject_column(metadata_df, 'sub')
 
     def test_no_feature_overlap(self):
         metadata_df = pd.DataFrame({
@@ -825,7 +816,8 @@ class TestPeds(TestBase):
         self.assertEqual(TDFs1, 0)
         self.assertEqual(TDFs3, 1)
 
-    def test_no_feature_in_donor(self):
+# this test doesn't make sense anymore because of the refactor
+    """ def test_no_feature_in_donor(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -848,7 +840,7 @@ class TestPeds(TestBase):
                         reference_column="Ref",
                         subject_column="subject",
                         drop_incomplete_subjects=True)
-
+ """
     def test_unique_subjects_in_timepoints(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -873,3 +865,175 @@ class TestPeds(TestBase):
                         reference_column="Ref",
                         subject_column="subject",
                         drop_incomplete_subjects=True)
+
+    def test_feature_peds_calc(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1'],
+            'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+            'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1'],
+            'Feature1': [0, 0, 1, 1],
+            'Feature2': [0, 1, 1, 1],
+            'Feature3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        TDFs1 = feature_peds_df.set_index("id").at['Feature1',
+                                                   'measure']
+        TDFs2 = feature_peds_df.set_index("id").at['Feature2',
+                                                   'measure']
+        self.assertEqual(TDFs1, 1/3)
+        self.assertEqual(TDFs2, 2/3)
+
+    def test_sample_id_match(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 2, 1, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['s1', 's2', 's3', 's4',
+                   'd1', 'd2'],
+            'Feature1': [1, 0, 1, 1, 1, 1],
+            'Feature2': [1, 1, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
+        with self.assertRaisesRegex(ValueError, "The following IDs are not"
+                                    " present in the metadata: 'd1', 'd2',"
+                                    " 's1', 's2', 's3', 's4'"):
+            feature_peds(table=table_df, metadata=metadata,
+                         time_column="group",
+                         reference_column="Ref",
+                         subject_column="subject")
+
+    def test_group_column_categorical(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': ["t1", "t2", "t3", "t2", float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata_obj = Metadata(metadata_df)
+        column_properties = metadata_obj.columns
+        with self.assertRaisesRegex(AssertionError, ".*Column with non-numeric"
+                                    " values that was selected: group"):
+            _check_time_column_numeric(column_properties, 'group')
+
+    def test_subject_column_numeric(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': [1, 1, 1, 2, float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata_obj = Metadata(metadata_df)
+        column_properties = metadata_obj.columns
+        with self.assertRaisesRegex(AssertionError, ".*Column with numeric"
+                                    " values that was selected: `subject`"):
+            _check_subject_column_categorical(column_properties, 'subject')
+
+    def test_reference_column_numeric(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   "1", "2"],
+            'Ref': [1, 1, 1, 2, float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata_obj = Metadata(metadata_df)
+        column_properties = metadata_obj.columns
+        with self.assertRaisesRegex(AssertionError, ".*Column with numeric"
+                                    " values that was selected: `Ref`"):
+            _check_reference_column_categorical(column_properties, 'Ref')
+
+    def test_reference_series_not_in_table(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['1', '1', '2', '2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 1, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        reference_series = metadata_df['Ref'].dropna()
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Feature1': [1, 0, 1, 1, 1, 1],
+            'Feature2': [1, 1, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
+        peds_df = pd.DataFrame(columns=['id', 'measure',
+                                        'transfered_donor_features',
+                                        'total_donor_features', 'donor',
+                                        'subject', 'group'])
+        with self.assertRaisesRegex(AssertionError, ".*['1' '2'].*"):
+            _compute_peds(peds_df=peds_df, peds_type="Sample",
+                          peds_time=np.nan,
+                          reference_series=reference_series,
+                          table=table_df, metadata=metadata_df,
+                          time_column="group", reference_column="Ref",
+                          subject_column="subject")
+
+    def test_subject_column_name_is_ID(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        with self.assertRaisesRegex(KeyError, ".*`--p-subject-column` can not"
+                                    " be the same as the index of"
+                                    " metadata: `id`"):
+            _check_subject_column(metadata_df, 'id')
+
+    def test_group_column_name_is_ID(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        with self.assertRaisesRegex(KeyError, ".*`--p-time-column` can not"
+                                    " be the same as the index of"
+                                    " metadata: `id`"):
+            _check_for_time_column(metadata_df, 'id')
+
+    def test_reference_column_name_is_ID(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        with self.assertRaisesRegex(KeyError, ".*`--p-reference-column` can"
+                                    " not be the same as the index of"
+                                    " metadata: `id`"):
+            _check_reference_column(metadata_df, "id")
