@@ -310,7 +310,6 @@ def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
 
 def _check_subject_column_categorical(column_properties, subject_column):
     try:
-        print(column_properties[subject_column].type)
         assert column_properties[subject_column].type == 'categorical'
     except AssertionError as e:
         raise AssertionError('Numeric values found in `--p-subject-column`.'
