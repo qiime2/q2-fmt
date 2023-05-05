@@ -17,9 +17,8 @@ from q2_fmt._engraftment import group_timepoints
 from q2_fmt._peds import (_compute_peds, sample_peds,
                           _filter_associated_reference,
                           _check_reference_column, _check_for_time_column,
-                          _check_subject_column, _check_time_column_numeric,
-                          _check_reference_column_categorical,
-                          _check_subject_column_categorical, feature_peds)
+                          _check_subject_column, _check_column_type,
+                          feature_peds)
 
 
 class TestBase(TestPluginBase):
@@ -916,7 +915,7 @@ class TestPeds(TestBase):
                          reference_column="Ref",
                          subject_column="subject")
 
-    def test_group_column_categorical(self):
+    def test_column_type_nonnumeric(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -929,10 +928,10 @@ class TestPeds(TestBase):
         metadata_obj = Metadata(metadata_df)
         column_properties = metadata_obj.columns
         with self.assertRaisesRegex(AssertionError, ".*Column with non-numeric"
-                                    " values that was selected: group"):
-            _check_time_column_numeric(column_properties, 'group')
+                                    " values that was selected: `group`"):
+            _check_column_type(column_properties, 'time', 'group', 'numeric')
 
-    def test_subject_column_numeric(self):
+    def test_column_type_noncategorical(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -944,25 +943,11 @@ class TestPeds(TestBase):
                       float("Nan")]}).set_index('id')
         metadata_obj = Metadata(metadata_df)
         column_properties = metadata_obj.columns
-        with self.assertRaisesRegex(AssertionError, ".*Column with numeric"
-                                    " values that was selected: `subject`"):
-            _check_subject_column_categorical(column_properties, 'subject')
-
-    def test_reference_column_numeric(self):
-        metadata_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3', 'sample4',
-                   "1", "2"],
-            'Ref': [1, 1, 1, 2, float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
-        metadata_obj = Metadata(metadata_df)
-        column_properties = metadata_obj.columns
-        with self.assertRaisesRegex(AssertionError, ".*Column with numeric"
-                                    " values that was selected: `Ref`"):
-            _check_reference_column_categorical(column_properties, 'Ref')
+        with self.assertRaisesRegex(AssertionError, ".*Column with"
+                                    " non-categorical values that was"
+                                    " selected: `subject`"):
+            _check_column_type(column_properties, 'subject', 'subject',
+                               'categorical')
 
     def test_reference_series_not_in_table(self):
         metadata_df = pd.DataFrame({
