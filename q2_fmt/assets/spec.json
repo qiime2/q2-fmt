@@ -12,7 +12,7 @@
     {
       "name": "rowtable",
       "source": "table",
-      "transform": [{"type": "aggregate", "groupby": ["subject"]}]
+      "transform": [{"type": "aggregate", "groupby": ["y_label"]}]
     },
     {
       "name": "columntable",
@@ -47,9 +47,9 @@
   ],
   "scales": [
     {
-      "name": "subject",
+      "name": "y_label",
       "type": "band",
-      "domain": {"data": "table", "field": "subject"},
+      "domain": {"data": "table", "field": "y_label"},
       "range": "height",
       "paddingInner": 0.05
     },
@@ -69,7 +69,7 @@
     }
   ],
   "axes": [
-    {"scale": "subject", "orient": "left", "title":{"signal": "y_label"}},
+    {"scale": "y_label", "orient": "left", "title":{"signal": "y_label"}},
     {"scale": "time", "orient": "bottom", "title":{"signal": "x_label"}}
   ],
   "marks": [
@@ -78,9 +78,9 @@
       "from": {"data": "table"},
       "encode": {
         "update": {
-          "y": {"field": "subject", "scale": "subject"},
+          "y": {"field": "y_label", "scale": "y_label"},
           "x": {"field": "group", "scale": "time"},
-          "height": {"band": 1, "scale": "subject"},
+          "height": {"band": 1, "scale": "y_label"},
           "width": {"band": 1, "scale": "time"},
           "fill": {"scale": "color", "field": "measure"},
           "tooltip": {
