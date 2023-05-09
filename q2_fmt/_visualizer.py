@@ -31,7 +31,7 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
                       if not field.endswith('__')]
             subject_seen.append(sub)
             most_specific = fields[-1]
-            if most_specific in seen and e not in subject_seen:
+            if most_specific in seen and sub not in subject_seen:
                 y_labels.append(f"{seen[most_specific]}: {most_specific} *")
             else:
                 y_labels.append(most_specific)
