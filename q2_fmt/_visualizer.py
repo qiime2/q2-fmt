@@ -29,7 +29,7 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
         for i, sub in enumerate(data['subject']):
             fields = [field for field in sub.split(';')
                       if not field.endswith('__')]
-            subject_seen.append(e)
+            subject_seen.append(sub)
             most_specific = fields[-1]
             if most_specific in seen and e not in subject_seen:
                 y_labels.append(f"{seen[most_specific]}: {most_specific} *")
