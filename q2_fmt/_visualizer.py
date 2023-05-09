@@ -11,15 +11,46 @@ import pkg_resources
 import jinja2
 import json
 import pandas as pd
+from collections import Counter
 
 
 def plot_heatmap(output_dir: str, data: pd.DataFrame):
     J_ENV = jinja2.Environment(
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
+
     x_label = data['group'].attrs['title']
-    y_label = data['subject'].attrs['title']
     measure = data['measure'].attrs['title']
+    subject_title_temp = data['subject'].attrs['title']
+    if "recipients with feature" in data.columns:
+        y_labels = []
+        seen = Counter()
+        subject_seen = []
+        for i, sub in enumerate(data['subject']):
+            fields = [field for field in sub.split(';')
+                      if not field.endswith('__')]
+            subject_seen.append(sub)
+            most_specific = fields[-1]
+            if most_specific in seen and sub not in subject_seen:
+                y_labels.append(f"{seen[most_specific]}: {most_specific} *")
+            else:
+                y_labels.append(most_specific)
+            seen[most_specific] += 1
+        data['y_label'] = y_labels
+
+        data['id'] = [i.replace(';', ' ') for i in data['id']]
+        data['subject'] = [i.replace(';', ' ') for i in data['subject']]
+
+        data['y_label'].attrs.update({
+                'title': "Feature ID",
+                'description': ''})
+    else:
+        data['y_label'] = data["subject"]
+        data['y_label'].attrs.update({
+                'title': subject_title_temp,
+                'description': ''})
+
+    y_label = data['y_label'].attrs['title']
     title = f'{measure} of {y_label} across {x_label}'
 
     index = J_ENV.get_template('index.html')
