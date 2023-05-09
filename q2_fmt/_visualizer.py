@@ -26,7 +26,7 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
         y_labels = []
         seen = Counter()
         subject_seen = []
-        for i, e in enumerate(data['subject']):
+        for i, sub in enumerate(data['subject']):
             fields = [field for field in sub.split(';')
                       if not field.endswith('__')]
             subject_seen.append(e)
