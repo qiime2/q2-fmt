@@ -38,7 +38,7 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
             seen[most_specific] += 1
         data['y_label'] = y_labels
 
-        data['id'] = [id_.replace(';', ' ') for id_ in data['id']]
+        data['id'] = [i.replace(';', ' ') for i in data['id']]
         data['subject'] = [id_.replace(';', ' ') for id_ in data['subject']]
 
         data['y_label'].attrs.update({
