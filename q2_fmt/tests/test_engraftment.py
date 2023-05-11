@@ -18,7 +18,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _filter_associated_reference,
                           _check_reference_column, _check_for_time_column,
                           _check_subject_column, _check_column_type,
-                          feature_peds)
+                          _drop_incomplete_timepoints, feature_peds)
 
 
 class TestBase(TestPluginBase):
@@ -630,10 +630,13 @@ class TestPeds(TestBase):
             'Feature2': [1, 1, 1, 1, 1, 1]}).set_index('id')
         with self.assertRaisesRegex(ValueError, 'Missing timepoints for'
                                     ' associated subjects. Please make sure'
-                                    ' that all subjects have all timepoints'
-                                    ' or use drop_incomplete_subjects'
-                                    ' parameter. .*'
-                                    ' [\'sub2\']'):
+                                    ' that all subjects have all timepoints.'
+                                    ' You can drop these subjects by using the'
+                                    ' drop_incomplete_subjects parameter or'
+                                    ' drop any timepoints that have large'
+                                    ' numbers of subjects missing by using the'
+                                    ' drop_incomplete_timepoints parameter. .*'
+                                    '[\'sub2\']'):
             sample_peds(table=table_df, metadata=metadata,
                         time_column="group",
                         reference_column="Ref",
@@ -1022,3 +1025,30 @@ class TestPeds(TestBase):
                                     " not be the same as the index of"
                                     " metadata: `id`"):
             _check_reference_column(metadata_df, "id")
+
+    def test_drop_incomplete_timepoints(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata_df = _drop_incomplete_timepoints(metadata_df, "group", [3])
+        self.assertEqual(metadata_df["group"].unique()[0], float(1))
+        self.assertEqual(metadata_df["group"].unique()[1], float(2))
+
+    def test_drop_incomplete_timepoints_list(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
+                        float("Nan")],
+            'group': [1, 2, 3, 2, float("Nan"),
+                      float("Nan")]}).set_index('id')
+        metadata_df = _drop_incomplete_timepoints(metadata_df, "group", [3, 2])
+        self.assertEqual(metadata_df["group"].dropna().unique(), [float(1)])
