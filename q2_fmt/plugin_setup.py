@@ -9,7 +9,8 @@
 import importlib
 
 from qiime2.plugin import (Str, Plugin, Metadata, TypeMap,
-                           Bool, Choices, Visualization, Properties, Citations)
+                           Bool, Choices, Visualization, Properties, Citations,
+                           Int, Range)
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
@@ -262,6 +263,44 @@ plugin.methods.register_function(
     examples={
         'peds_methods': ex.feature_peds_method
     }
+)
+
+plugin.methods.register_function(
+    function=q2_fmt.peds_bootstrap,
+    inputs={'table': FeatureTable[Frequency | RelativeFrequency |
+                                  PresenceAbsence]},
+    parameters={'metadata': Metadata, 'time_column': Str,
+                'reference_column': Str, 'subject_column': T_subject,
+                'filter_missing_references': Bool,
+                'drop_incomplete_subjects': Bool,
+                'bootstrap_replicates': Int % Range(999, None)},
+    outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
+    parameter_descriptions={
+        'metadata': 'The sample metadata.',
+        'time_column': 'The column within the `metadata` that the'
+                       ' `table` should be grouped by. This column'
+                       ' should contain simple integer values.',
+        'reference_column': 'The column within the `metadata` that contains'
+                            ' the sample to use as a reference'
+                            ' for a given `table`.'
+                            ' For example, this may be the relevant donor'
+                            ' sample to compare against.',
+        'subject_column': 'The column within the `metadata` that contains the'
+                          ' subject ID to be tracked against timepoints.',
+        'filter_missing_references': 'Filter out references contained within'
+                                     ' the metadata that are not present'
+                                     ' in the table.'
+                                     ' Default behavior is to raise an error.',
+        'drop_incomplete_subjects': 'Filter out subjects that do not have'
+                                    ' a sample at every timepoint.'
+                                    ' Default behavior is to raise an error.',
+    },
+    output_descriptions={
+        # TODO: I dont know what it is going to output yet?
+    },
+    name='',
+    description='',
+    citations=[citations['aggarwala_precise_2021']]
 )
 
 plugin.visualizers.register_function(
