@@ -189,7 +189,8 @@ plugin.methods.register_function(
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
                 'filter_missing_references': Bool,
-                'drop_incomplete_subjects': Bool},
+                'drop_incomplete_subjects': Bool,
+                'drop_incomplete_timepoint': Str},
     outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
@@ -210,6 +211,11 @@ plugin.methods.register_function(
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
+        'drop_incomplete_timepoint': 'Filter out a provided timepoint. This'
+                                     ' will be preformed before'
+                                     ' drop_incomplete_subjects if the'
+                                     ' drop_incomplete_subjects parameter is'
+                                     ' passed.'
     },
     output_descriptions={
         'peds_dists': 'The distributions for the PEDS measure,'
