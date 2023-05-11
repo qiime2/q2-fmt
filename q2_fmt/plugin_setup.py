@@ -9,7 +9,8 @@
 import importlib
 
 from qiime2.plugin import (Str, Plugin, Metadata, TypeMap,
-                           Bool, Choices, Visualization, Properties, Citations)
+                           Bool, Choices, Visualization, Properties, Citations,
+                           List)
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
@@ -190,7 +191,7 @@ plugin.methods.register_function(
                 'reference_column': Str, 'subject_column': T_subject,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoint': Str},
+                'drop_incomplete_timepoint': List[Str]},
     outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
@@ -211,8 +212,8 @@ plugin.methods.register_function(
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
-        'drop_incomplete_timepoint': 'Filter out a provided timepoint. This'
-                                     ' will be preformed before'
+        'drop_incomplete_timepoint': 'Filter out a list of provided timepoint.'
+                                     ' This will be preformed before'
                                      ' drop_incomplete_subjects if the'
                                      ' drop_incomplete_subjects parameter is'
                                      ' passed.'
