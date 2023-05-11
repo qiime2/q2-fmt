@@ -1052,4 +1052,3 @@ class TestPeds(TestBase):
                       float("Nan")]}).set_index('id')
         metadata_df = _drop_incomplete_timepoints(metadata_df, "group", [3, 2])
         self.assertEqual(metadata_df["group"].dropna().unique(), [float(1)])
-
