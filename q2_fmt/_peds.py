@@ -280,7 +280,7 @@ def _drop_incomplete_timepoints(metadata, time_column,
             assert (float(time)
                     in metadata[time_column].unique())
         except AssertionError as e:
-            raise AssertionError('The provide incomplete timepoint `%s` was'
+            raise AssertionError('The provided incomplete timepoint `%s` was'
                                  ' not found in the metadata. Please check'
                                  ' that the incomplete timepoint provided is'
                                  ' in your provided --p-time-column: `%s`'
