@@ -15,7 +15,8 @@ import warnings
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                 time_column: str, reference_column: str, subject_column: str,
                 filter_missing_references: bool = False,
-                drop_incomplete_subjects: bool = False) -> (pd.DataFrame):
+                drop_incomplete_subjects: bool = False,
+                drop_incomplete_timepoint: list = None) -> (pd.DataFrame):
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
@@ -37,6 +38,10 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                        subject_column, "categorical")
     _check_duplicate_subject_timepoint(subject_series, metadata,
                                        subject_column, time_column)
+    if drop_incomplete_timepoint is not None:
+        metadata = _drop_incomplete_timepoints(metadata, time_column,
+                                               drop_incomplete_timepoint)
+        table.filter(items=metadata.index)
     # return things that should be removed
     metadata, used_references = \
         _check_subjects_in_all_timepoints(subject_series, num_timepoints,
@@ -243,6 +248,23 @@ def _check_duplicate_subject_timepoint(subject_series, metadata,
                              ' timepoints: %s' % (subject, timepoint_list))
 
 
+def _drop_incomplete_timepoints(metadata, time_column,
+                                drop_incomplete_timepoint):
+    for time in drop_incomplete_timepoint:
+        try:
+            assert (float(time)
+                    in metadata[time_column].unique())
+        except AssertionError as e:
+            raise AssertionError('The provided incomplete timepoint `%s` was'
+                                 ' not found in the metadata. Please check'
+                                 ' that the incomplete timepoint provided is'
+                                 ' in your provided --p-time-column: `%s`'
+                                 % (time, time_column)) from e
+        metadata = metadata[metadata[time_column] !=
+                            float(time)]
+    return metadata
+
+
 def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
                                       drop_incomplete_subjects, metadata,
                                       subject_column, used_references):
@@ -262,8 +284,12 @@ def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
                                     != num_timepoints].index).to_list()
             raise ValueError('Missing timepoints for associated subjects.'
                              ' Please make sure that all subjects have all'
-                             ' timepoints or use drop_incomplete_subjects'
-                             ' parameter. The incomplete subjects were %s'
+                             ' timepoints. You can drop these subjects by'
+                             ' using the drop_incomplete_subjects parameter or'
+                             ' drop any timepoints that have large numbers'
+                             ' of subjects missing by using the'
+                             ' drop_incomplete_timepoints parameter. The'
+                             ' incomplete subjects were %s'
                              % incomplete_subjects)
     return metadata, used_references
 
