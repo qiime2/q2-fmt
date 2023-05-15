@@ -997,7 +997,6 @@ class TestPeds(TestBase):
                                     " metadata: `id`"):
             _check_column_missing(metadata_df, 'id', 'subject', KeyError)
 
-
     def test_drop_incomplete_timepoints(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
