@@ -18,7 +18,8 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _filter_associated_reference,
                           _check_reference_column, _check_for_time_column,
                           _check_subject_column, _check_column_type,
-                          _drop_incomplete_timepoints, feature_peds)
+                          _drop_incomplete_timepoints, feature_peds,
+                          _check_column_missing)
 
 
 class TestBase(TestPluginBase):
@@ -981,7 +982,7 @@ class TestPeds(TestBase):
                           time_column="group", reference_column="Ref",
                           subject_column="subject")
 
-    def test_subject_column_name_is_ID(self):
+    def test_column_name_is_ID(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -994,37 +995,7 @@ class TestPeds(TestBase):
         with self.assertRaisesRegex(KeyError, ".*`--p-subject-column` can not"
                                     " be the same as the index of"
                                     " metadata: `id`"):
-            _check_subject_column(metadata_df, 'id')
-
-    def test_group_column_name_is_ID(self):
-        metadata_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3', 'sample4',
-                   'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, ".*`--p-time-column` can not"
-                                    " be the same as the index of"
-                                    " metadata: `id`"):
-            _check_for_time_column(metadata_df, 'id')
-
-    def test_reference_column_name_is_ID(self):
-        metadata_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3', 'sample4',
-                   'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, ".*`--p-reference-column` can"
-                                    " not be the same as the index of"
-                                    " metadata: `id`"):
-            _check_reference_column(metadata_df, "id")
+            _check_column_missing(metadata_df, 'id', 'subject', KeyError)
 
     def test_drop_incomplete_timepoints(self):
         metadata_df = pd.DataFrame({

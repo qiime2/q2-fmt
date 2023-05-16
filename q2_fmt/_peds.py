@@ -197,15 +197,7 @@ def _check_for_time_column(metadata, time_column):
     try:
         num_timepoints = metadata[time_column].dropna().unique().size
     except Exception as e:
-        if time_column == metadata.index.name:
-            raise KeyError('The `--p-time-column` input provided was the same'
-                           ' as the index of the metadata. `--p-time-column`'
-                           ' can not be the same as the index of metadata:'
-                           ' `%s`' % time_column) from e
-        else:
-            raise KeyError('There was an error finding the provided'
-                           ' `--p-time-column`: `%s` in the metadata'
-                           % time_column) from e
+        _check_column_missing(metadata, time_column, "time", e)
     return num_timepoints
 
 
@@ -213,16 +205,7 @@ def _check_reference_column(metadata, reference_column):
     try:
         reference_series = metadata[reference_column]
     except Exception as e:
-        if reference_column == metadata.index.name:
-            raise KeyError('The `--p-reference-column` input provided was the'
-                           ' same as the index of the metadata.'
-                           ' `--p-reference-column` can not be the same as the'
-                           ' index of metadata:'
-                           ' `%s`' % reference_column) from e
-        else:
-            raise KeyError('There was an error finding the provided'
-                           ' `--p-reference-column`: `%s` in the metadata'
-                           % reference_column) from e
+        _check_column_missing(metadata, reference_column, "reference", e)
     return reference_series
 
 
@@ -249,15 +232,7 @@ def _check_subject_column(metadata, subject_column):
     try:
         subject_series = metadata[subject_column]
     except Exception as e:
-        if subject_column == metadata.index.name:
-            raise KeyError('The `--p-subject-column` input provided was the'
-                           ' same as the index of the metadata.'
-                           ' `--p-subject-column` can not be the same as the'
-                           ' index of metadata: `%s`' % subject_column) from e
-        else:
-            raise KeyError('There was an error finding the provided'
-                           ' `--p-subject-column`: `%s` in the metadata'
-                           % subject_column) from e
+        _check_column_missing(metadata, subject_column, "subject", e)
     return subject_series
 
 
@@ -329,6 +304,19 @@ def _check_column_type(column_properties, parameter_type, column, column_type):
                              ' non-%s values that was'
                              ' selected: `%s`' % (column_type, parameter_type,
                                                   column_type, column)) from e
+
+
+def _check_column_missing(metadata, column, column_param, e):
+    if column == metadata.index.name:
+        raise KeyError('The `--p-%s-column` input provided was the'
+                       ' same as the index of the metadata.'
+                       ' `--p-%s-column` can not be the same as the'
+                       ' index of metadata:'
+                       ' `%s`' % (column_param, column_param, column)) from e
+    else:
+        raise KeyError('There was an error finding the provided'
+                       ' `--p-%s-column`: `%s` in the metadata'
+                       % (column_param, column)) from e
 
 
 # PEDS calculation methods
