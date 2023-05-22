@@ -14,7 +14,8 @@ import pandas as pd
 from collections import Counter
 
 
-def plot_heatmap(output_dir: str, data: pd.DataFrame):
+def plot_heatmap(output_dir: str, data: pd.DataFrame,
+                 level_delimiter: str = None):
     J_ENV = jinja2.Environment(
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
@@ -22,13 +23,20 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
     x_label = data['group'].attrs['title']
     measure = data['measure'].attrs['title']
     subject_title_temp = data['subject'].attrs['title']
-    if "recipients with feature" in data.columns:
+    if ("recipients with feature" in data.columns and
+            level_delimiter is not None):
         y_labels = []
         seen = Counter()
         subject_seen = []
         for i, sub in enumerate(data['subject']):
-            fields = [field for field in sub.split(';')
-                      if not field.endswith('__')]
+            if level_delimiter in sub:
+                fields = [field for field in sub.split(level_delimiter)
+                          if not field.endswith('__')]
+            else:
+                # This is necessary to hanfle a case where the delimiter
+                # isn't found but the sub ends with __. In that case, sub would
+                # be complete thrown out.
+                fields = [sub]
             subject_seen.append(sub)
             most_specific = fields[-1]
             if most_specific in seen and sub not in subject_seen:
@@ -38,8 +46,9 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame):
             seen[most_specific] += 1
         data['y_label'] = y_labels
 
-        data['id'] = [i.replace(';', ' ') for i in data['id']]
-        data['subject'] = [i.replace(';', ' ') for i in data['subject']]
+        data['id'] = [i.replace(level_delimiter, ' ') for i in data['id']]
+        data['subject'] = [i.replace(level_delimiter, ' ')
+                           for i in data['subject']]
 
         data['y_label'].attrs.update({
                 'title': "Feature ID",

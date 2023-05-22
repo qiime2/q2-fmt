@@ -274,7 +274,7 @@ plugin.methods.register_function(
 plugin.visualizers.register_function(
     function=q2_fmt.plot_heatmap,
     inputs={'data': GroupDist[Ordered, Matched] % Properties('peds')},
-    parameters={},
+    parameters={'level_delimiter': Str},
     name='Plot Heatmap',
     description='',
     examples={
