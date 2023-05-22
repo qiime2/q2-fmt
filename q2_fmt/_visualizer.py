@@ -35,7 +35,7 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame,
             else:
                 # This is necessary to handle a case where the delimiter
                 # isn't found but the sub ends with __. In that case, sub would
-                # be complete thrown out.
+                # be completely thrown out.
                 fields = [sub]
             subject_seen.append(sub)
             most_specific = fields[-1]
