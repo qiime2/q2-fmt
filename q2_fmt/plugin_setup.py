@@ -274,7 +274,13 @@ plugin.methods.register_function(
 plugin.visualizers.register_function(
     function=q2_fmt.plot_heatmap,
     inputs={'data': GroupDist[Ordered, Matched] % Properties('peds')},
-    parameters={},
+    parameters={'level_delimiter': Str},
+    parameter_descriptions={'level_delimiter': 'If feature ids encode'
+                                               ' hierarchical information,'
+                                               ' split the levels when'
+                                               ' generating feature labels'
+                                               ' in the visualization using'
+                                               ' this delimiter.'},
     name='Plot Heatmap',
     description='',
     examples={
