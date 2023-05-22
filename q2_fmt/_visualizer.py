@@ -33,7 +33,7 @@ def plot_heatmap(output_dir: str, data: pd.DataFrame,
                 fields = [field for field in sub.split(level_delimiter)
                           if not field.endswith('__')]
             else:
-                # This is necessary to hanfle a case where the delimiter
+                # This is necessary to handle a case where the delimiter
                 # isn't found but the sub ends with __. In that case, sub would
                 # be complete thrown out.
                 fields = [sub]
