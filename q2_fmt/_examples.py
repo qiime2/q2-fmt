@@ -189,18 +189,19 @@ def feature_peds_method(use):
                                         " Properties('peds')")
 
 
-def peds_heatmap(use):
-    peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
+# TODO: re-enable this after external heatmap implementation
+# def peds_heatmap(use):
+#     peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
 
-    peds_heatmap, = use.action(
-        use.UsageAction('fmt', 'plot_heatmap'),
-        use.UsageInputs(
-            data=peds_dist,
-        ),
-        use.UsageOutputNames(
-            visualization='heatmap',
+#     peds_heatmap, = use.action(
+#         use.UsageAction('fmt', 'plot_heatmap'),
+#         use.UsageInputs(
+#             data=peds_dist,
+#         ),
+#         use.UsageOutputNames(
+#             visualization='heatmap',
 
-        )
-    )
+#         )
+#     )
 
-    peds_heatmap.assert_output_type('Visualization')
+#     peds_heatmap.assert_output_type('Visualization')

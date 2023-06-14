@@ -12,6 +12,45 @@ import numpy as np
 import warnings
 
 
+def peds_heatmap(ctx, table, metadata, peds_metric, time_column,
+                 reference_column, subject_column,
+                 filter_missing_references=False,
+                 drop_incomplete_subjects=False,
+                 drop_incomplete_timepoint=None):
+
+    heatmap_plot = ctx.get_action('vizard', 'plot_heatmap')
+
+    results = []
+
+    if peds_metric == 'sample':
+        sample_peds = ctx.get_action('fmt', 'sample_peds')
+        peds_dist = sample_peds(
+            table=table, metadata=metadata, time_column=time_column,
+            subject_column=subject_column, reference_column=reference_column,
+            drop_incomplete_subjects=drop_incomplete_subjects,
+            drop_incomplete_timepoint=drop_incomplete_timepoint,
+            filter_missing_references=filter_missing_references)
+
+    else:
+        if drop_incomplete_subjects or drop_incomplete_timepoint:
+            warnings.warn('Feature PEDS was selected as the PEDS metric, which'
+                          ' does not accept `drop_incomplete_subjects` or'
+                          ' `drop_incomplete_timepoint` as parameters. One'
+                          ' (or both) of these parameters were detected in'
+                          ' your input, and will be ignored.')
+
+        feature_peds = ctx.get_action('fmt', 'feature_peds')
+        peds_dist = feature_peds(
+            table=table, metadata=metadata, time_column=time_column,
+            subject_column=subject_column, reference_column=reference_column,
+            filter_missing_references=filter_missing_references)
+
+    results += heatmap_plot(data=peds_dist[0], x_label='group',
+                            y_label='subject', gradient='measure')
+
+    return tuple(results)
+
+
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                 time_column: str, reference_column: str, subject_column: str,
                 filter_missing_references: bool = False,
@@ -343,3 +382,41 @@ def _create_masking(time_metadata, donor_df, recip_df, reference_column):
 def _mask_recipient(donor_mask, recip_df):
     maskedrecip = donor_mask & recip_df
     return maskedrecip
+
+# TODO: Heatmap prep method: refactor after external heatmap wiring is complete
+# prep method
+    # if ("recipients with feature" in data.columns and
+    #         level_delimiter is not None):
+    #     y_labels = []
+    #     seen = Counter()
+    #     subject_seen = []
+    #     for i, sub in enumerate(data['subject']):
+    #         if level_delimiter in sub:
+    #             fields = [field for field in sub.split(level_delimiter)
+    #                       if not field.endswith('__')]
+    #         else:
+    # This is necessary to handle a case where the delimiter
+    # isn't found but the sub ends with __. In that case, sub would
+    # be completely thrown out.
+    #             fields = [sub]
+    #         subject_seen.append(sub)
+    #         most_specific = fields[-1]
+    #         if most_specific in seen and sub not in subject_seen:
+    #             y_labels.append(f"{seen[most_specific]}: {most_specific} *")
+    #         else:
+    #             y_labels.append(most_specific)
+    #         seen[most_specific] += 1
+    #     data['y_label'] = y_labels
+
+    #     data['id'] = [i.replace(level_delimiter, ' ') for i in data['id']]
+    #     data['subject'] = [i.replace(level_delimiter, ' ')
+    #                        for i in data['subject']]
+
+    #     data['y_label'].attrs.update({
+    #             'title': "Feature ID",
+    #             'description': ''})
+    # else:
+    #     data['y_label'] = data["subject"]
+    #     data['y_label'].attrs.update({
+    #             'title': subject_title_temp,
+    #             'description': ''})
