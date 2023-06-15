@@ -12,11 +12,9 @@ import numpy as np
 import warnings
 
 
-def peds_heatmap(ctx, table, metadata, peds_metric, time_column,
-                 reference_column, subject_column,
-                 filter_missing_references=False,
-                 drop_incomplete_subjects=False,
-                 drop_incomplete_timepoint=None):
+def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
+         subject_column, filter_missing_references=False,
+         drop_incomplete_subjects=False, drop_incomplete_timepoint=None):
 
     heatmap_plot = ctx.get_action('vizard', 'plot_heatmap')
 

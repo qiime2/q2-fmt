@@ -189,8 +189,32 @@ def feature_peds_method(use):
                                         " Properties('peds')")
 
 
+# PEDS pipeline
+def peds_pipeline_sample(use):
+    md = use.init_metadata('md', peds_md_factory)
+    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+
+    peds_heatmap, = use.action(
+        use.UsageAction('fmt', 'peds'),
+        use.UsageInputs(
+            table=peds_table,
+            metadata=md,
+            peds_metric='sample',
+            time_column='time_point',
+            reference_column='Donor',
+            subject_column='SubjectID'
+        ),
+        use.UsageOutputNames(
+            visualization='heatmap',
+
+        )
+    )
+
+    peds_heatmap.assert_output_type('Visualization')
+
+
 # TODO: re-enable this after external heatmap implementation
-# def peds_heatmap(use):
+# def plot_heatmap(use):
 #     peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
 
 #     peds_heatmap, = use.action(

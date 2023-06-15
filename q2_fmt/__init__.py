@@ -8,10 +8,10 @@
 
 from ._version import get_versions
 from ._engraftment import engraftment, group_timepoints
-from ._peds import sample_peds, feature_peds, peds_heatmap
+from ._peds import sample_peds, feature_peds, peds
 
 __version__ = get_versions()['version']
 del get_versions
 
-__all__ = ['engraftment', 'sample_peds', 'feature_peds', 'peds_heatmap',
+__all__ = ['engraftment', 'sample_peds', 'feature_peds', 'peds',
            'group_timepoints']
