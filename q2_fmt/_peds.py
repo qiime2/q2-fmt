@@ -45,8 +45,7 @@ def peds_heatmap(ctx, table, metadata, peds_metric, time_column,
             subject_column=subject_column, reference_column=reference_column,
             filter_missing_references=filter_missing_references)
 
-    results += heatmap_plot(data=peds_dist[0], x_label='group',
-                            y_label='subject', gradient='measure')
+    results += heatmap_plot(data=peds_dist[0], order='ascending')
 
     return tuple(results)
 
