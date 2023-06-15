@@ -213,19 +213,19 @@ def peds_pipeline_sample(use):
     peds_heatmap.assert_output_type('Visualization')
 
 
-# TODO: re-enable this after external heatmap implementation
-# def plot_heatmap(use):
-#     peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
+# Heatmap pipeline
+def peds_heatmap(use):
+    peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
 
-#     peds_heatmap, = use.action(
-#         use.UsageAction('fmt', 'plot_heatmap'),
-#         use.UsageInputs(
-#             data=peds_dist,
-#         ),
-#         use.UsageOutputNames(
-#             visualization='heatmap',
+    peds_heatmap, = use.action(
+        use.UsageAction('fmt', 'peds_heatmap'),
+        use.UsageInputs(
+            data=peds_dist,
+        ),
+        use.UsageOutputNames(
+            visualization='heatmap',
 
-#         )
-#     )
+        )
+    )
 
-#     peds_heatmap.assert_output_type('Visualization')
+    peds_heatmap.assert_output_type('Visualization')

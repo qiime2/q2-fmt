@@ -16,7 +16,7 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
          subject_column, filter_missing_references=False,
          drop_incomplete_subjects=False, drop_incomplete_timepoint=None):
 
-    heatmap_plot = ctx.get_action('vizard', 'plot_heatmap')
+    plot_heatmap = ctx.get_action('vizard', 'plot_heatmap')
 
     results = []
 
@@ -43,7 +43,14 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
             subject_column=subject_column, reference_column=reference_column,
             filter_missing_references=filter_missing_references)
 
-    results += heatmap_plot(data=peds_dist[0], order='ascending')
+    results += plot_heatmap(data=peds_dist[0], order='ascending')
+
+    return tuple(results)
+
+
+def peds_heatmap(ctx, data):
+    plot_heatmap = ctx.get_action('vizard', 'plot_heatmap')
+    results = plot_heatmap(data, order='ascending')
 
     return tuple(results)
 
