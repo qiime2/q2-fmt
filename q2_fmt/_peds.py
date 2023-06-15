@@ -43,16 +43,17 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
             subject_column=subject_column, reference_column=reference_column,
             filter_missing_references=filter_missing_references)
 
-    results += plot_heatmap(data=peds_dist[0], order='ascending')
+    results += plot_heatmap(data=peds_dist[0], transpose=False,
+                            order='ascending')
 
     return tuple(results)
 
 
 def peds_heatmap(ctx, data):
     plot_heatmap = ctx.get_action('vizard', 'plot_heatmap')
-    results = plot_heatmap(data, order='ascending')
+    results = plot_heatmap(data, transpose=False, order='ascending')
 
-    return tuple(results)
+    return results
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
