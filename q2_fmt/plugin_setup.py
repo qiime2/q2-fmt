@@ -201,6 +201,17 @@ plugin.pipelines.register_function(
     description=''
 )
 
+plugin.pipelines.register_function(
+    function=q2_fmt.peds_heatmap,
+    inputs={'data': GroupDist[Ordered, Matched] % Properties("peds")},
+    parameters={},
+    outputs=[('peds_heatmap', Visualization)],
+    parameter_descriptions={},
+    output_descriptions={},
+    name='',
+    description=''
+)
+
 plugin.methods.register_function(
     function=q2_fmt.sample_peds,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
