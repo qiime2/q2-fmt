@@ -53,7 +53,7 @@ def peds_heatmap(ctx, data):
     plot_heatmap = ctx.get_action('vizard', 'plot_heatmap')
     results = plot_heatmap(data, transpose=False, order='ascending')
 
-    return results
+    return tuple(results)
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
