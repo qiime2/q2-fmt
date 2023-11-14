@@ -10,18 +10,21 @@
 
 Please note that this software is now an alpha release. Initial conda packages are available, but have not been tested in integration against our other plugins yet. For now, create a fresh conda environment for q2-fmt using the following command:
 
+OSX instructions 
 ```bash
- conda create -n q2-fmt-alpha \
-   -c conda-forge \
-   -c bioconda \
-   -c https://packages.qiime2.org/qiime2/2023.2/tested/ \
-   q2-fmt q2cli
+wget https://data.qiime2.org/distro/fmt/qiime2-fmt-2023.9-py38-osx-conda.yml
+conda env create -n qiime2-fmt-2023.9 --file qiime2-fmt-2023.9-py38-osx-conda.yml
+```
+Linux instructions
+```bash
+wget https://data.qiime2.org/distro/fmt/qiime2-fmt-2023.9-py38-linux-conda.yml
+conda env create -n qiime2-fmt-2023.9 --file qiime2-fmt-2023.9-py38-linux-conda.yml
 ```
 Then activate your new environment as usual.
 ```bash
-conda activate q2-fmt-alpha
+conda activate q2-fmt-2023.9
 ```
-Please be aware that `q2-fmt` will be the only visible plugin in this environment.
+Please be aware that `q2-fmt`  and  `q2-stats` will be the only visible plugins in this environment.
 
 ## Examples
 Example data can be generated using the `--example-data` flag on each action
