@@ -13,7 +13,9 @@ Please note that this software is now an alpha release. Initial conda packages a
 Mac OS instructions 
 ```bash
 wget https://data.qiime2.org/distro/fmt/qiime2-fmt-2023.9-py38-osx-conda.yml
-conda env create -n qiime2-fmt-2023.9 --file qiime2-fmt-2023.9-py38-osx-conda.yml
+CONDA_SUBDIR=osx-64 conda env create -n qiime2-fmt-2023.9 --file qiime2-fmt-2023.9-py38-osx-conda.yml
+conda activate qiime2-fmt-2023.9
+conda config --env --set subdir osx-64
 ```
 Linux instructions
 ```bash
