@@ -10,7 +10,7 @@
 
 Please note that this software is now an alpha release. Initial conda packages are available, but have not been tested in integration against our other plugins yet. For now, create a fresh conda environment for q2-fmt using the following command:
 
-OSX instructions 
+Mac OS instructions 
 ```bash
 wget https://data.qiime2.org/distro/fmt/qiime2-fmt-2023.9-py38-osx-conda.yml
 conda env create -n qiime2-fmt-2023.9 --file qiime2-fmt-2023.9-py38-osx-conda.yml
