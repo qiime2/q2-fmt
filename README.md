@@ -1,6 +1,6 @@
 # q2-fmt (fecal microbiota transplant)
 
-![](https://github.com/qiime2/q2-fmt/actions/workflows/ci-dev.yaml)
+![](https://github.com/qiime2/q2-fmt/actions/workflows/ci-dev.yaml/badge.svg)
 
 ## Demo
 [![](https://raw.githubusercontent.com/qiime2/q2-fmt/master/demo/screenshot.png)
