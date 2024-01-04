@@ -12,7 +12,6 @@ import numpy as np
 import warnings
 from collections import Counter
 from q2_vizard import plot_heatmap
-import tempfile
 
 
 def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
@@ -238,8 +237,6 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
         raise KeyError('There was an error finding which PEDS methods to use')
     return peds_df
 
-#Prep method
-# TODO: Heatmap prep method: refactor after external heatmap wiring is complete
 # prep method
 def _rename_features(level_delimiter, data: pd.DataFrame):
     if ("recipients with feature" in data.columns and
@@ -437,40 +434,3 @@ def _mask_recipient(donor_mask, recip_df):
     maskedrecip = donor_mask & recip_df
     return maskedrecip
 
-# TODO: Heatmap prep method: refactor after external heatmap wiring is complete
-# prep method
-    # if ("recipients with feature" in data.columns and
-    #         level_delimiter is not None):
-    #     y_labels = []
-    #     seen = Counter()
-    #     subject_seen = []
-    #     for i, sub in enumerate(data['subject']):
-    #         if level_delimiter in sub:
-    #             fields = [field for field in sub.split(level_delimiter)
-    #                       if not field.endswith('__')]
-    #         else:
-    # This is necessary to handle a case where the delimiter
-    # isn't found but the sub ends with __. In that case, sub would
-    # be completely thrown out.
-    #             fields = [sub]
-    #         subject_seen.append(sub)
-    #         most_specific = fields[-1]
-    #         if most_specific in seen and sub not in subject_seen:
-    #             y_labels.append(f"{seen[most_specific]}: {most_specific} *")
-    #         else:
-    #             y_labels.append(most_specific)
-    #         seen[most_specific] += 1
-    #     data['y_label'] = y_labels
-
-    #     data['id'] = [i.replace(level_delimiter, ' ') for i in data['id']]
-    #     data['subject'] = [i.replace(level_delimiter, ' ')
-    #                        for i in data['subject']]
-
-    #     data['y_label'].attrs.update({
-    #             'title': "Feature ID",
-    #             'description': ''})
-    # else:
-    #     data['y_label'] = data["subject"]
-    #     data['y_label'].attrs.update({
-    #             'title': subject_title_temp,
-    #             'description': ''})
