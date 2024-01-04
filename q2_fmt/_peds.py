@@ -50,11 +50,10 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
     return tuple(results)
 
 
-
-def peds_heatmap(output_dir: str, data:pd.DataFrame ,
-                 level_delimiter:str=None):
+def peds_heatmap(output_dir: str, data: pd.DataFrame,
+                 level_delimiter: str = None):
     _rename_features(data=data, level_delimiter=level_delimiter)
-    plot_heatmap(output_dir=output_dir, data=data, transpose=False, 
+    plot_heatmap(output_dir=output_dir, data=data, transpose=False,
                  order='ascending')
 
 
@@ -238,6 +237,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
         raise KeyError('There was an error finding which PEDS methods to use')
     return peds_df
 
+
 # prep method
 def _rename_features(level_delimiter, data: pd.DataFrame):
     if ("recipients with feature" in data.columns and
@@ -245,7 +245,7 @@ def _rename_features(level_delimiter, data: pd.DataFrame):
         group_name = data["group"].attrs['title']
         subject_name = data["subject"].attrs['title']
         measure_name = data["measure"].attrs['title']
-    
+
         y_labels = []
         seen = Counter()
         subject_seen = []
@@ -254,9 +254,9 @@ def _rename_features(level_delimiter, data: pd.DataFrame):
                 fields = [field for field in sub.split(level_delimiter)
                           if not field.endswith('__')]
             else:
-        #This is necessary to handle a case where the delimiter
-        #isn't found but the sub ends with __. In that case, sub would
-        #be completely thrown out.
+                # This is necessary to handle a case where the delimiter
+                # isn't found but the sub ends with __. In that case, sub would
+                # be completely thrown out.
                 fields = [sub]
             subject_seen.append(sub)
             most_specific = fields[-1]
@@ -268,19 +268,17 @@ def _rename_features(level_delimiter, data: pd.DataFrame):
         data['subject'] = y_labels
 
         data['id'] = [i.replace(level_delimiter, ' ') for i in data['id']]
-        #data['subject'] = [i.replace(level_delimiter, ' ')
-         #                  for i in data['subject']]
 
-        #currently attrs get deleted with df is changed. right now the best
-        #way to solve this is by saving them as temp and saving them at the end
+        # currently attrs get deleted with df is changed. right now the best
+        # way to solve this is by saving them as temp and saving them at the 
+        # end
 
         data['subject'].attrs.update({'title': subject_name,
                                       'description': ''})
         data['group'].attrs.update({'title': group_name,
-                                      'description': ''})
+                                    'description': ''})
         data['measure'].attrs.update({'title': measure_name,
                                       'description': ''})
-        
 
 
 # Filtering methods
