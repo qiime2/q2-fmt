@@ -10,13 +10,17 @@ import qiime2
 import pandas as pd
 import numpy as np
 import warnings
+from collections import Counter
+from q2_vizard import plot_heatmap
+import tempfile
 
 
 def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
          subject_column, filter_missing_references=False,
-         drop_incomplete_subjects=False, drop_incomplete_timepoint=None):
+         drop_incomplete_subjects=False, drop_incomplete_timepoint=None,
+         level_delimiter=None):
 
-    plot_heatmap = ctx.get_action('vizard', 'plot_heatmap')
+    peds_heatmap = ctx.get_action('fmt', 'peds_heatmap')
 
     results = []
 
@@ -42,18 +46,16 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
             table=table, metadata=metadata, time_column=time_column,
             subject_column=subject_column, reference_column=reference_column,
             filter_missing_references=filter_missing_references)
-
-    results += plot_heatmap(data=peds_dist[0], transpose=False,
-                            order='ascending')
+    results += peds_heatmap(data=peds_dist[0], level_delimiter=level_delimiter)
 
     return tuple(results)
 
 
-def peds_heatmap(ctx, data):
-    plot_heatmap = ctx.get_action('vizard', 'plot_heatmap')
-    results = plot_heatmap(data, transpose=False, order='ascending')
-
-    return tuple(results)
+def peds_heatmap(output_dir: str, data:pd.DataFrame ,
+                 level_delimiter:str=None):
+    _rename_features(data=data, level_delimiter=level_delimiter)
+    plot_heatmap(output_dir=output_dir, data=data, transpose=False, 
+                 order='ascending')
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
@@ -215,6 +217,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             peds_df.loc[len(peds_df)] = [feature, peds, num_sum[count],
                                          donor_sum[count], peds_time, feature]
             peds_df = peds_df.dropna()
+        
         peds_df['id'].attrs.update({
             'title': "Feature ID",
             'description': ''
@@ -234,6 +237,52 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
     else:
         raise KeyError('There was an error finding which PEDS methods to use')
     return peds_df
+
+#Prep method
+# TODO: Heatmap prep method: refactor after external heatmap wiring is complete
+# prep method
+def _rename_features(level_delimiter, data: pd.DataFrame):
+    if ("recipients with feature" in data.columns and
+            level_delimiter is not None):
+        group_name = data["group"].attrs['title']
+        subject_name = data["subject"].attrs['title']
+        measure_name = data["measure"].attrs['title']
+    
+        y_labels = []
+        seen = Counter()
+        subject_seen = []
+        for i, sub in enumerate(data['subject']):
+            if level_delimiter in sub:
+                fields = [field for field in sub.split(level_delimiter)
+                          if not field.endswith('__')]
+            else:
+        #This is necessary to handle a case where the delimiter
+        #isn't found but the sub ends with __. In that case, sub would
+        #be completely thrown out.
+                fields = [sub]
+            subject_seen.append(sub)
+            most_specific = fields[-1]
+            if most_specific in seen and sub not in subject_seen:
+                y_labels.append(f"{seen[most_specific]}: {most_specific} *")
+            else:
+                y_labels.append(most_specific)
+            seen[most_specific] += 1
+        data['subject'] = y_labels
+
+        data['id'] = [i.replace(level_delimiter, ' ') for i in data['id']]
+        #data['subject'] = [i.replace(level_delimiter, ' ')
+         #                  for i in data['subject']]
+
+        #currently attrs get deleted with df is changed. right now the best
+        #way to solve this is by saving them as temp and saving them at the end
+
+        data['subject'].attrs.update({'title': subject_name,
+                                      'description': ''})
+        data['group'].attrs.update({'title': group_name,
+                                      'description': ''})
+        data['measure'].attrs.update({'title': measure_name,
+                                      'description': ''})
+        
 
 
 # Filtering methods

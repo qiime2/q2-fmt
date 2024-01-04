@@ -193,7 +193,9 @@ plugin.pipelines.register_function(
                 'subject_column': T_subject,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoint': List[Str]},
+                'drop_incomplete_timepoint': List[Str],
+                'level_delimiter': Str}
+                ,
     outputs=[('peds_heatmap', Visualization)],
     parameter_descriptions={},
     output_descriptions={},
@@ -201,14 +203,12 @@ plugin.pipelines.register_function(
     description=''
 )
 
-plugin.pipelines.register_function(
+plugin.visualizers.register_function(
     function=q2_fmt.peds_heatmap,
     inputs={'data': GroupDist[Ordered, Matched] % Properties("peds")},
-    parameters={},
-    outputs=[('peds_heatmap', Visualization)],
+    parameters={'level_delimiter': Str},
     parameter_descriptions={},
-    output_descriptions={},
-    name='',
+    name='PEDS Heatmap',
     description=''
 )
 
@@ -300,21 +300,5 @@ plugin.methods.register_function(
     }
 )
 
-# plugin.visualizers.register_function(
-#     function=q2_fmt.plot_heatmap,
-#     inputs={'data': GroupDist[Ordered, Matched] % Properties('peds')},
-#     parameters={'level_delimiter': Str},
-#     parameter_descriptions={'level_delimiter': 'If feature ids encode'
-#                                                ' hierarchical information,'
-#                                                ' split the levels when'
-#                                                ' generating feature labels'
-#                                                ' in the visualization using'
-#                                                ' this delimiter.'},
-#     name='Plot Heatmap',
-#     description='',
-#     examples={
-#         'peds_heatmap': ex.peds_heatmap
-#      }
-# )
 
 importlib.import_module('q2_fmt._transformer')
