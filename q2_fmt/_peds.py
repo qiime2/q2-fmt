@@ -216,7 +216,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             peds_df.loc[len(peds_df)] = [feature, peds, num_sum[count],
                                          donor_sum[count], peds_time, feature]
             peds_df = peds_df.dropna()
-        
+
         peds_df['id'].attrs.update({
             'title': "Feature ID",
             'description': ''
@@ -270,7 +270,7 @@ def _rename_features(level_delimiter, data: pd.DataFrame):
         data['id'] = [i.replace(level_delimiter, ' ') for i in data['id']]
 
         # currently attrs get deleted with df is changed. right now the best
-        # way to solve this is by saving them as temp and saving them at the 
+        # way to solve this is by saving them as temp and saving them at the
         # end
 
         data['subject'].attrs.update({'title': subject_name,
@@ -432,4 +432,3 @@ def _create_masking(time_metadata, donor_df, recip_df, reference_column):
 def _mask_recipient(donor_mask, recip_df):
     maskedrecip = donor_mask & recip_df
     return maskedrecip
-

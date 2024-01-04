@@ -194,8 +194,7 @@ plugin.pipelines.register_function(
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str],
-                'level_delimiter': Str}
-                ,
+                'level_delimiter': Str},
     outputs=[('peds_heatmap', Visualization)],
     parameter_descriptions={},
     output_descriptions={},
