@@ -19,7 +19,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _check_reference_column, _check_for_time_column,
                           _check_subject_column, _check_column_type,
                           _drop_incomplete_timepoints, feature_peds,
-                          _check_column_missing)
+                          _check_column_missing, _rename_features)
 
 
 class TestBase(TestPluginBase):
@@ -1023,3 +1023,81 @@ class TestPeds(TestBase):
                       float("Nan")]}).set_index('id')
         metadata_df = _drop_incomplete_timepoints(metadata_df, "group", [3, 2])
         self.assertEqual(metadata_df["group"].dropna().unique(), [float(1)])
+
+    def test_rename_features_with_delim(self):
+        metadata_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Feature;1': [0, 0, 1, 1],
+                'Feature;2': [0, 1, 1, 1],
+                'Feature;3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        _rename_features(data=feature_peds_df, level_delimiter=";")
+        Fs1 = feature_peds_df.set_index("id").at['Feature 1',
+                                                 'subject']
+        Fs2 = feature_peds_df.set_index("id").at['Feature 2',
+                                                 'subject']
+        self.assertEqual("1", Fs1)
+        self.assertEqual("2", Fs2)
+
+    def test_rename_features_with_no_delim(self):
+        metadata_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Feature1': [0, 0, 1, 1],
+                'Feature2': [0, 1, 1, 1],
+                'Feature3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        _rename_features(data=feature_peds_df, level_delimiter=None)
+        Fs1 = feature_peds_df.set_index("id").at['Feature1',
+                                                 'subject']
+        Fs2 = feature_peds_df.set_index("id").at['Feature2',
+                                                 'subject']
+        self.assertEqual("Feature1", Fs1)
+        self.assertEqual("Feature2", Fs2)
+
+    def test_rename_features_with_wrong_delim(self):
+        metadata_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Feature;1': [0, 0, 1, 1],
+                'Feature;2': [0, 1, 1, 1],
+                'Feature;3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        _rename_features(data=feature_peds_df, level_delimiter=":")
+        Fs1 = feature_peds_df.set_index("id").at['Feature;1',
+                                                 'subject']
+        Fs2 = feature_peds_df.set_index("id").at['Feature;2',
+                                                 'subject']
+        self.assertEqual("Feature;1", Fs1)
+        self.assertEqual("Feature;2", Fs2)
