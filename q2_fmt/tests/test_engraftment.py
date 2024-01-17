@@ -1101,3 +1101,30 @@ class TestPeds(TestBase):
                                                  'subject']
         self.assertEqual("Feature;1", Fs1)
         self.assertEqual("Feature;2", Fs2)
+
+    def test_rename_features_with_blank_label(self):
+        metadata_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Feature;1;__': [0, 0, 1, 1],
+                'Feature;2': [0, 1, 1, 1],
+                'Feature;3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        _rename_features(data=feature_peds_df, level_delimiter=";")
+        print(feature_peds_df)
+        Fs1 = feature_peds_df.set_index("id").at['Feature 1 __',
+                                                 'subject']
+        Fs2 = feature_peds_df.set_index("id").at['Feature 2',
+                                                 'subject']
+        self.assertEqual("1", Fs1)
+        self.assertEqual("2", Fs2)
