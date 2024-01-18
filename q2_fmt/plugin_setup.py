@@ -190,7 +190,7 @@ plugin.pipelines.register_function(
     parameters={'metadata': Metadata,
                 'peds_metric': Str % Choices('feature', 'sample'),
                 'time_column': Str, 'reference_column': Str,
-                'subject_column': T_subject,
+                'subject_column': Str,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str],
@@ -216,7 +216,7 @@ plugin.methods.register_function(
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': T_subject,
+                'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str]},
@@ -265,7 +265,7 @@ plugin.methods.register_function(
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': T_subject,
+                'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool},
     outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
     parameter_descriptions={
