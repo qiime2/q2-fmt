@@ -66,7 +66,7 @@ def group_timepoints(
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
     diversity_measure.index.name = 'id'
-
+             
     ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
                                 time_col, subject_col)
 
@@ -124,13 +124,14 @@ def group_timepoints(
     return ordered_df, independent_df
 
 
+# TODO: It seems like if I am baseline or donor is reference I would need to
+# change code here But I think that makes the most sense and seems easy! 
 # HELPER FUNCTION FOR DATA FILTERING
 def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
-                    time_column: str, reference_column: str,
+                    time_column: str, reference_column: str, distance_to: str,
                     subject_column: str = False, control_column: str = None,
                     filter_missing_references: bool = False,
-                    where: str = None):
-
+                    where: str = None, baseline_timepoint: int = None):
     if diversity_measure.empty:
         raise ValueError('Empty diversity measure detected.'
                          ' Please make sure your diversity measure'
@@ -151,6 +152,27 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                     .filter_ids(ids_to_keep=metadata
                                 .get_ids(where=where))
                     )
+
+    if distance_to == "donor" and baseline_timepoint is not None:
+        raise ValueError("'donor' was provided to the distance_to parameter"
+                         " and a value was provided to baseline_timepoint."
+                         " These values can not be passed in together.")
+    elif distance_to == "donor" and reference_column is None:
+        raise ValueError("'donor' was provided to the distance_to parameter"
+                         " and a reference_column was not provided. Please"
+                         " provide a reference_column if you are investigating"
+                         " distance to donor")
+    elif distance_to == "baseline" and reference_column is not None:
+        raise ValueError("'baseline' was provide to the distance_to parameter"
+                         " and a value was provided to reference_column."
+                         " These values can not be passed in together.")
+    elif distance_to == "baseline" and baseline_timepoint is None: 
+        raise ValueError("'baseline' was provided to the distance_to parameter"
+                         " and a baseline_timepoint was not provided. Please"
+                         " provide a baseline_timepoint if you are" 
+                         " investigating distance to baseline")
+    elif distance_to == "baseline" and baseline_timepoint is not None: 
+        ##todo I need to get the baseline reference into a series 
 
     def _get_series_from_col(md, col_name, param_name, expected_type=None,
                              drop_missing_values=False):
@@ -178,12 +200,13 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         md=metadata, col_name=time_column,
         param_name='time_column',
         expected_type=qiime2.NumericMetadataColumn)
+    if distance_to == 'donor':
+        reference_col = _get_series_from_col(
+            md=metadata, col_name=reference_column,
+            param_name='reference_column',
+            expected_type=qiime2.CategoricalMetadataColumn)
 
-    reference_col = _get_series_from_col(
-        md=metadata, col_name=reference_column,
-        param_name='reference_column',
-        expected_type=qiime2.CategoricalMetadataColumn)
-
+    # TODO: only applicable to donor as the reference column 
     used_references = reference_col[~time_col.isna()]
 
     if used_references.isna().any():
