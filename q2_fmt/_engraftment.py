@@ -172,8 +172,8 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                          " provide a baseline_timepoint if you are" 
                          " investigating distance to baseline")
     elif distance_to == "baseline" and baseline_timepoint is not None: 
-        ##todo I need to get the baseline reference into a series 
-
+        print("temp")
+    # TODO: I need to get the baseline reference into a series 
     def _get_series_from_col(md, col_name, param_name, expected_type=None,
                              drop_missing_values=False):
         try:
