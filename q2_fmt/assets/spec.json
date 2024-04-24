@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "A basic bar chart example, with value labels shown upon mouse hover.",
+  "description": "A Basic Heatmap",
   "width": {"signal": "ncolumns * columnwidth"},
   "height": {"signal": "nrows * rowheight"},
   "padding": 0,
@@ -12,12 +12,12 @@
     {
       "name": "rowtable",
       "source": "table",
-      "transform": [{"type": "aggregate", "groupby": ["y_label"]}]
+      "transform": [{"type": "aggregate", "groupby": [{"{{REPLACE_PARAM}}": "y_label"}]}]
     },
     {
       "name": "columntable",
       "source": "table",
-      "transform": [{"type": "aggregate", "groupby": ["measure"]}]
+      "transform": [{"type": "aggregate", "groupby": [{"{{REPLACE_PARAM}}": "x_label"}]}]
     }
   ],
   "signals": [
@@ -42,35 +42,35 @@
       "bind": {"input": "range", "min": 5, "max": 100 }
     },
     {"name": "title", "value": {"{{REPLACE_PARAM}}": "title"}, "bind": {"input": "input"}},
-    {"name": "y_label", "value": {"{{REPLACE_PARAM}}": "y_label"}, "bind": {"input": "input"}},
-    {"name": "x_label", "value": {"{{REPLACE_PARAM}}": "x_label"}, "bind": {"input": "input"}}
+    {"name": "y_label", "value": {"{{REPLACE_PARAM}}": "y_label_name"}, "bind": {"input": "input"}},
+    {"name": "x_label", "value": {"{{REPLACE_PARAM}}": "x_label_name"}, "bind": {"input": "input"}}
   ],
   "scales": [
     {
-      "name": "y_label",
+      "name": "Y_label",
       "type": "band",
-      "domain": {"data": "table", "field": "y_label"},
+      "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "y_label"}},
       "range": "height",
       "paddingInner": 0.05
     },
     {
-      "name": "time",
+      "name": "X_label",
       "type": "band",
-      "domain": {"data": "table", "field": "group", 
-                  "sort":{ "order": "ascending"}},
+      "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "x_label"}, 
+                  "sort":{"{{REPLACE_PARAM}}": "order"}},
       "range": "width",
       "paddingInner": 0.01
     },
     {
       "name": "color",
       "type": "sequential",
-      "domain": {"data": "table", "field": "measure"},
+      "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "measure"}},
       "range": {"scheme": {"signal": "palette"}}
     }
   ],
   "axes": [
-    {"scale": "y_label", "orient": "left", "title":{"signal": "y_label"}},
-    {"scale": "time", "orient": "bottom", "title":{"signal": "x_label"}}
+    {"scale": "Y_label", "orient": "left", "title":{"signal": "y_label"}},
+    {"scale": "X_label", "orient": "bottom", "title":{"signal": "x_label"}}
   ],
   "marks": [
     {
@@ -78,11 +78,11 @@
       "from": {"data": "table"},
       "encode": {
         "update": {
-          "y": {"field": "y_label", "scale": "y_label"},
-          "x": {"field": "group", "scale": "time"},
-          "height": {"band": 1, "scale": "y_label"},
-          "width": {"band": 1, "scale": "time"},
-          "fill": {"scale": "color", "field": "measure"},
+          "y": {"field": {"{{REPLACE_PARAM}}": "y_label"}, "scale": "Y_label"},
+          "x": {"field": {"{{REPLACE_PARAM}}": "x_label"}, "scale": "X_label"},
+          "height": {"band": 1, "scale": "Y_label"},
+          "width": {"band": 1, "scale": "X_label"},
+          "fill": {"scale": "color", "field": {"{{REPLACE_PARAM}}": "measure"}},
           "tooltip": {
             "signal": "datum"
           }
@@ -94,7 +94,7 @@
     {
       "fill": "color",
       "type": "gradient",
-      "title": {"{{REPLACE_PARAM}}": "measure"},
+      "title": {"{{REPLACE_PARAM}}": "measure_name"},
       "titleFontSize": 12,
       "titlePadding": 4,
       "gradientLength": {"signal": "250"}

@@ -11,7 +11,12 @@ import pandas as pd
 import numpy as np
 import warnings
 from collections import Counter
-from q2_vizard import plot_heatmap
+import os
+import pkg_resources
+import jinja2
+import json
+
+from q2_fmt._util import json_replace
 
 
 def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
@@ -53,8 +58,39 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
 def peds_heatmap(output_dir: str, data: pd.DataFrame,
                  level_delimiter: str = None):
     _rename_features(data=data, level_delimiter=level_delimiter)
-    plot_heatmap(output_dir=output_dir, data=data, transpose=False,
-                 order='ascending')
+
+    J_ENV = jinja2.Environment(
+        loader=jinja2.PackageLoader('q2_fmt', 'assets')
+    )
+
+    x_label = "group"
+    y_label = "subject"
+    gradient = "measure"
+
+    x_label_name = data[x_label].attrs['title']
+    y_label_name = data[y_label].attrs['title']
+    measure_name = data[gradient].attrs['title']
+    title = f'{measure_name} of {y_label_name} across {x_label_name}'
+
+    index = J_ENV.get_template('index.html')
+    data = json.loads(data.to_json(orient='records'))
+    spec_fp = pkg_resources.resource_filename(
+        'q2_fmt', os.path.join('assets', 'spec.json')
+    )
+    with open(spec_fp) as fh:
+        json_obj = json.load(fh)
+
+    order = {"order": "ascending"}
+
+    full_spec = json_replace(json_obj, data=data, x_label=x_label,
+                             x_label_name=x_label_name,
+                             y_label=y_label, y_label_name=y_label_name,
+                             title=title, measure=gradient,
+                             measure_name=measure_name, order=order)
+
+    with open(os.path.join(output_dir, "index.html"), "w") as fh:
+        spec_string = json.dumps(full_spec)
+        fh.write(index.render(spec=spec_string))
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
