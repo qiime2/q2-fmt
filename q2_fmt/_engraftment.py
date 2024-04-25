@@ -51,22 +51,24 @@ def engraftment(
 
 def group_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,
-        time_column: str, reference_column: str, subject_column: str = False,
-        control_column: str = None, filter_missing_references: bool = False,
+        distance_to: str, time_column: str, reference_column: str = None,
+        subject_column: str = False, control_column: str = None,
+        filter_missing_references: bool = False,
+        baseline_timepoint: str = None,
         where: str = None) -> (pd.DataFrame, pd.DataFrame):
 
     if isinstance(diversity_measure.index, pd.MultiIndex):
         diversity_measure.index = _sort_multi_index(diversity_measure.index)
 
     is_beta, used_references, time_col, subject_col, used_controls = \
-        _data_filtering(diversity_measure, metadata, time_column,
+        _data_filtering(diversity_measure, metadata, time_column, distance_to,
                         reference_column, subject_column, control_column,
-                        filter_missing_references, where)
+                        filter_missing_references, where, baseline_timepoint)
 
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
     diversity_measure.index.name = 'id'
-             
+
     ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
                                 time_col, subject_col)
 
@@ -124,11 +126,12 @@ def group_timepoints(
     return ordered_df, independent_df
 
 
-# TODO: It seems like if I am baseline or donor is reference I would need to
+# TODO: It seems like if baseline or donor is reference I would need to
 # change code here But I think that makes the most sense and seems easy! 
 # HELPER FUNCTION FOR DATA FILTERING
 def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
-                    time_column: str, reference_column: str, distance_to: str,
+                    time_column: str, distance_to: str,
+                    reference_column: str = False,
                     subject_column: str = False, control_column: str = None,
                     filter_missing_references: bool = False,
                     where: str = None, baseline_timepoint: int = None):
@@ -166,14 +169,12 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         raise ValueError("'baseline' was provide to the distance_to parameter"
                          " and a value was provided to reference_column."
                          " These values can not be passed in together.")
-    elif distance_to == "baseline" and baseline_timepoint is None: 
+    elif distance_to == "baseline" and baseline_timepoint is None:
         raise ValueError("'baseline' was provided to the distance_to parameter"
                          " and a baseline_timepoint was not provided. Please"
-                         " provide a baseline_timepoint if you are" 
+                         " provide a baseline_timepoint if you are"
                          " investigating distance to baseline")
-    elif distance_to == "baseline" and baseline_timepoint is not None: 
-        print("temp")
-    # TODO: I need to get the baseline reference into a series 
+    # TODO: I need to get the baseline reference into a series
     def _get_series_from_col(md, col_name, param_name, expected_type=None,
                              drop_missing_values=False):
         try:
@@ -205,9 +206,28 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             md=metadata, col_name=reference_column,
             param_name='reference_column',
             expected_type=qiime2.CategoricalMetadataColumn)
-
-    # TODO: only applicable to donor as the reference column 
-    used_references = reference_col[~time_col.isna()]
+        used_references = reference_col[~time_col.isna()]
+    elif distance_to == 'baseline':
+        # Dont think I need these commented lines but keeping for a second.
+        # timepoint_groups = metadata.to_dataframe().groupby([time_col]).groups
+        # references = timepoint_groups[float(baseline_timepoint)]
+        temp_baseline_ref = []
+        reference_list = []
+        baseline_ref_df = pd.DataFrame(columns=["sample_name", "relevant_baseline"])
+        for sub, samples in metadata.to_dataframe().groupby([subject_column]):
+            reference = samples[samples[time_column] == float(baseline_timepoint)].index.to_list()
+            temp_baseline_ref = temp_baseline_ref + samples.index.to_list()
+            reference_list = reference_list + reference * len(samples.index.to_list())
+        baseline_ref_df["sample_name"] = temp_baseline_ref
+        baseline_ref_df["relevant_baseline"] = reference_list
+        # this is so the variables for distance to donor and distance to
+        # baseline have the same variable name
+        baseline_ref_df = baseline_ref_df[~baseline_ref_df['sample_name'].isin(reference_list)].set_index("sample_name")
+        reference_col = _get_series_from_col(
+            md=qiime2.Metadata(baseline_ref_df), col_name="relevant_baseline",
+            param_name='reference_column',
+            expected_type=qiime2.CategoricalMetadataColumn)
+        used_references = reference_col
 
     if used_references.isna().any():
         if filter_missing_references:
@@ -242,14 +262,12 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             md=metadata, col_name=subject_column,
             param_name='subject_column',
             expected_type=qiime2.CategoricalMetadataColumn)
-
     used_controls = None
     if control_column is not None:
         control_col = _get_series_from_col(md=metadata,
                                            col_name=control_column,
                                            param_name='control_column')
         used_controls = control_col[~control_col.isna()]
-
     return is_beta, used_references, time_col, subject_col, used_controls
 
 
@@ -293,7 +311,6 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta,
     ordinal_df['group'] = time_col
     if subject_col is not None:
         ordinal_df['subject'] = subject_col
-
     return ordinal_df.reset_index()
 
 
