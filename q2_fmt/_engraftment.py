@@ -128,8 +128,6 @@ def group_timepoints(
     return ordered_df, independent_df
 
 
-# TODO: It seems like if baseline or donor is reference I would need to
-# change code here But I think that makes the most sense and seems easy! 
 # HELPER FUNCTION FOR DATA FILTERING
 def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                     time_column: str, distance_to: str,
@@ -176,7 +174,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                          " and a baseline_timepoint was not provided. Please"
                          " provide a baseline_timepoint if you are"
                          " investigating distance to baseline")
-    # TODO: I need to get the baseline reference into a series
+
     def _get_series_from_col(md, col_name, param_name, expected_type=None,
                              drop_missing_values=False):
         try:
@@ -215,16 +213,21 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         # references = timepoint_groups[float(baseline_timepoint)]
         temp_baseline_ref = []
         reference_list = []
-        baseline_ref_df = pd.DataFrame(columns=["sample_name", "relevant_baseline"])
+        baseline_ref_df = pd.DataFrame()
         for sub, samples in metadata.to_dataframe().groupby([subject_column]):
-            reference = samples[samples[time_column] == float(baseline_timepoint)].index.to_list()
+            reference = \
+                samples[samples[
+                    time_column] == float(baseline_timepoint)].index.to_list()
             temp_baseline_ref = temp_baseline_ref + samples.index.to_list()
-            reference_list = reference_list + reference * len(samples.index.to_list())
+            reference_list = \
+                reference_list + reference * len(samples.index.to_list())
         baseline_ref_df["sample_name"] = temp_baseline_ref
         baseline_ref_df["relevant_baseline"] = reference_list
         # this is so the variables for distance to donor and distance to
         # baseline have the same variable name
-        baseline_ref_df = baseline_ref_df[~baseline_ref_df['sample_name'].isin(reference_list)].set_index("sample_name")
+        baseline_ref_df = \
+            baseline_ref_df[~baseline_ref_df['sample_name'].isin(
+                reference_list)].set_index("sample_name")
         reference_col = _get_series_from_col(
             md=qiime2.Metadata(baseline_ref_df), col_name="relevant_baseline",
             param_name='reference_column',
