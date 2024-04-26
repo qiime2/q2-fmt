@@ -13,10 +13,10 @@ import qiime2
 
 
 def engraftment(
-    ctx, diversity_measure, metadata, compare, time_column,
-    reference_column, subject_column, control_column=None,
-    filter_missing_references=False, where=None, against_group=None,
-    alternative='two-sided', p_val_approx='auto'
+    ctx, diversity_measure, metadata, compare, distance_to, time_column,
+    subject_column, reference_column=None, control_column=None,
+    filter_missing_references=False, baseline_timepoint=None, where=None,
+    against_group=None, alternative='two-sided', p_val_approx='auto'
 ):
 
     raincloud_plot = ctx.get_action('stats', 'plot_rainclouds')
@@ -25,9 +25,11 @@ def engraftment(
     results = []
 
     time_dist, ref_dist = group_timepoints(diversity_measure, metadata,
-                                           time_column, reference_column,
-                                           subject_column, control_column,
-                                           filter_missing_references, where)
+                                           distance_to, time_column,
+                                           reference_column, subject_column,
+                                           control_column,
+                                           filter_missing_references,
+                                           baseline_timepoint, where)
 
     if compare == 'reference' or compare == 'all-pairwise':
         mann_whitney_u = ctx.get_action('stats', 'mann_whitney_u')
