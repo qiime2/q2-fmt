@@ -267,12 +267,14 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             md=metadata, col_name=subject_column,
             param_name='subject_column',
             expected_type=qiime2.CategoricalMetadataColumn)
+
     used_controls = None
     if control_column is not None:
         control_col = _get_series_from_col(md=metadata,
                                            col_name=control_column,
                                            param_name='control_column')
         used_controls = control_col[~control_col.isna()]
+
     return is_beta, used_references, time_col, subject_col, used_controls
 
 
@@ -314,6 +316,7 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta,
 
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
+
     if subject_col is not None:
         ordinal_df['subject'] = subject_col
     return ordinal_df.reset_index()
