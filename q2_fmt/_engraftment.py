@@ -208,9 +208,6 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             expected_type=qiime2.CategoricalMetadataColumn)
         used_references = reference_col[~time_col.isna()]
     elif distance_to == 'baseline':
-        # Dont think I need these commented lines but keeping for a second.
-        # timepoint_groups = metadata.to_dataframe().groupby([time_col]).groups
-        # references = timepoint_groups[float(baseline_timepoint)]
         temp_baseline_ref = []
         reference_list = []
         baseline_ref_df = pd.DataFrame()
@@ -218,13 +215,16 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             reference = \
                 samples[samples[
                     time_column] == float(baseline_timepoint)].index.to_list()
+            if len(reference) != 1:
+                raise ValueError("More then one baseline sample was found per"
+                                 " subject. Only one baseline sample can be"
+                                 " as a reference. Please group baseline "
+                                 " replicates.")
             temp_baseline_ref = temp_baseline_ref + samples.index.to_list()
             reference_list = \
-                reference_list + reference * len(samples.index.to_list())
+                reference_list + (reference * len(samples.index.to_list()))
         baseline_ref_df["sample_name"] = temp_baseline_ref
         baseline_ref_df["relevant_baseline"] = reference_list
-        # this is so the variables for distance to donor and distance to
-        # baseline have the same variable name
         baseline_ref_df = \
             baseline_ref_df[~baseline_ref_df['sample_name'].isin(
                 reference_list)].set_index("sample_name")
@@ -232,6 +232,8 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             md=qiime2.Metadata(baseline_ref_df), col_name="relevant_baseline",
             param_name='reference_column',
             expected_type=qiime2.CategoricalMetadataColumn)
+        # this is so the variables for distance to donor and distance to
+        # baseline have the same variable name
         used_references = reference_col
 
     if used_references.isna().any():
