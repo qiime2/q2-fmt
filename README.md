@@ -26,7 +26,7 @@ Then activate your new environment as usual.
 ```bash
 conda activate q2-fmt-2023.9
 ```
-Please be aware that `q2-fmt`,  `q2-stats` and `q2-vizard`  will be the only visible plugins in this environment.
+Please be aware that `q2-fmt` and `q2-stats` will be the only visible plugins in this environment.
 
 ## Examples
 Example data can be generated using the `--example-data` flag on each action
