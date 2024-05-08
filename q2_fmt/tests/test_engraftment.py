@@ -18,7 +18,9 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _filter_associated_reference,
                           _check_reference_column, _check_for_time_column,
                           _check_subject_column, _check_column_type,
-                          feature_peds, peds_bootstrap)
+                          _drop_incomplete_timepoints, feature_peds,
+                          _check_column_missing, _rename_features, peds_bootstrap)
+
 
 
 class TestBase(TestPluginBase):
@@ -630,10 +632,13 @@ class TestPeds(TestBase):
             'Feature2': [1, 1, 1, 1, 1, 1]}).set_index('id')
         with self.assertRaisesRegex(ValueError, 'Missing timepoints for'
                                     ' associated subjects. Please make sure'
-                                    ' that all subjects have all timepoints'
-                                    ' or use drop_incomplete_subjects'
-                                    ' parameter. .*'
-                                    ' [\'sub2\']'):
+                                    ' that all subjects have all timepoints.'
+                                    ' You can drop these subjects by using the'
+                                    ' drop_incomplete_subjects parameter or'
+                                    ' drop any timepoints that have large'
+                                    ' numbers of subjects missing by using the'
+                                    ' drop_incomplete_timepoints parameter. .*'
+                                    '[\'sub2\']'):
             sample_peds(table=table_df, metadata=metadata,
                         time_column="group",
                         reference_column="Ref",
@@ -978,7 +983,7 @@ class TestPeds(TestBase):
                           time_column="group", reference_column="Ref",
                           subject_column="subject")
 
-    def test_subject_column_name_is_ID(self):
+    def test_column_name_is_ID(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -991,9 +996,9 @@ class TestPeds(TestBase):
         with self.assertRaisesRegex(KeyError, ".*`--p-subject-column` can not"
                                     " be the same as the index of"
                                     " metadata: `id`"):
-            _check_subject_column(metadata_df, 'id')
+            _check_column_missing(metadata_df, 'id', 'subject', KeyError)
 
-    def test_group_column_name_is_ID(self):
+    def test_drop_incomplete_timepoints(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -1003,12 +1008,11 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 3, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, ".*`--p-time-column` can not"
-                                    " be the same as the index of"
-                                    " metadata: `id`"):
-            _check_for_time_column(metadata_df, 'id')
+        metadata_df = _drop_incomplete_timepoints(metadata_df, "group", [3])
+        self.assertEqual(metadata_df["group"].unique()[0], float(1))
+        self.assertEqual(metadata_df["group"].unique()[1], float(2))
 
-    def test_reference_column_name_is_ID(self):
+    def test_drop_incomplete_timepoints_list(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -1018,10 +1022,113 @@ class TestPeds(TestBase):
                         float("Nan")],
             'group': [1, 2, 3, 2, float("Nan"),
                       float("Nan")]}).set_index('id')
-        with self.assertRaisesRegex(KeyError, ".*`--p-reference-column` can"
-                                    " not be the same as the index of"
-                                    " metadata: `id`"):
-            _check_reference_column(metadata_df, "id")
+        metadata_df = _drop_incomplete_timepoints(metadata_df, "group", [3, 2])
+        self.assertEqual(metadata_df["group"].dropna().unique(), [float(1)])
+
+    def test_rename_features_with_delim(self):
+        metadata_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Feature;1': [0, 0, 1, 1],
+                'Feature;2': [0, 1, 1, 1],
+                'Feature;3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        _rename_features(data=feature_peds_df, level_delimiter=";")
+        Fs1 = feature_peds_df.set_index("id").at['Feature 1',
+                                                 'subject']
+        Fs2 = feature_peds_df.set_index("id").at['Feature 2',
+                                                 'subject']
+        self.assertEqual("1", Fs1)
+        self.assertEqual("2", Fs2)
+
+    def test_rename_features_with_no_delim(self):
+        metadata_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Feature1': [0, 0, 1, 1],
+                'Feature2': [0, 1, 1, 1],
+                'Feature3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        _rename_features(data=feature_peds_df, level_delimiter=None)
+        Fs1 = feature_peds_df.set_index("id").at['Feature1',
+                                                 'subject']
+        Fs2 = feature_peds_df.set_index("id").at['Feature2',
+                                                 'subject']
+        self.assertEqual("Feature1", Fs1)
+        self.assertEqual("Feature2", Fs2)
+
+    def test_rename_features_with_wrong_delim(self):
+        metadata_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Feature;1': [0, 0, 1, 1],
+                'Feature;2': [0, 1, 1, 1],
+                'Feature;3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        _rename_features(data=feature_peds_df, level_delimiter=":")
+        Fs1 = feature_peds_df.set_index("id").at['Feature;1',
+                                                 'subject']
+        Fs2 = feature_peds_df.set_index("id").at['Feature;2',
+                                                 'subject']
+        self.assertEqual("Feature;1", Fs1)
+        self.assertEqual("Feature;2", Fs2)
+
+    def test_rename_features_with_blank_label(self):
+        metadata_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
+                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
+                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+                'id': ['sample1', 'sample2', 'sample3',
+                       'donor1'],
+                'Feature;1;__': [0, 0, 1, 1],
+                'Feature;2': [0, 1, 1, 1],
+                'Feature;3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        _rename_features(data=feature_peds_df, level_delimiter=";")
+        print(feature_peds_df)
+        Fs1 = feature_peds_df.set_index("id").at['Feature 1 __',
+                                                 'subject']
+        Fs2 = feature_peds_df.set_index("id").at['Feature 2',
+                                                 'subject']
+        self.assertEqual("1", Fs1)
+        self.assertEqual("2", Fs2)
 
 
 class TestBoot(TestBase):
@@ -1082,5 +1189,4 @@ class TestBoot(TestBase):
                                                      subject_column="subject",
                                                      iters=999)
         self.assertGreater(fake_median, real_median)
-
 

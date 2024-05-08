@@ -11,12 +11,94 @@ import pandas as pd
 import numpy as np
 import warnings
 from scipy.stats import mannwhitneyu
+from collections import Counter
+import os
+import pkg_resources
+import jinja2
+import json
+
+from q2_fmt._util import json_replace
+
+
+def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
+         subject_column, filter_missing_references=False,
+         drop_incomplete_subjects=False, drop_incomplete_timepoint=None,
+         level_delimiter=None):
+
+    peds_heatmap = ctx.get_action('fmt', 'peds_heatmap')
+
+    results = []
+
+    if peds_metric == 'sample':
+        sample_peds = ctx.get_action('fmt', 'sample_peds')
+        peds_dist = sample_peds(
+            table=table, metadata=metadata, time_column=time_column,
+            subject_column=subject_column, reference_column=reference_column,
+            drop_incomplete_subjects=drop_incomplete_subjects,
+            drop_incomplete_timepoint=drop_incomplete_timepoint,
+            filter_missing_references=filter_missing_references)
+
+    else:
+        if drop_incomplete_subjects or drop_incomplete_timepoint:
+            warnings.warn('Feature PEDS was selected as the PEDS metric, which'
+                          ' does not accept `drop_incomplete_subjects` or'
+                          ' `drop_incomplete_timepoint` as parameters. One'
+                          ' (or both) of these parameters were detected in'
+                          ' your input, and will be ignored.')
+
+        feature_peds = ctx.get_action('fmt', 'feature_peds')
+        peds_dist = feature_peds(
+            table=table, metadata=metadata, time_column=time_column,
+            subject_column=subject_column, reference_column=reference_column,
+            filter_missing_references=filter_missing_references)
+    results += peds_heatmap(data=peds_dist[0], level_delimiter=level_delimiter)
+
+    return tuple(results)
+
+
+def peds_heatmap(output_dir: str, data: pd.DataFrame,
+                 level_delimiter: str = None):
+    _rename_features(data=data, level_delimiter=level_delimiter)
+
+    J_ENV = jinja2.Environment(
+        loader=jinja2.PackageLoader('q2_fmt', 'assets')
+    )
+
+    x_label = "group"
+    y_label = "subject"
+    gradient = "measure"
+
+    x_label_name = data[x_label].attrs['title']
+    y_label_name = data[y_label].attrs['title']
+    measure_name = data[gradient].attrs['title']
+    title = f'{measure_name} of {y_label_name} across {x_label_name}'
+
+    index = J_ENV.get_template('index.html')
+    data = json.loads(data.to_json(orient='records'))
+    spec_fp = pkg_resources.resource_filename(
+        'q2_fmt', os.path.join('assets', 'spec.json')
+    )
+    with open(spec_fp) as fh:
+        json_obj = json.load(fh)
+
+    order = {"order": "ascending"}
+
+    full_spec = json_replace(json_obj, data=data, x_label=x_label,
+                             x_label_name=x_label_name,
+                             y_label=y_label, y_label_name=y_label_name,
+                             title=title, measure=gradient,
+                             measure_name=measure_name, order=order)
+
+    with open(os.path.join(output_dir, "index.html"), "w") as fh:
+        spec_string = json.dumps(full_spec)
+        fh.write(index.render(spec=spec_string))
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                 time_column: str, reference_column: str, subject_column: str,
                 filter_missing_references: bool = False,
-                drop_incomplete_subjects: bool = False) -> (pd.DataFrame):
+                drop_incomplete_subjects: bool = False,
+                drop_incomplete_timepoint: list = None) -> (pd.DataFrame):
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
@@ -38,6 +120,10 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                        subject_column, "categorical")
     _check_duplicate_subject_timepoint(subject_series, metadata,
                                        subject_column, time_column)
+    if drop_incomplete_timepoint is not None:
+        metadata = _drop_incomplete_timepoints(metadata, time_column,
+                                               drop_incomplete_timepoint)
+        table.filter(items=metadata.index)
     # return things that should be removed
     metadata, used_references = \
         _check_subjects_in_all_timepoints(subject_series, num_timepoints,
@@ -167,6 +253,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             peds_df.loc[len(peds_df)] = [feature, peds, num_sum[count],
                                          donor_sum[count], peds_time, feature]
             peds_df = peds_df.dropna()
+
         peds_df['id'].attrs.update({
             'title': "Feature ID",
             'description': ''
@@ -188,20 +275,55 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
     return peds_df
 
 
+# prep method
+def _rename_features(level_delimiter, data: pd.DataFrame):
+    if ("recipients with feature" in data.columns and
+            level_delimiter is not None):
+        group_name = data["group"].attrs['title']
+        subject_name = data["subject"].attrs['title']
+        measure_name = data["measure"].attrs['title']
+
+        y_labels = []
+        seen = Counter()
+        subject_seen = []
+        for i, sub in enumerate(data['subject']):
+            if level_delimiter in sub:
+                fields = [field for field in sub.split(level_delimiter)
+                          if not field.endswith('__')]
+            else:
+                # This is necessary to handle a case where the delimiter
+                # isn't found but the sub ends with __. In that case, sub would
+                # be completely thrown out.
+                fields = [sub]
+            subject_seen.append(sub)
+            most_specific = fields[-1]
+            if most_specific in seen and sub not in subject_seen:
+                y_labels.append(f"{seen[most_specific]}: {most_specific} *")
+            else:
+                y_labels.append(most_specific)
+            seen[most_specific] += 1
+        data['subject'] = y_labels
+
+        data['id'] = [i.replace(level_delimiter, ' ') for i in data['id']]
+
+        # currently attrs get deleted with df is changed. right now the best
+        # way to solve this is by saving them as temp and saving them at the
+        # end
+
+        data['subject'].attrs.update({'title': subject_name,
+                                      'description': ''})
+        data['group'].attrs.update({'title': group_name,
+                                    'description': ''})
+        data['measure'].attrs.update({'title': measure_name,
+                                      'description': ''})
+
+
 # Filtering methods
 def _check_for_time_column(metadata, time_column):
     try:
         num_timepoints = metadata[time_column].dropna().unique().size
     except Exception as e:
-        if time_column == metadata.index.name:
-            raise KeyError('The `--p-time-column` input provided was the same'
-                           ' as the index of the metadata. `--p-time-column`'
-                           ' can not be the same as the index of metadata:'
-                           ' `%s`' % time_column) from e
-        else:
-            raise KeyError('There was an error finding the provided'
-                           ' `--p-time-column`: `%s` in the metadata'
-                           % time_column) from e
+        _check_column_missing(metadata, time_column, "time", e)
     return num_timepoints
 
 
@@ -209,16 +331,7 @@ def _check_reference_column(metadata, reference_column):
     try:
         reference_series = metadata[reference_column]
     except Exception as e:
-        if reference_column == metadata.index.name:
-            raise KeyError('The `--p-reference-column` input provided was the'
-                           ' same as the index of the metadata.'
-                           ' `--p-reference-column` can not be the same as the'
-                           ' index of metadata:'
-                           ' `%s`' % reference_column) from e
-        else:
-            raise KeyError('There was an error finding the provided'
-                           ' `--p-reference-column`: `%s` in the metadata'
-                           % reference_column) from e
+        _check_column_missing(metadata, reference_column, "reference", e)
     return reference_series
 
 
@@ -245,15 +358,7 @@ def _check_subject_column(metadata, subject_column):
     try:
         subject_series = metadata[subject_column]
     except Exception as e:
-        if subject_column == metadata.index.name:
-            raise KeyError('The `--p-subject-column` input provided was the'
-                           ' same as the index of the metadata.'
-                           ' `--p-subject-column` can not be the same as the'
-                           ' index of metadata: `%s`' % subject_column) from e
-        else:
-            raise KeyError('There was an error finding the provided'
-                           ' `--p-subject-column`: `%s` in the metadata'
-                           % subject_column) from e
+        _check_column_missing(metadata, subject_column, "subject", e)
     return subject_series
 
 
@@ -267,6 +372,23 @@ def _check_duplicate_subject_timepoint(subject_series, metadata,
                              ' in a timepoint. All subjects must occur only'
                              ' once per timepoint. Subject %s appears in '
                              ' timepoints: %s' % (subject, timepoint_list))
+
+
+def _drop_incomplete_timepoints(metadata, time_column,
+                                drop_incomplete_timepoint):
+    for time in drop_incomplete_timepoint:
+        try:
+            assert (float(time)
+                    in metadata[time_column].unique())
+        except AssertionError as e:
+            raise AssertionError('The provided incomplete timepoint `%s` was'
+                                 ' not found in the metadata. Please check'
+                                 ' that the incomplete timepoint provided is'
+                                 ' in your provided --p-time-column: `%s`'
+                                 % (time, time_column)) from e
+        metadata = metadata[metadata[time_column] !=
+                            float(time)]
+    return metadata
 
 
 def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
@@ -288,8 +410,12 @@ def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
                                     != num_timepoints].index).to_list()
             raise ValueError('Missing timepoints for associated subjects.'
                              ' Please make sure that all subjects have all'
-                             ' timepoints or use drop_incomplete_subjects'
-                             ' parameter. The incomplete subjects were %s'
+                             ' timepoints. You can drop these subjects by'
+                             ' using the drop_incomplete_subjects parameter or'
+                             ' drop any timepoints that have large numbers'
+                             ' of subjects missing by using the'
+                             ' drop_incomplete_timepoints parameter. The'
+                             ' incomplete subjects were %s'
                              % incomplete_subjects)
     return metadata, used_references
 
@@ -304,6 +430,19 @@ def _check_column_type(column_properties, parameter_type, column, column_type):
                              ' non-%s values that was'
                              ' selected: `%s`' % (column_type, parameter_type,
                                                   column_type, column)) from e
+
+
+def _check_column_missing(metadata, column, column_param, e):
+    if column == metadata.index.name:
+        raise KeyError('The `--p-%s-column` input provided was the'
+                       ' same as the index of the metadata.'
+                       ' `--p-%s-column` can not be the same as the'
+                       ' index of metadata:'
+                       ' `%s`' % (column_param, column_param, column)) from e
+    else:
+        raise KeyError('There was an error finding the provided'
+                       ' `--p-%s-column`: `%s` in the metadata'
+                       % (column_param, column)) from e
 
 
 # PEDS calculation methods

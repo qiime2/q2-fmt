@@ -10,7 +10,7 @@ import importlib
 
 from qiime2.plugin import (Str, Plugin, Metadata, TypeMap,
                            Bool, Choices, Visualization, Properties, Citations,
-                           Int, Range)
+                           Int, Range, List)
 from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
@@ -183,14 +183,43 @@ plugin.methods.register_function(
     }
 )
 
+plugin.pipelines.register_function(
+    function=q2_fmt.peds,
+    inputs={'table': FeatureTable[Frequency | RelativeFrequency |
+                                  PresenceAbsence]},
+    parameters={'metadata': Metadata,
+                'peds_metric': Str % Choices('feature', 'sample'),
+                'time_column': Str, 'reference_column': Str,
+                'subject_column': Str,
+                'filter_missing_references': Bool,
+                'drop_incomplete_subjects': Bool,
+                'drop_incomplete_timepoint': List[Str],
+                'level_delimiter': Str},
+    outputs=[('peds_heatmap', Visualization)],
+    parameter_descriptions={},
+    output_descriptions={},
+    name='',
+    description=''
+)
+
+plugin.visualizers.register_function(
+    function=q2_fmt.peds_heatmap,
+    inputs={'data': GroupDist[Ordered, Matched] % Properties("peds")},
+    parameters={'level_delimiter': Str},
+    parameter_descriptions={},
+    name='PEDS Heatmap',
+    description=''
+)
+
 plugin.methods.register_function(
     function=q2_fmt.sample_peds,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': T_subject,
+                'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool,
-                'drop_incomplete_subjects': Bool},
+                'drop_incomplete_subjects': Bool,
+                'drop_incomplete_timepoint': List[Str]},
     outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
@@ -211,6 +240,11 @@ plugin.methods.register_function(
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
+        'drop_incomplete_timepoint': 'Filter out a list of provided timepoint.'
+                                     ' This will be preformed before'
+                                     ' drop_incomplete_subjects if the'
+                                     ' drop_incomplete_subjects parameter is'
+                                     ' passed.'
     },
     output_descriptions={
         'peds_dists': 'The distributions for the PEDS measure,'
@@ -231,7 +265,7 @@ plugin.methods.register_function(
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': T_subject,
+                'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool},
     outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
     parameter_descriptions={
@@ -313,5 +347,6 @@ plugin.visualizers.register_function(
         'peds_heatmap': ex.peds_heatmap
      }
 )
+
 
 importlib.import_module('q2_fmt._transformer')
