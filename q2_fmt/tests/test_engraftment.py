@@ -19,8 +19,8 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _check_reference_column, _check_for_time_column,
                           _check_subject_column, _check_column_type,
                           _drop_incomplete_timepoints, feature_peds,
-                          _check_column_missing, _rename_features, peds_bootstrap)
-
+                          _check_column_missing, _rename_features,
+                          peds_bootstrap)
 
 
 class TestBase(TestPluginBase):
@@ -1189,4 +1189,3 @@ class TestBoot(TestBase):
                                                      subject_column="subject",
                                                      iters=999)
         self.assertGreater(fake_median, real_median)
-

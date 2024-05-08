@@ -478,13 +478,13 @@ def peds_bootstrap(table: pd.DataFrame, metadata: qiime2.Metadata,
                    drop_incomplete_subjects: bool = False,
                    bootstrap_replicates: int = 999):
     metadata_df = metadata.to_dataframe
-    ## TODO: Grab Donor in a more logic way
-    donor = metadata_df.loc[metadata_df['Location'] == body_site]
-    recipient = metadata_df.loc[metadata_df['Location'] != body_site]
+    # TODO: Grab Donor in a more logic way
+    # donor = metadata_df.loc[metadata_df['Location'] == body_site]
+    # recipient = metadata_df.loc[metadata_df['Location'] != body_site]
     fake_donor = []
     for i in range(0, bootstrap_replicates+1):
         if i == 0:
-            peds, = sample_peds(table=table, metadata=metadata, 
+            peds, = sample_peds(table=table, metadata=metadata,
                                 time_column=time_column,
                                 reference_column=reference_column,
                                 subject_column=subject_column)
