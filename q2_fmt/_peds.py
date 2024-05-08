@@ -338,36 +338,28 @@ def peds_bootstrap(table: pd.DataFrame, metadata: qiime2.Metadata,
                    filter_missing_references: bool = False,
                    drop_incomplete_subjects: bool = False,
                    bootstrap_replicates: int = 999):
+    metadata_df = metadata.to_dataframe
+    ## TODO: Grab Donor in a more logic way
+    donor = metadata_df.loc[metadata_df['Location'] == body_site]
+    recipient = metadata_df.loc[metadata_df['Location'] != body_site]
     fake_donor = []
-    for i in range(0, bootstrap_replicates):
+    for i in range(0, bootstrap_replicates+1):
         if i == 0:
-            peds, = \
-             sample_peds(
-              table=table,
-              metadata=metadata,
-              time_column=time_column,
-              subject_column=subject_column,
-              reference_column=reference_column,
-              drop_incomplete_subjects=drop_incomplete_subjects,
-              filter_missing_references=filter_missing_references)
+            peds, = sample_peds(table=table, metadata=metadata, 
+                                time_column=time_column,
+                                reference_column=reference_column,
+                                subject_column=subject_column)
             peds = peds.view(pd.DataFrame).set_index("id")
-            real_donor = peds["measure"].to_list()
+            real_temp = peds["measure"].to_list()
         else:
-            recipient = metadata[reference_column].dropna()
-            donor = metadata[metadata[reference_column].isna()]
             shifted_list = recipient[reference_column].sample(frac=1).to_list()
-            recipient[reference_column] = shifted_list
-            metadata_df = pd.concat([recipient, donor])
+            recipient.loc[:, reference_column] = shifted_list
+            metadata_df = pd.concat([donor, recipient])
             metadata = qiime2.Metadata(metadata_df)
-            peds, = \
-                sample_peds(
-                 table=table,
-                 metadata=metadata,
-                 time_column=time_column,
-                 subject_column=subject_column,
-                 reference_column=reference_column,
-                 drop_incomplete_subjects=drop_incomplete_subjects,
-                 filter_missing_references=filter_missing_references)
+            peds, = sample_peds(table=table, metadata=metadata,
+                                time_column=time_column,
+                                reference_column=reference_column,
+                                subject_column=subject_column)
             peds = peds.view(pd.DataFrame).set_index("id")
             fake_donor = fake_donor + peds["measure"].to_list()
-    s, p = mannwhitneyu(real_donor, fake_donor, alternative='greater')
+    s, p = mannwhitneyu(real_temp, fake_donor, alternative='greater')

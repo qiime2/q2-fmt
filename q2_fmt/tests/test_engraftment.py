@@ -18,7 +18,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _filter_associated_reference,
                           _check_reference_column, _check_for_time_column,
                           _check_subject_column, _check_column_type,
-                          feature_peds)
+                          feature_peds, peds_bootstrap)
 
 
 class TestBase(TestPluginBase):
@@ -1022,3 +1022,65 @@ class TestPeds(TestBase):
                                     " not be the same as the index of"
                                     " metadata: `id`"):
             _check_reference_column(metadata_df, "id")
+
+
+class TestBoot(TestBase):
+    def test_high_donor_overlap(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2', 'donor3'],
+            'Ref': ['donor1', 'donor2', 'donor3', float("Nan"), float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub2', 'sub3', float("Nan"), float("Nan"),
+                        float("Nan")],
+            'group': [1, 1, 1, float("Nan"), float("Nan"),
+                      float("Nan")],
+            "Location": [float("Nan"), float("Nan"),
+                         float("Nan"), 'test', 'test',
+                         'test']}).set_index('id')
+
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2', 'donor3'],
+            'Feature1': [1, 0, 0, 1, 0, 0],
+            'Feature2': [0, 1, 0, 0, 1, 0],
+            'Feature3': [0, 0, 1, 0, 0, 1]}).set_index('id')
+
+        p, real_mean, fake_mean = peds_bootstrap(metadata_df=metadata_df,
+                                                 table=table_df,
+                                                 time_column="group",
+                                                 reference_column="Ref",
+                                                 subject_column="subject",
+                                                 iters=999)
+        self.assertGreater(real_mean, fake_mean)
+
+    def test_low_donor_overlap(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2', 'donor3'],
+            'Ref': ['donor1', 'donor2', 'donor3', float("Nan"), float("Nan"),
+                    float("Nan")],
+            'subject': ['sub1', 'sub2', 'sub3', float("Nan"), float("Nan"),
+                        float("Nan")],
+            'group': [1, 1, 1, float("Nan"), float("Nan"),
+                      float("Nan")],
+            "Location": [float("Nan"), float("Nan"),
+                         float("Nan"), 'test', 'test',
+                         'test']}).set_index('id')
+
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2', 'donor3'],
+            'Feature1': [1, 0, 0, 0, 0, 1],
+            'Feature2': [0, 1, 0, 1, 0, 0],
+            'Feature3': [0, 0, 1, 0, 1, 0]}).set_index('id')
+
+        p, real_median, fake_median = peds_bootstrap(metadata_df=metadata_df,
+                                                     table=table_df,
+                                                     time_column="group",
+                                                     reference_column="Ref",
+                                                     subject_column="subject",
+                                                     iters=999)
+        self.assertGreater(fake_median, real_median)
+
+
