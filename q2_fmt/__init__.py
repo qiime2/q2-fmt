@@ -14,4 +14,4 @@ __version__ = get_versions()['version']
 del get_versions
 
 __all__ = ['engraftment', 'sample_peds', 'feature_peds',
-           'peds', 'peds_heatmap', 'group_timepoints']
+           'peds', 'peds_heatmap', 'group_timepoints', 'peds_bootstrap']
