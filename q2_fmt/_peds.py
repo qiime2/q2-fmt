@@ -479,8 +479,10 @@ def peds_bootstrap(table: pd.DataFrame, metadata: qiime2.Metadata,
                    bootstrap_replicates: int = 999):
     metadata_df = metadata.to_dataframe
     # TODO: Grab Donor in a more logic way
-    # donor = metadata_df.loc[metadata_df['Location'] == body_site]
-    # recipient = metadata_df.loc[metadata_df['Location'] != body_site]
+    donor = metadata_df[metadata.index.isin(
+        _check_reference_column(metadata=metadata_df,
+                                reference_column=reference_column))]
+    recipient = metadata_df.loc[metadata_df[reference_column].notnull()]
     fake_donor = []
     for i in range(0, bootstrap_replicates+1):
         if i == 0:

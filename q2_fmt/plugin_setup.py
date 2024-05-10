@@ -299,7 +299,7 @@ plugin.methods.register_function(
     }
 )
 
-plugin.methods.register_function(
+plugin.visualizers.register_function(
     function=q2_fmt.peds_bootstrap,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
@@ -328,9 +328,6 @@ plugin.methods.register_function(
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
-    },
-    output_descriptions={
-        # TODO: I dont know what it is going to output yet?
     },
     name='',
     description='',
