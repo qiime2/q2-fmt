@@ -119,11 +119,12 @@ plugin.pipelines.register_function(
                           ' (either Mann-Whitney U or Wilxocon SRT) from the'
                           ' grouped diversity data and selected comparison.',
     },
-    name='Engraftment Pipeline for FMT Analysis',
+    name='Engraftment Pipeline for FMT Diversity Community'
+         ' Coalescence Analysis',
     description='Applies group timepoints to Fecal Microbiota Transplant data'
          ' and then applies statistical tests (Wilcoxon signed rank test or'
          ' Mann–Whitney U test) on alpha or beta diversity metrics to assess'
-         ' engraftment success.',
+         ' Community Coalescense of the FMT.',
     examples={
         'engraftment_baseline': ex.engraftment_baseline
     }
@@ -175,8 +176,10 @@ plugin.methods.register_function(
                            ' Otherwise, these are just the per-sample'
                            ' measurements of alpha-diversity.'
     },
-    name='',
-    description='',
+    name='Prep Method for organizing metadata and diversity metrics'
+         ' for appropriate statisics ',
+    description='Puts Diversity Metric data in a long form data structure'
+                ' that includes relevant metadata information',
     examples={
         'group_timepoints_alpha_ind': ex.group_timepoints_alpha_independent,
         'group_timepoints_beta': ex.group_timepoints_beta
@@ -198,8 +201,9 @@ plugin.pipelines.register_function(
     outputs=[('peds_heatmap', Visualization)],
     parameter_descriptions={},
     output_descriptions={},
-    name='',
-    description=''
+    name='PEDS pipeline to calculate feature or sample peds',
+    description='Runs a pipeline to calculate sample or feature peds,'
+                '  and generate the relevant heatmap'
 )
 
 plugin.visualizers.register_function(
@@ -208,7 +212,7 @@ plugin.visualizers.register_function(
     parameters={'level_delimiter': Str},
     parameter_descriptions={},
     name='PEDS Heatmap',
-    description=''
+    description='Plot heatmap for PEDS value over time'
 )
 
 plugin.methods.register_function(
@@ -253,8 +257,10 @@ plugin.methods.register_function(
                       ' PEDS calulations. May also contain subject IDs,'
                       ' if `subject_column` is provided in the `metadata`.'
     },
-    name='',
-    description='',
+    name='Proportional Engraftment of Donor Strains (Features) in each'
+         ' recipient sample',
+    description='Calculates Percentage of microbes that where found in the'
+    'donated material that are found in the recipient',
     citations=[citations['aggarwala_precise_2021']],
     examples={
         'peds_methods': ex.peds_method
@@ -292,8 +298,9 @@ plugin.methods.register_function(
                       ' PEDS calulations. May also contain subject IDs,'
                       ' if `subject_column` is provided in the `metadata`.'
     },
-    name='',
-    description='',
+    name='Porportional Engraftment of Donor Strains per feature',
+    description='Calculates how many reciepients recieved a given'
+                ' donated material feature ',
     examples={
         'peds_methods': ex.feature_peds_method
     }
