@@ -201,8 +201,8 @@ plugin.pipelines.register_function(
     outputs=[('peds_heatmap', Visualization)],
     parameter_descriptions={},
     output_descriptions={},
-    name='PEDS pipeline to calculate feature or sample peds',
-    description='Runs a pipeline to calculate sample or feature peds,'
+    name='PEDS pipeline to calculate feature or sample PEDS',
+    description='Runs a pipeline to calculate sample or feature PEDS,'
                 '  and generate the relevant heatmap'
 )
 
@@ -259,7 +259,7 @@ plugin.methods.register_function(
     },
     name='Proportional Engraftment of Donor Strains (Features) in each'
          ' recipient sample',
-    description='Calculates Percentage of microbes that where found in the'
+    description='Calculates percentage of microbes that where found in the'
     'donated material that are found in the recipient',
     citations=[citations['aggarwala_precise_2021']],
     examples={
