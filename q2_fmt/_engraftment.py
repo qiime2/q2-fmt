@@ -61,14 +61,14 @@ def group_timepoints(
     is_beta, used_references, time_col, subject_col, used_controls = \
         _data_filtering(diversity_measure, metadata, time_column,
                         reference_column, subject_column, control_column,
-                        filter_missing_references, where)
+                        filter_missing_references, where, group_column=None)
 
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
     diversity_measure.index.name = 'id'
 
     ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
-                                time_col, subject_col)
+                                time_col, subject_col, group_col= None)
 
     id_annotation = {
         'title': used_references.index.name,
@@ -124,9 +124,99 @@ def group_timepoints(
     return ordered_df, independent_df
 
 
+def prepare_timepoint_groups(
+        diversity_measure: pd.Series, metadata: qiime2.Metadata,
+        time_column: str, reference_column: str, group_column: str,
+        subject_column: str = False, control_column: str = None,
+        filter_missing_references: bool = False,
+        where: str = None) -> (pd.DataFrame, pd.DataFrame):
+
+    if isinstance(diversity_measure.index, pd.MultiIndex):
+        diversity_measure.index = _sort_multi_index(diversity_measure.index)
+
+    (is_beta, used_references, time_col, group_col,
+     subject_col, used_controls) = \
+        _data_filtering(diversity_measure, metadata, time_column,
+                        reference_column, group_column, subject_column,
+                        control_column, filter_missing_references, where)
+
+    original_measure_name = diversity_measure.name
+    diversity_measure.name = 'measure'
+    diversity_measure.index.name = 'id'
+
+    ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
+                                time_col, subject_col=subject_col,
+                                group_col=group_col)
+
+    id_annotation = {
+        'title': used_references.index.name,
+        'description': '...'
+    }
+    # id, measure, group, [subject]
+    ordered_df['id'].attrs.update(id_annotation)
+    ordered_df['measure'].attrs.update({
+        'title': ('Distance to %s' % used_references.name)
+        if is_beta else original_measure_name,
+        'description': '...'
+    })
+    ordered_df['group'].attrs.update({
+        'title': time_col.name,
+        'description': '...'
+    })
+    ordered_df['class'].attrs.update({
+        'title': "selected metadata column",
+        'description': '...'
+    })
+
+    ordered_df['level'].attrs.update({
+        'title': group_col.name,
+        'description': '...'
+    })
+    if subject_col is not None:
+        ordered_df['subject'].attrs.update({
+            'title': subject_col.name,
+            'description': '...'
+        })
+
+    independent_df = _independent_dists(diversity_measure, metadata,
+                                        used_references, is_beta,
+                                        used_controls)
+
+    # id, measure, group, [A, B]
+    if is_beta:
+        independent_df['id'].attrs.update({
+            'title': 'Pairwise Comparison',
+            'description': 'The pairwise comparisons within a group,'
+                           ' seperated by "..". Use column A and B for easier'
+                           ' parsing.'
+        })
+    else:
+        independent_df['id'].attrs.update(id_annotation)
+
+    independent_df['measure'].attrs.update({
+        'title': 'distance' if is_beta else original_measure_name,
+        'description': 'Pairwise distance between A and B' if is_beta else
+                       original_measure_name
+    })
+    independent_df['group'].attrs.update({
+        'title': used_references.name if used_controls is None else
+        '%s or %s' % (used_references.name, used_controls.name),
+        'description': '...'
+    })
+
+    if is_beta:
+        independent_df['A'].attrs.update(id_annotation)
+        independent_df['B'].attrs.update(id_annotation)
+
+    print(ordered_df)
+
+    return ordered_df, independent_df
+
+
 # HELPER FUNCTION FOR DATA FILTERING
 def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                     time_column: str, reference_column: str,
+                    group_column: str = None,
                     subject_column: str = False, control_column: str = None,
                     filter_missing_references: bool = False,
                     where: str = None):
@@ -220,6 +310,11 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             param_name='subject_column',
             expected_type=qiime2.CategoricalMetadataColumn)
 
+    group_col = _get_series_from_col(
+        md=metadata, col_name=group_column,
+        param_name='group_column',
+        expected_type=qiime2.CategoricalMetadataColumn)
+
     used_controls = None
     if control_column is not None:
         control_col = _get_series_from_col(md=metadata,
@@ -227,7 +322,8 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                                            param_name='control_column')
         used_controls = control_col[~control_col.isna()]
 
-    return is_beta, used_references, time_col, subject_col, used_controls
+    return (is_beta, used_references, time_col, subject_col,
+            group_col, used_controls)
 
 
 # HELPER FUNCTION FOR sorting a multi-index (for dist matrix and metadata)
@@ -239,7 +335,7 @@ def _sort_multi_index(index):
 
 # HELPER FUNCTION FOR GroupDists[Ordered, Matched | Independent]
 def _ordered_dists(diversity_measure: pd.Series, is_beta,
-                   used_references, time_col, subject_col):
+                   used_references, time_col, subject_col, group_col):
     if is_beta:
         idx = pd.MultiIndex.from_frame(
             used_references.to_frame().reset_index())
@@ -269,7 +365,11 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta,
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
     if subject_col is not None:
+        print(subject_col)
         ordinal_df['subject'] = subject_col
+
+    ordinal_df['class'] = group_col.name
+    ordinal_df['level'] = group_col
 
     return ordinal_df.reset_index()
 
