@@ -13,7 +13,7 @@ from skbio.stats.distance import DistanceMatrix
 from qiime2.plugin.testing import TestPluginBase
 from qiime2 import Metadata
 
-from q2_fmt._engraftment import group_timepoints
+from q2_fmt._engraftment import prepare_timepoints
 from q2_fmt._peds import (_compute_peds, sample_peds,
                           _filter_associated_reference,
                           _check_reference_column, _check_for_time_column,
@@ -43,38 +43,38 @@ class ErrorMixins:
     def test_with_time_column_input_not_in_metadata(self):
         with self.assertRaisesRegex(ValueError,
                                     'time_column.*foo.*metadata'):
-            group_timepoints(diversity_measure=self.div,
-                             metadata=self.md,
-                             time_column='foo',
-                             reference_column='relevant_donor',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.div,
+                               metadata=self.md,
+                               time_column='foo',
+                               reference_column='relevant_donor',
+                               control_column='control')
 
     def test_with_reference_column_input_not_in_metadata(self):
         with self.assertRaisesRegex(ValueError,
                                     'reference_column.*foo.*metadata'):
-            group_timepoints(diversity_measure=self.div,
-                             metadata=self.md,
-                             time_column='days_post_transplant',
-                             reference_column='foo',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.div,
+                               metadata=self.md,
+                               time_column='days_post_transplant',
+                               reference_column='foo',
+                               control_column='control')
 
     def test_with_control_column_input_not_in_metadata(self):
         with self.assertRaisesRegex(ValueError,
                                     'control_column.*foo.*metadata'):
-            group_timepoints(diversity_measure=self.div,
-                             metadata=self.md,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='foo')
+            prepare_timepoints(diversity_measure=self.div,
+                               metadata=self.md,
+                               time_column='days_post_transplant',
+                               reference_column='relevant_donor',
+                               control_column='foo')
 
     def test_with_non_numeric_time_column(self):
         with self.assertRaisesRegex(ValueError,
                                     'time_column.*categorical.*numeric'):
-            group_timepoints(diversity_measure=self.div,
-                             metadata=self.md,
-                             time_column='non_numeric_time_column',
-                             reference_column='relevant_donor',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.div,
+                               metadata=self.md,
+                               time_column='non_numeric_time_column',
+                               reference_column='relevant_donor',
+                               control_column='control')
 
 
 class TestAlphaErrors(TestBase, ErrorMixins):
@@ -114,11 +114,12 @@ class TestGroupTimepoints(TestBase):
                   'sampleC', 'sampleD', 'sampleD']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.dm,
-                                           metadata=self.md_beta,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor',
-                                           control_column='control')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.dm,
+            metadata=self.md_beta,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor',
+            control_column='control')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
@@ -144,21 +145,22 @@ class TestGroupTimepoints(TestBase):
                   'sampleC', 'sampleD', 'sampleD']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.dm,
-                                           metadata=self.md_beta,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor',
-                                           control_column='control',
-                                           subject_column='subject')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.dm,
+            metadata=self.md_beta,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor',
+            control_column='control',
+            subject_column='subject')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_beta_dists_with_same_donor_for_all_samples(self):
-        _, ref_df = group_timepoints(diversity_measure=self.dm,
-                                     metadata=self.md_beta,
-                                     time_column='days_post_transplant',
-                                     reference_column='relevant_donor_all')
+        _, ref_df = prepare_timepoints(diversity_measure=self.dm,
+                                       metadata=self.md_beta,
+                                       time_column='days_post_transplant',
+                                       reference_column='relevant_donor_all')
 
         self.assertTrue(ref_df.empty)
 
@@ -166,11 +168,11 @@ class TestGroupTimepoints(TestBase):
         with self.assertRaisesRegex(KeyError,
                                     'Missing references for the associated'
                                     ' sample data'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='single_donor',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.dm,
+                               metadata=self.md_beta,
+                               time_column='days_post_transplant',
+                               reference_column='single_donor',
+                               control_column='control')
 
     def test_beta_dists_with_donors_and_one_control(self):
         exp_ref_df = pd.DataFrame({
@@ -181,11 +183,11 @@ class TestGroupTimepoints(TestBase):
             'B': ['donor2', 'donor3', 'donor3']
         })
 
-        _, ref_df = group_timepoints(diversity_measure=self.dm,
-                                     metadata=self.md_beta,
-                                     time_column='days_post_transplant',
-                                     reference_column='relevant_donor',
-                                     control_column='single_control')
+        _, ref_df = prepare_timepoints(diversity_measure=self.dm,
+                                       metadata=self.md_beta,
+                                       time_column='days_post_transplant',
+                                       reference_column='relevant_donor',
+                                       control_column='single_control')
 
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
@@ -204,10 +206,11 @@ class TestGroupTimepoints(TestBase):
             'B': ['donor2', 'donor3', 'donor3']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.dm,
-                                           metadata=self.md_beta,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.dm,
+            metadata=self.md_beta,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
@@ -215,33 +218,33 @@ class TestGroupTimepoints(TestBase):
     def test_beta_dists_no_donors_with_controls(self):
         with self.assertRaisesRegex(
             TypeError,
-            r"group_timepoints\(\) missing 1 required positional argument: "
+            r"prepare_timepoints\(\) missing 1 required positional argument: "
                 "'reference_column'"):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.dm,
+                               metadata=self.md_beta,
+                               time_column='days_post_transplant',
+                               control_column='control')
 
     def test_beta_dists_with_invalid_ref_column(self):
         with self.assertRaisesRegex(KeyError, 'References included in the'
                                     ' metadata are missing from the diversity'
                                     ' measure.*foo.*bar.*baz'):
-            group_timepoints(diversity_measure=self.dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='invalid_ref_control',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.dm,
+                               metadata=self.md_beta,
+                               time_column='days_post_transplant',
+                               reference_column='invalid_ref_control',
+                               control_column='control')
 
     def test_beta_dists_with_empty_diversity_series(self):
         empty_beta_series = pd.Series()
 
         with self.assertRaisesRegex(ValueError,
                                     'Empty diversity measure detected'):
-            group_timepoints(diversity_measure=empty_beta_series,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=empty_beta_series,
+                               metadata=self.md_beta,
+                               time_column='days_post_transplant',
+                               reference_column='relevant_donor',
+                               control_column='control')
 
     def test_beta_dists_with_extra_samples_in_metadata_not_in_diversity(self):
         extra_md = Metadata.load(self.get_data_path(
@@ -265,11 +268,12 @@ class TestGroupTimepoints(TestBase):
                   'sampleC', 'sampleD', 'sampleD']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.dm,
-                                           metadata=extra_md,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor',
-                                           control_column='control')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.dm,
+            metadata=extra_md,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor',
+            control_column='control')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
@@ -281,11 +285,11 @@ class TestGroupTimepoints(TestBase):
         with self.assertRaisesRegex(ValueError,
                                     'The following IDs are not present'
                                     ' in the metadata'):
-            group_timepoints(diversity_measure=extra_dm,
-                             metadata=self.md_beta,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=extra_dm,
+                               metadata=self.md_beta,
+                               time_column='days_post_transplant',
+                               reference_column='relevant_donor',
+                               control_column='control')
 
     # Alpha Diversity (Series) Test Cases
     def test_alpha_dists_with_donors_controls(self):
@@ -304,11 +308,12 @@ class TestGroupTimepoints(TestBase):
                       'control1', 'control1', 'control2', 'control2']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
-                                           metadata=self.md_alpha,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor',
-                                           control_column='control')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.alpha,
+            metadata=self.md_alpha,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor',
+            control_column='control')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
@@ -331,12 +336,13 @@ class TestGroupTimepoints(TestBase):
                       'control1', 'control1', 'control2', 'control2']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
-                                           metadata=self.md_alpha,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor',
-                                           control_column='control',
-                                           subject_column='subject')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.alpha,
+            metadata=self.md_alpha,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor',
+            control_column='control',
+            subject_column='subject')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
@@ -356,7 +362,7 @@ class TestGroupTimepoints(TestBase):
                       'control1', 'control2', 'control2']
         })
 
-        time_df, ref_df = group_timepoints(
+        time_df, ref_df = prepare_timepoints(
             diversity_measure=self.alpha, metadata=self.md_alpha,
             time_column='days_post_transplant',
             reference_column='relevant_donor_all',
@@ -369,11 +375,11 @@ class TestGroupTimepoints(TestBase):
         with self.assertRaisesRegex(KeyError,
                                     'Missing references for the associated'
                                     ' sample data'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             reference_column='single_donor',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.alpha,
+                               metadata=self.md_alpha,
+                               time_column='days_post_transplant',
+                               reference_column='single_donor',
+                               control_column='control')
 
     def test_alpha_dists_with_donors_and_one_control(self):
         exp_time_df = pd.DataFrame({
@@ -390,11 +396,12 @@ class TestGroupTimepoints(TestBase):
                       'reference', 'control1']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
-                                           metadata=self.md_alpha,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor',
-                                           control_column='single_control')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.alpha,
+            metadata=self.md_alpha,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor',
+            control_column='single_control')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
@@ -413,10 +420,11 @@ class TestGroupTimepoints(TestBase):
             'group': ['reference', 'reference', 'reference', 'reference']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
-                                           metadata=self.md_alpha,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.alpha,
+            metadata=self.md_alpha,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
@@ -424,33 +432,33 @@ class TestGroupTimepoints(TestBase):
     def test_alpha_dists_no_donors_with_controls(self):
         with self.assertRaisesRegex(
             TypeError,
-            r"group_timepoints\(\) missing 1 required positional argument: "
+            r"prepare_timepoints\(\) missing 1 required positional argument: "
                 "'reference_column'"):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.alpha,
+                               metadata=self.md_alpha,
+                               time_column='days_post_transplant',
+                               control_column='control')
 
     def test_alpha_dists_with_invalid_ref_column(self):
         with self.assertRaisesRegex(KeyError, 'References included in the'
                                     ' metadata are missing from the diversity'
                                     ' measure.*foo.*bar.*baz'):
-            group_timepoints(diversity_measure=self.alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             reference_column='invalid_ref_control',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=self.alpha,
+                               metadata=self.md_alpha,
+                               time_column='days_post_transplant',
+                               reference_column='invalid_ref_control',
+                               control_column='control')
 
     def test_alpha_dists_with_empty_diversity_series(self):
         empty_alpha_series = pd.Series()
 
         with self.assertRaisesRegex(ValueError,
                                     'Empty diversity measure detected'):
-            group_timepoints(diversity_measure=empty_alpha_series,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=empty_alpha_series,
+                               metadata=self.md_alpha,
+                               time_column='days_post_transplant',
+                               reference_column='relevant_donor',
+                               control_column='control')
 
     def test_alpha_dists_with_extra_samples_in_metadata_not_in_diversity(self):
         extra_md = Metadata.load(self.get_data_path(
@@ -471,11 +479,12 @@ class TestGroupTimepoints(TestBase):
                       'control1', 'control1', 'control2', 'control2']
         })
 
-        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
-                                           metadata=extra_md,
-                                           time_column='days_post_transplant',
-                                           reference_column='relevant_donor',
-                                           control_column='control')
+        time_df, ref_df = prepare_timepoints(
+            diversity_measure=self.alpha,
+            metadata=extra_md,
+            time_column='days_post_transplant',
+            reference_column='relevant_donor',
+            control_column='control')
 
         pd.testing.assert_frame_equal(time_df, exp_time_df)
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
@@ -486,11 +495,11 @@ class TestGroupTimepoints(TestBase):
 
         with self.assertRaisesRegex(ValueError, 'The following IDs are not'
                                     ' present in the metadata'):
-            group_timepoints(diversity_measure=extra_alpha,
-                             metadata=self.md_alpha,
-                             time_column='days_post_transplant',
-                             reference_column='relevant_donor',
-                             control_column='control')
+            prepare_timepoints(diversity_measure=extra_alpha,
+                               metadata=self.md_alpha,
+                               time_column='days_post_transplant',
+                               reference_column='relevant_donor',
+                               control_column='control')
 
     def test_examples(self):
         self.execute_examples()

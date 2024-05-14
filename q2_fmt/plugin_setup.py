@@ -130,7 +130,7 @@ plugin.pipelines.register_function(
 )
 
 plugin.methods.register_function(
-    function=q2_fmt.group_timepoints,
+    function=q2_fmt.prepare_timepoints,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
@@ -178,8 +178,9 @@ plugin.methods.register_function(
     name='',
     description='',
     examples={
-        'group_timepoints_alpha_ind': ex.group_timepoints_alpha_independent,
-        'group_timepoints_beta': ex.group_timepoints_beta
+        'prepare_timepoints_alpha_ind':
+            ex.prepare_timepoints_alpha_independent,
+        'prepare_timepoints_beta': ex.prepare_timepoints_beta
     }
 )
 

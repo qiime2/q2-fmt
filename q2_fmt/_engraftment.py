@@ -20,14 +20,14 @@ def engraftment(
 ):
 
     raincloud_plot = ctx.get_action('stats', 'plot_rainclouds')
-    group_timepoints = ctx.get_action('fmt', 'group_timepoints')
+    prepare_timepoints = ctx.get_action('fmt', 'prepare_timepoints')
 
     results = []
 
-    time_dist, ref_dist = group_timepoints(diversity_measure, metadata,
-                                           time_column, reference_column,
-                                           subject_column, control_column,
-                                           filter_missing_references, where)
+    time_dist, ref_dist = prepare_timepoints(diversity_measure, metadata,
+                                             time_column, reference_column,
+                                             subject_column, control_column,
+                                             filter_missing_references, where)
 
     if compare == 'reference' or compare == 'all-pairwise':
         mann_whitney_u = ctx.get_action('stats', 'mann_whitney_u')
@@ -49,7 +49,7 @@ def engraftment(
     return tuple(results)
 
 
-def group_timepoints(
+def prepare_timepoints(
         diversity_measure: pd.Series, metadata: qiime2.Metadata,
         time_column: str, reference_column: str, subject_column: str = False,
         control_column: str = None, filter_missing_references: bool = False,

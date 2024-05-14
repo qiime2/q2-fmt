@@ -68,12 +68,12 @@ def peds_dist_factory():
     )
 
 
-def group_timepoints_alpha_independent(use):
+def prepare_timepoints_alpha_independent(use):
     alpha = use.init_artifact('alpha', alpha_div_factory)
     metadata = use.init_metadata('metadata', alpha_md_factory)
 
     timepoints, references = use.action(
-        use.UsageAction('fmt', 'group_timepoints'),
+        use.UsageAction('fmt', 'prepare_timepoints'),
         use.UsageInputs(
             diversity_measure=alpha,
             metadata=metadata,
@@ -91,12 +91,12 @@ def group_timepoints_alpha_independent(use):
     references.assert_output_type('GroupDist[Unordered, Independent]')
 
 
-def group_timepoints_beta(use):
+def prepare_timepoints_beta(use):
     beta = use.init_artifact('beta', beta_div_factory)
     metadata = use.init_metadata('metadata', beta_md_factory)
 
     timepoints, references = use.action(
-        use.UsageAction('fmt', 'group_timepoints'),
+        use.UsageAction('fmt', 'prepare_timepoints'),
         use.UsageInputs(
             diversity_measure=beta,
             metadata=metadata,
