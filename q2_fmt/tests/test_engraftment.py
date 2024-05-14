@@ -1122,7 +1122,6 @@ class TestPeds(TestBase):
                                        reference_column="Ref",
                                        subject_column="subject")
         _rename_features(data=feature_peds_df, level_delimiter=";")
-        print(feature_peds_df)
         Fs1 = feature_peds_df.set_index("id").at['Feature 1 __',
                                                  'subject']
         Fs2 = feature_peds_df.set_index("id").at['Feature 2',
@@ -1152,14 +1151,17 @@ class TestBoot(TestBase):
             'Feature1': [1, 0, 0, 1, 0, 0],
             'Feature2': [0, 1, 0, 0, 1, 0],
             'Feature3': [0, 0, 1, 0, 0, 1]}).set_index('id')
+        metadata = Metadata(metadata_df)
 
-        p, real_mean, fake_mean = peds_bootstrap(metadata_df=metadata_df,
-                                                 table=table_df,
-                                                 time_column="group",
-                                                 reference_column="Ref",
-                                                 subject_column="subject",
-                                                 iters=999)
-        self.assertGreater(real_mean, fake_mean)
+        stats = peds_bootstrap(metadata=metadata,
+                               table=table_df,
+                               time_column="group",
+                               reference_column="Ref",
+                               subject_column="subject",
+                               bootstrap_replicates=999)
+        real_median = stats["A:measure"].values
+        fake_median = stats["B:measure"].values
+        self.assertGreater(real_median, fake_median)
 
     def test_low_donor_overlap(self):
         metadata_df = pd.DataFrame({
@@ -1178,14 +1180,18 @@ class TestBoot(TestBase):
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
                    'donor1', 'donor2', 'donor3'],
-            'Feature1': [1, 0, 0, 0, 0, 1],
-            'Feature2': [0, 1, 0, 1, 0, 0],
-            'Feature3': [0, 0, 1, 0, 1, 0]}).set_index('id')
+            'Feature1': [1, 0, 0, 0, 1, 1],
+            'Feature2': [0, 1, 0, 1, 0, 1],
+            'Feature3': [0, 0, 1, 1, 1, 0]}).set_index('id')
+        metadata = Metadata(metadata_df)
 
-        p, real_median, fake_median = peds_bootstrap(metadata_df=metadata_df,
-                                                     table=table_df,
-                                                     time_column="group",
-                                                     reference_column="Ref",
-                                                     subject_column="subject",
-                                                     iters=999)
+        stats = peds_bootstrap(metadata=metadata,
+                               table=table_df,
+                               time_column="group",
+                               reference_column="Ref",
+                               subject_column="subject",
+                               bootstrap_replicates=999)
+
+        real_median = stats["A:measure"].values
+        fake_median = stats["B:measure"].values
         self.assertGreater(fake_median, real_median)

@@ -229,3 +229,25 @@ def peds_heatmap(use):
     )
 
     peds_heatmap.assert_output_type('Visualization')
+
+
+def bootstrap_peds_method(use):
+    md = use.init_metadata('md', peds_md_factory)
+    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+
+    peds_stats, = use.action(
+        use.UsageAction('fmt', 'peds_bootstrap'),
+        use.UsageInputs(
+            table=peds_table,
+            metadata=md,
+            time_column='time_point',
+            reference_column='Donor',
+            subject_column='SubjectID'
+        ),
+        use.UsageOutputNames(
+            stats='stats'
+        )
+
+    )
+
+    peds_stats.assert_output_type("StatsTable[Pairwise]")
