@@ -37,7 +37,7 @@ class TestBase(TestPluginBase):
         self.dm = DistanceMatrix.read(self.get_data_path(
                       'dist_matrix_donors.tsv')).to_series()
         self.alpha = pd.read_csv(self.get_data_path('alpha_div.tsv'),
-                                 sep='\t', index_col=0, squeeze=True)
+                                 sep='\t', index_col=0).squeeze('columns')
 
 
 class ErrorMixins:
@@ -483,7 +483,7 @@ class TestGroupTimepoints(TestBase):
 
     def test_alpha_dists_with_extra_samples_in_diversity_not_in_metadata(self):
         extra_alpha = pd.read_csv(self.get_data_path('alpha_div_missing.tsv'),
-                                  sep='\t', index_col=0, squeeze=True)
+                                  sep='\t', index_col=0).squeeze('columns')
 
         with self.assertRaisesRegex(ValueError, 'The following IDs are not'
                                     ' present in the metadata'):
