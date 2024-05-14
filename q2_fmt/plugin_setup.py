@@ -204,7 +204,8 @@ plugin.pipelines.register_function(
 
 plugin.visualizers.register_function(
     function=q2_fmt.peds_heatmap,
-    inputs={'data': GroupDist[Ordered, Matched] % Properties("peds")},
+    inputs={'data': GroupDist[Ordered, Matched] % Properties("peds"),
+            'stats': StatsTable[Pairwise]},
     parameters={'level_delimiter': Str},
     parameter_descriptions={},
     name='PEDS Heatmap',
@@ -299,7 +300,7 @@ plugin.methods.register_function(
     }
 )
 
-plugin.visualizers.register_function(
+plugin.methods.register_function(
     function=q2_fmt.peds_bootstrap,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
@@ -307,8 +308,9 @@ plugin.visualizers.register_function(
                 'reference_column': Str, 'subject_column': T_subject,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
+                'drop_incomplete_timepoint': List[Str],
                 'bootstrap_replicates': Int % Range(999, None)},
-    outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
+    outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -329,20 +331,13 @@ plugin.visualizers.register_function(
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
     },
+    output_descriptions={
+        'stats': 'stats table for comparing real PEDS values'
+        ' from fake Bootstrapped values'
+    },
     name='',
     description='',
     citations=[citations['aggarwala_precise_2021']]
-)
-
-plugin.visualizers.register_function(
-    function=q2_fmt.plot_heatmap,
-    inputs={'data': GroupDist[Ordered, Matched] % Properties('peds')},
-    parameters={},
-    name='Plot Heatmap',
-    description='',
-    examples={
-        'peds_heatmap': ex.peds_heatmap
-     }
 )
 
 

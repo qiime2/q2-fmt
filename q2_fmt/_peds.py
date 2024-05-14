@@ -18,6 +18,7 @@ import jinja2
 import json
 
 from q2_fmt._util import json_replace
+from q2_stats._visualizer import _make_stats
 
 
 def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
@@ -31,12 +32,22 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
 
     if peds_metric == 'sample':
         sample_peds = ctx.get_action('fmt', 'sample_peds')
+        peds_bootstrap = ctx.get_action('fmt', 'peds_bootstrap')
         peds_dist = sample_peds(
             table=table, metadata=metadata, time_column=time_column,
             subject_column=subject_column, reference_column=reference_column,
             drop_incomplete_subjects=drop_incomplete_subjects,
             drop_incomplete_timepoint=drop_incomplete_timepoint,
             filter_missing_references=filter_missing_references)
+
+        peds_stats = peds_bootstrap(
+            table=table, metadata=metadata, time_column=time_column,
+            subject_column=subject_column,
+            reference_column=reference_column,
+            drop_incomplete_subjects=drop_incomplete_subjects,
+            drop_incomplete_timepoint=drop_incomplete_timepoint,
+            filter_missing_references=filter_missing_references)
+        stat = peds_stats[0]
 
     else:
         if drop_incomplete_subjects or drop_incomplete_timepoint:
@@ -51,15 +62,18 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
             table=table, metadata=metadata, time_column=time_column,
             subject_column=subject_column, reference_column=reference_column,
             filter_missing_references=filter_missing_references)
-    results += peds_heatmap(data=peds_dist[0], level_delimiter=level_delimiter)
+        stat = None
+    results += peds_heatmap(data=peds_dist[0], stats=stat,
+                            level_delimiter=level_delimiter)
 
     return tuple(results)
 
 
 def peds_heatmap(output_dir: str, data: pd.DataFrame,
-                 level_delimiter: str = None):
+                 level_delimiter: str = None, stats: pd.DataFrame = None):
     _rename_features(data=data, level_delimiter=level_delimiter)
-
+    if stats is not None:
+        table1, stats = _make_stats(stats)
     J_ENV = jinja2.Environment(
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
@@ -89,9 +103,10 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
                              title=title, measure=gradient,
                              measure_name=measure_name, order=order)
 
-    with open(os.path.join(output_dir, "index.html"), "w") as fh:
+    with open(os.path.join(output_dir, 'index.html'), 'w') as fh:
         spec_string = json.dumps(full_spec)
-        fh.write(index.render(spec=spec_string))
+        fh.write(index.render(spec=spec_string, stats=stats,
+                              table1=table1))
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
@@ -476,31 +491,82 @@ def peds_bootstrap(table: pd.DataFrame, metadata: qiime2.Metadata,
                    subject_column: str,
                    filter_missing_references: bool = False,
                    drop_incomplete_subjects: bool = False,
-                   bootstrap_replicates: int = 999):
-    metadata_df = metadata.to_dataframe
-    # TODO: Grab Donor in a more logic way
-    donor = metadata_df[metadata.index.isin(
+                   drop_incomplete_timepoint: list = None,
+                   bootstrap_replicates: int = 999) -> (pd.DataFrame):
+
+    metadata_df = metadata.to_dataframe()
+    donor = metadata_df[metadata_df.index.isin(
         _check_reference_column(metadata=metadata_df,
                                 reference_column=reference_column))]
+
     recipient = metadata_df.loc[metadata_df[reference_column].notnull()]
-    fake_donor = []
+    fake_donor = pd.DataFrame([])
     for i in range(0, bootstrap_replicates+1):
         if i == 0:
-            peds, = sample_peds(table=table, metadata=metadata,
-                                time_column=time_column,
-                                reference_column=reference_column,
-                                subject_column=subject_column)
-            peds = peds.view(pd.DataFrame).set_index("id")
-            real_temp = peds["measure"].to_list()
+            peds =\
+             sample_peds(table=table, metadata=metadata,
+                         time_column=time_column,
+                         reference_column=reference_column,
+                         subject_column=subject_column,
+                         filter_missing_references=filter_missing_references,
+                         drop_incomplete_subjects=drop_incomplete_subjects,
+                         drop_incomplete_timepoint=drop_incomplete_timepoint)
+            real_temp = peds["measure"]
         else:
             shifted_list = recipient[reference_column].sample(frac=1).to_list()
             recipient.loc[:, reference_column] = shifted_list
             metadata_df = pd.concat([donor, recipient])
             metadata = qiime2.Metadata(metadata_df)
-            peds, = sample_peds(table=table, metadata=metadata,
-                                time_column=time_column,
-                                reference_column=reference_column,
-                                subject_column=subject_column)
-            peds = peds.view(pd.DataFrame).set_index("id")
-            fake_donor = fake_donor + peds["measure"].to_list()
-    s, p = mannwhitneyu(real_temp, fake_donor, alternative='greater')
+            peds =\
+             sample_peds(table=table, metadata=metadata,
+                         time_column=time_column,
+                         reference_column=reference_column,
+                         subject_column=subject_column,
+                         filter_missing_references=filter_missing_references,
+                         drop_incomplete_subjects=drop_incomplete_subjects,
+                         drop_incomplete_timepoint=drop_incomplete_timepoint)
+            fake_donor[i] = peds["measure"]
+    fake_donor_series = fake_donor.median(axis=1)
+    # Common Langauge effect size calcs in prep for stats refactor.
+    # These are not being used currently but will be soon
+    fake_donors_CLES = fake_donor.median(axis=0)
+    agree = ((fake_donors_CLES <
+              real_temp.median()).sum())/bootstrap_replicates
+    disagree = 1 - agree
+    cles = agree - disagree
+    cles
+
+    s, p = mannwhitneyu(real_temp, fake_donor_series.to_list(),
+                        alternative='greater')
+
+    stats_df = pd.DataFrame([["real_values", real_temp.size,
+                              real_temp.median(), "fake_values",
+                              fake_donor_series.size,
+                              fake_donor_series.median(),
+                              fake_donor_series.size,
+                              s, p, np.nan]])
+    stats_df.columns = ['A:group', 'A:n', 'A:measure', 'B:group', 'B:n',
+                        'B:measure', 'n', 'test-statistic', 'p-value',
+                        'q-value']
+
+    stats_df['A:group'].attrs.update({'title': 'real_values',
+                                     'description': '...'})
+    stats_df['B:group'].attrs.update({'title': 'randomized_values',
+                                     'description': '...'})
+    n = {'title': 'count', 'description': '...'}
+    stats_df['A:n'].attrs.update(n)
+    stats_df['B:n'].attrs.update(n)
+    measure = {
+        'title': 'Median PEDS Value',
+        'description': '...'
+    }
+    stats_df['A:measure'].attrs.update(measure)
+    stats_df['B:measure'].attrs.update(measure)
+    stats_df['n'].attrs.update(dict(title='count', description='...'))
+    stats_df['test-statistic'].attrs.update(dict(title='Mann-Whitney U',
+                                                 description='...'))
+    stats_df['p-value'].attrs.update(dict(title='one-tail', description='...'))
+    stats_df['q-value'].attrs.update(
+        dict(title='Benjamini–Hochberg', description='...'))
+
+    return stats_df

@@ -8,7 +8,8 @@
 
 from ._version import get_versions
 from ._engraftment import engraftment, group_timepoints
-from ._peds import sample_peds, feature_peds, peds, peds_heatmap
+from ._peds import (sample_peds, feature_peds, peds, peds_heatmap,
+                    peds_bootstrap)
 
 __version__ = get_versions()['version']
 del get_versions
