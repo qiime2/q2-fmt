@@ -28,7 +28,6 @@ requirements:
     - qiime2 {{ qiime2_epoch }}.*
     - q2-types {{ qiime2_epoch }}.*
     - q2-stats {{ qiime2_epoch }}.*
-    - q2-vizard {{ qiime2_epoch }}.*
 
 test:
   requires:
@@ -39,6 +38,9 @@ test:
   imports:
     - q2_fmt
     - qiime2.plugins.fmt
+    
+  commands:
+    - py.test --pyargs q2_fmt
 
 about:
   home: https://qiime2.org
