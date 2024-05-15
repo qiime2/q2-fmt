@@ -18,7 +18,7 @@ import q2_fmt
 from q2_types.feature_table import (
     FeatureTable, Frequency, RelativeFrequency, PresenceAbsence)
 from q2_stats._type import (Dist1D, Matched, Independent, Ordered,
-                            Unordered, StatsTable, Pairwise, Nested_Ordered)
+                            Unordered, StatsTable, Pairwise, NestedOrdered)
 import q2_fmt._examples as ex
 
 citations = Citations.load('citations.bib', package='q2_fmt')
@@ -32,7 +32,7 @@ plugin = Plugin(name='fmt',
 
 T_group, T_nested = TypeMap({
     Bool % Choices(False): Ordered,
-    Str: Nested_Ordered
+    Str: NestedOrdered
 })
 
 T_subject, T_dependence = TypeMap({
