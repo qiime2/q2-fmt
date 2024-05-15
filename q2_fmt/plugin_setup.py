@@ -139,9 +139,9 @@ plugin.methods.register_function(
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
-                'control_column': Str, 'filter_missing_references': Bool,
-                'where': Str},
-    outputs=[('timepoint_dists', Dist1D[Ordered, T_dependence]),
+                'group_column': T_group, 'control_column': Str,
+                'filter_missing_references': Bool, 'where': Str},
+    outputs=[('timepoint_dists', Dist1D[T_nested, T_dependence]),
              ('reference_dists', Dist1D[Unordered, Independent])],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
@@ -303,61 +303,5 @@ plugin.methods.register_function(
         'peds_methods': ex.feature_peds_method
     }
 )
-
-plugin.methods.register_function(
-    function=q2_fmt.prepare_timepoint_groups,
-    inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
-    parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'group_column': Str,
-                'subject_column': T_subject,
-                'control_column': Str, 'filter_missing_references': Bool,
-                'where': Str},
-    outputs=[('timepoint_dists', Dist1D[Ordered, T_dependence]),
-             ('reference_dists', Dist1D[Unordered, Independent])],
-    parameter_descriptions={
-        'metadata': 'The sample metadata.',
-        'time_column': 'The column within the `metadata` that the'
-                       ' `diversity_measure` should be grouped by.'
-                       ' This column should contain simple integer values.',
-        'control_column': 'The column within the `metadata` that contains any'
-                          ' relevant control group IDs.'
-                          ' Actual treatment samples should not contain any'
-                          ' value within this column.',
-        'reference_column': 'The column within the `metadata` that contains'
-                            ' the sample to use as a reference'
-                            ' for a given beta `diversity_measure`.'
-                            ' For example, this may be the relevant donor'
-                            ' sample to compare against.',
-        'subject_column': 'The column within the `metadata` that contains the'
-                          ' subject ID to be tracked against timepoints.',
-        'group_column': 'The column within the `metadata` that contains the'
-                          ' group to be nested inside timepoints.',
-        'filter_missing_references': 'Filter out references contained within'
-                                     ' the metadata that are not present'
-                                     ' in the diversity measure.'
-                                     ' Default behavior is to raise an error.',
-        'where': 'Additional filtering for the associated `metadata` file.'
-                 ' This can be used to filter by a subset of the `metadata`,'
-                 ' such as a specific value in one of the `metadata` columns.',
-    },
-    output_descriptions={
-        'timepoint_dists': 'The distributions for the `diversity_measure`,'
-                           ' grouped by the selected `time_column`.'
-                           ' May also contain subject IDs, if `subject_column`'
-                           ' is provided in the `metadata`.',
-        'reference_dists': 'The inter-group reference and inter-group control'
-                           ' (when provided) distributions.'
-                           ' When `diversity_measure` is DistanceMatrix, the'
-                           ' inter-group calculations will be all pairwise'
-                           ' comparisons within a group.'
-                           ' Otherwise, these are just the per-sample'
-                           ' measurements of alpha-diversity.'
-    },
-    name='',
-    description='',
-    examples={
-    }
-)
-
 
 importlib.import_module('q2_fmt._transformer')
