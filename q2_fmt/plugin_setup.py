@@ -29,6 +29,7 @@ plugin = Plugin(name='fmt',
                 package='q2_fmt',
                 description='This QIIME 2 plugin supports FMT analyses.',
                 short_description='Plugin for analyzing FMT data.')
+
 T_group, T_nested = TypeMap({
     Bool % Choices(False): Ordered,
     Str: Nested_Ordered

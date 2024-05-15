@@ -68,7 +68,7 @@ def group_timepoints(
     diversity_measure.index.name = 'id'
 
     ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
-                                time_col, subject_col, group_col= None)
+                                time_col, subject_col, group_col=None)
 
     id_annotation = {
         'title': used_references.index.name,
