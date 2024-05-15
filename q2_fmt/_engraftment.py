@@ -55,10 +55,6 @@ def group_timepoints(
         subject_column: str = False, control_column: str = None,
         filter_missing_references: bool = False,
         where: str = None) -> (pd.DataFrame, pd.DataFrame):
-    print("subject")
-    print(subject_column)
-    print("group")
-    print(group_column)
 
     if isinstance(diversity_measure.index, pd.MultiIndex):
         diversity_measure.index = _sort_multi_index(diversity_measure.index)
