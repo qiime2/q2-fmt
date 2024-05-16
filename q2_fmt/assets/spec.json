@@ -21,6 +21,7 @@
     }
   ],
   "signals": [
+    {"name": "Sample_Size", "value": true, "bind": {"input": "checkbox"}},
     {
       "name": "palette",
       "value": "Viridis",
