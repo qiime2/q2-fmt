@@ -80,8 +80,8 @@
         "update": {
           "y": {"field": {"{{REPLACE_PARAM}}": "y_label"}, "scale": "Y_label"},
           "x": {"field": {"{{REPLACE_PARAM}}": "x_label"}, "scale": "X_label"},
-          "height": {"band": 1, "scale": "Y_label"},
-          "width": {"band": 1, "scale": "X_label"},
+          "height": {"band": {"signal": "Sample_Size ? (1*1/{"{{REPLACE_PARAM}}": "n_label"}) : 1"}, "scale": "Y_label"},
+          "width": {"band": {"signal": "Sample_Size ? (1*1/{"{{REPLACE_PARAM}}": "n_label"}) : 1"}, "scale": "X_label"},
           "fill": {"scale": "color", "field": {"{{REPLACE_PARAM}}": "measure"}},
           "tooltip": {
             "signal": "datum"
