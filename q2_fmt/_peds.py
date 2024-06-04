@@ -70,7 +70,7 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
         n_label = "all possible recipients with feature"
     else:
         n_label = "total_donor_features"
-    print(n_label)
+    data_denom = "datum['%s']" % n_label
 
     x_label_name = data[x_label].attrs['title']
     y_label_name = data[y_label].attrs['title']
@@ -92,7 +92,7 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
                              y_label=y_label, y_label_name=y_label_name,
                              title=title, measure=gradient,
                              measure_name=measure_name, order=order,
-                             n_label=n_label)
+                             n_label=n_label, data_denom=data_denom)
 
     with open(os.path.join(output_dir, "index.html"), "w") as fh:
         spec_string = json.dumps(full_spec)
