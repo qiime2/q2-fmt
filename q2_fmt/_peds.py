@@ -68,8 +68,9 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
     gradient = "measure"
     if "all possible recipients with feature" in data.columns:
         n_label = "all possible recipients with feature"
-    else: 
+    else:
         n_label = "total_donor_features"
+    print(n_label)
 
     x_label_name = data[x_label].attrs['title']
     y_label_name = data[y_label].attrs['title']

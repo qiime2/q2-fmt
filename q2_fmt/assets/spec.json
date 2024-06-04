@@ -7,7 +7,8 @@
   "title": {"text": {"signal": "title"}},
   "data": [
     {"name": "table",
-     "values": {"{{REPLACE_PARAM}}": "data"}
+     "values": {"{{REPLACE_PARAM}}": "data"},
+     "transform": [{"type": "formula", "expr": "datum[{'{{REPLACE_PARAM}}': 'y_label'}]", "as": "denom"}]
     },
     {
       "name": "rowtable",
@@ -51,22 +52,28 @@
       "name": "Y_label",
       "type": "band",
       "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "y_label"}},
-      "range": "height",
-      "paddingInner": 0.05
+      "range": {"step": {"signal": "rowheight"}},
+      "paddingInner": {"signal": "1/rowheight"}
     },
     {
       "name": "X_label",
       "type": "band",
       "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "x_label"}, 
                   "sort":{"{{REPLACE_PARAM}}": "order"}},
-      "range": "width",
-      "paddingInner": 0.01
+      "range": {"step": {"signal": "columnwidth"}},
+      "paddingInner":{"signal": "1/columnwidth"}
     },
     {
       "name": "color",
       "type": "sequential",
       "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "measure"}},
       "range": {"scheme": {"signal": "palette"}}
+    },
+    {
+      "name": "featureSize",
+      "type": "linear",
+      "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "n_label"}},
+      "range": [0, 1]
     }
   ],
   "axes": [
@@ -81,15 +88,31 @@
         "update": {
           "y": {"field": {"{{REPLACE_PARAM}}": "y_label"}, "scale": "Y_label"},
           "x": {"field": {"{{REPLACE_PARAM}}": "x_label"}, "scale": "X_label"},
-          "height": {"band": {"signal": "Sample_Size ? (1*1/{"{{REPLACE_PARAM}}": "n_label"}) : 1"}, "scale": "Y_label"},
-          "width": {"band": {"signal": "Sample_Size ? (1*1/{"{{REPLACE_PARAM}}": "n_label"}) : 1"}, "scale": "X_label"},
+          "height": {"band": {"signal": "Sample_Size ? {'{{REPLACE_PARAM}}': 'n_label'} : 1"}, "scale": "Y_label"},
+          "width": {"band": {"signal": "Sample_Size ? {'{{REPLACE_PARAM}}': 'n_label'} : 1"}, "scale": "X_label"},
           "fill": {"scale": "color", "field": {"{{REPLACE_PARAM}}": "measure"}},
           "tooltip": {
             "signal": "datum"
           }
         }
       }
-    }
+    },
+    {
+      "type":"rect",
+      "from": {"data": "table"},
+      "encode":{
+        "update":{
+          "y": {"field": {"{{REPLACE_PARAM}}": "y_label"}, "scale": "Y_label"},
+          "x": {"field": {"{{REPLACE_PARAM}}": "x_label"}, "scale": "X_label"},
+          "height": {"signal": "bandwidth('Y_label')"},
+          "width": {"signal": "bandwidth('X_label')"},
+          "fill":  { "value": "#808080"},
+          "opacity": {"value": 0},
+          "tooltip": {"signal": "datum"}
+    
+              }
+            }
+          }
   ],
   "legends": [
     {
