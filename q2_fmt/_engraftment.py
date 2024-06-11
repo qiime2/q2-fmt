@@ -289,7 +289,6 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta,
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
     if subject_col is not None:
-        print(subject_col)
         ordinal_df['subject'] = subject_col
 
     ordinal_df['class'] = group_col.name
