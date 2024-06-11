@@ -257,7 +257,7 @@ def _sort_multi_index(index):
     return sorted_multi
 
 
-# HELPER FUNCTION FOR GroupDists[Ordered, Matched | Independent]
+# HELPER FUNCTION FOR Dists1D[Ordered | NestedOrdered, Matched | Independent]
 def _ordered_dists(diversity_measure: pd.Series, is_beta,
                    used_references, time_col, subject_col, group_col):
     if is_beta:
