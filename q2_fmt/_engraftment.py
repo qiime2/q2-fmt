@@ -162,7 +162,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                          " and a value was provided to `baseline_timepoint`."
                          " These values can not be passed in together.")
     elif distance_to == "donor" and reference_column is None:
-        raise ValueError("'donor' was provided to the distance_to parameter"
+        raise ValueError("`donor` was provided to the `distance_to` parameter"
                          " and a reference_column was not provided. Please"
                          " provide a reference_column if you are investigating"
                          " distance to donor")
