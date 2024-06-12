@@ -133,7 +133,6 @@ def group_timepoints(
         independent_df['A'].attrs.update(id_annotation)
         independent_df['B'].attrs.update(id_annotation)
 
-
     return ordered_df, independent_df
 
 
