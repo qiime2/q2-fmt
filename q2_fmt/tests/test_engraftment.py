@@ -223,10 +223,10 @@ class TestGroupTimepoints(TestBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_beta_dists_no_donors_with_controls(self):
-        with self.assertRaisesRegex(ValueError, "'donor' was provided to the"
-                                    " distance_to parameter and a"
-                                    " reference_column was not provided."
-                                    " Please provide a reference_column *"):
+        with self.assertRaisesRegex(ValueError, "`donor` was provided to the"
+                                    " `distance_to` parameter and a"
+                                    " `reference_column` was not provided."
+                                    " Please provide a `reference_column` *"):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
                              distance_to='donor',
@@ -443,10 +443,10 @@ class TestGroupTimepoints(TestBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_alpha_dists_no_donors_with_controls(self):
-        with self.assertRaisesRegex(ValueError, "'donor' was provided to the"
-                                    " distance_to parameter and a"
-                                    " reference_column was not provided."
-                                    " Please provide a reference_column *"):
+        with self.assertRaisesRegex(ValueError, "`donor` was provided to the"
+                                    " `distance_to` parameter and a"
+                                    " `reference_column` was not provided."
+                                    " Please provide a `reference_column` *"):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
                              distance_to='donor',
@@ -520,8 +520,8 @@ class TestGroupTimepoints(TestBase):
 
     def test_d2_donor_reference_col_baseline_tp(self):
         with self.assertRaisesRegex(ValueError, "'donor' was provided to the"
-                                    " distance_to parameter and a value was"
-                                    " provided to baseline_timepoint. These"
+                                    " `distance_to` parameter and a value was"
+                                    " provided to `baseline_timepoint`. These"
                                     " values can not be passed in together."):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha, distance_to='donor',
@@ -530,16 +530,16 @@ class TestGroupTimepoints(TestBase):
                              time_column='days_post_transplant')
 
     def test_d2_donor_no_reference_col(self):
-        with self.assertRaisesRegex(ValueError, "'donor' was provided to the"
-                                    " distance_to parameter and a"
-                                    " reference_column was not provided."
-                                    " Please provide a reference_column *"):
+        with self.assertRaisesRegex(ValueError, "`donor` was provided to the"
+                                    " `distance_to` parameter and a"
+                                    " `reference_column` was not provided."
+                                    " Please provide a `reference_column` *"):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha, distance_to='donor',
                              time_column='days_post_transplant')
 
     def test_d2_baseline_baseline_tp_ref_col(self):
-        with self.assertRaisesRegex(ValueError, "'baseline' was provide to the"
+        with self.assertRaisesRegex(ValueError, "`baseline` was provided to the"
                                     " `distance_to` parameter and a value was"
                                     " provided to `reference_column`. *"):
             group_timepoints(diversity_measure=self.alpha,
@@ -550,8 +550,8 @@ class TestGroupTimepoints(TestBase):
 
     def test_d2_baseline_no_baseline_tp(self):
         with self.assertRaisesRegex(ValueError, "`baseline` was provided to"
-                                    " the distance_to parameter and a"
-                                    " baseline_timepoint was not provided."):
+                                    " the `distance_to` parameter and a"
+                                    " `baseline_timepoint` was not provided."):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha, distance_to='baseline',
                              time_column='days_post_transplant')
