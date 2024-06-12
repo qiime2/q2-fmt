@@ -164,17 +164,18 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
     elif distance_to == "donor" and reference_column is None:
         raise ValueError("`donor` was provided to the `distance_to` parameter"
                          " and a `reference_column` was not provided. Please"
-                         " provide a `reference_column` if you are investigating"
-                         " distance to donor")
+                         " provide a `reference_column` if you are "
+                         " investigating distance to donor")
     elif distance_to == "baseline" and reference_column is not None:
-        raise ValueError("`baseline` was provided to the `distance_to` parameter"
-                         " and a value was provided to `reference_column`."
-                         " These values can not be passed in together.")
+        raise ValueError("`baseline` was provided to the `distance_to`"
+                         " parameter and a value was provided to"
+                         " `reference_column`. These values can not be passed"
+                         " in together.")
     elif distance_to == "baseline" and baseline_timepoint is None:
-        raise ValueError("`baseline` was provided to the `distance_to` parameter"
-                         " and a `baseline_timepoint` was not provided. Please"
-                         " provide a `baseline_timepoint` if you are"
-                         " investigating distance to baseline")
+        raise ValueError("`baseline` was provided to the `distance_to` "
+                         " parameter and a `baseline_timepoint` was not "
+                         " provided. Please provide a `baseline_timepoint` "
+                         " if you are investigating distance to baseline")
 
     def _get_series_from_col(md, col_name, param_name, expected_type=None,
                              drop_missing_values=False):
