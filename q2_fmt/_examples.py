@@ -63,7 +63,7 @@ def peds_md_factory():
 
 def peds_dist_factory():
     return qiime2.Artifact.import_data(
-        "GroupDist[Ordered, Matched] % Properties('peds')",
+        "Dist1D[Ordered, Matched] % Properties('peds')",
         _get_data_from_tests('peds_dist')
     )
 
@@ -87,8 +87,8 @@ def group_timepoints_alpha_independent(use):
         )
     )
 
-    timepoints.assert_output_type('GroupDist[Ordered, Independent]')
-    references.assert_output_type('GroupDist[Unordered, Independent]')
+    timepoints.assert_output_type('Dist1D[Ordered, Independent]')
+    references.assert_output_type('Dist1D[Unordered, Independent]')
 
 
 def group_timepoints_beta(use):
@@ -110,8 +110,8 @@ def group_timepoints_beta(use):
         )
     )
 
-    timepoints.assert_output_type('GroupDist[Ordered, Matched]')
-    references.assert_output_type('GroupDist[Unordered, Independent]')
+    timepoints.assert_output_type('Dist1D[Ordered, Matched]')
+    references.assert_output_type('Dist1D[Unordered, Independent]')
 
 
 # Engraftment example using faith PD, baseline0 comparison
@@ -162,7 +162,7 @@ def peds_method(use):
 
     )
 
-    peds_group_dists.assert_output_type("GroupDist[Ordered, Matched] %"
+    peds_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
                                         " Properties('peds')")
 
 
@@ -185,7 +185,7 @@ def feature_peds_method(use):
 
     )
 
-    peds_group_dists.assert_output_type("GroupDist[Ordered, Matched] %"
+    peds_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
                                         " Properties('peds')")
 
 
