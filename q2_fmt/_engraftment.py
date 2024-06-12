@@ -158,7 +158,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                     )
 
     if distance_to == "donor" and baseline_timepoint is not None:
-        raise ValueError("'donor' was provided to the distance_to parameter"
+        raise ValueError("`donor` was provided to the `distance_to` parameter"
                          " and a value was provided to baseline_timepoint."
                          " These values can not be passed in together.")
     elif distance_to == "donor" and reference_column is None:
