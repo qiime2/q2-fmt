@@ -1,8 +1,8 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
   "description": "A Basic Heatmap",
-  "width": {"signal": "ncolumns * columnwidth"},
-  "height": {"signal": "nrows * rowheight"},
+  "width": {"signal": "ncolumns * columnWidth"},
+  "height": {"signal": "nrows * rowHeight"},
   "padding": 0,
   "title": {"text": {"signal": "title"}},
   "data": [
@@ -22,7 +22,7 @@
     }
   ],
   "signals": [
-    {"name": "Sample_Size", "value": true, "bind": {"input": "checkbox"}},
+    {"name": "sampleSize", "value": true, "bind": {"input": "checkbox"}},
     {
       "name": "palette",
       "value": "Viridis",
@@ -33,13 +33,13 @@
     },
     {"name": "nrows", "value": 1, "update": "length(data(\"rowtable\"))"},
     {
-      "name": "rowheight",
+      "name": "rowHeight",
       "value": 15,
       "bind": {"input": "range", "min": 5, "max": 100}
     },
     {"name": "ncolumns", "value": 1, "update": "length(data(\"columntable\"))"},
     {
-      "name": "columnwidth",
+      "name": "columnWidth",
       "value": 30,
       "bind": {"input": "range", "min": 5, "max": 100 }
     },
@@ -52,16 +52,16 @@
       "name": "Y_label",
       "type": "band",
       "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "y_label"}},
-      "range": {"step": {"signal": "rowheight"}},
-      "paddingInner": {"signal": "1/rowheight"}
+      "range": {"step": {"signal": "rowHeight"}},
+      "paddingInner": {"signal": "1/rowHeight"}
     },
     {
       "name": "X_label",
       "type": "band",
       "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "x_label"}, 
                   "sort":{"{{REPLACE_PARAM}}": "order"}},
-      "range": {"step": {"signal": "columnwidth"}},
-      "paddingInner":{"signal": "1/columnwidth"}
+      "range": {"step": {"signal": "columnWidth"}},
+      "paddingInner":{"signal": "1/columnWidth"}
     },
     {
       "name": "color",
@@ -89,7 +89,7 @@
           "y": {"field": {"{{REPLACE_PARAM}}": "y_label"}, "scale": "Y_label"},
           "x": {"field": {"{{REPLACE_PARAM}}": "x_label"}, "scale": "X_label"},
           "height": {"signal": "bandwidth('Y_label')"},
-          "width": {"signal": "(Sample_Size? scale('featureSize', datum.denom): 1 ) * bandwidth('X_label')"},
+          "width": {"signal": "(sampleSize? scale('featureSize', datum.denom): 1 ) * bandwidth('X_label')"},
           "fill": {"scale": "color", "field": {"{{REPLACE_PARAM}}": "measure"}},
           "tooltip": {
             "signal": "datum"
