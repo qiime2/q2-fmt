@@ -519,7 +519,7 @@ class TestGroupTimepoints(TestBase):
                              control_column='control')
 
     def test_d2_donor_reference_col_baseline_tp(self):
-        with self.assertRaisesRegex(ValueError, "'donor' was provided to the"
+        with self.assertRaisesRegex(ValueError, "`donor` was provided to the"
                                     " `distance_to` parameter and a value was"
                                     " provided to `baseline_timepoint`. These"
                                     " values can not be passed in together."):
