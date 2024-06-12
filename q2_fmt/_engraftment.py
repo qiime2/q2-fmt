@@ -88,15 +88,16 @@ def group_timepoints(
         'title': time_col.name,
         'description': '...'
     })
-    ordered_df['class'].attrs.update({
-        'title': "selected metadata column",
-        'description': '...'
-    })
+    if group_col is not None:
+        ordered_df['class'].attrs.update({
+            'title': "selected metadata column",
+            'description': '...'
+        })
 
-    ordered_df['level'].attrs.update({
-        'title': group_col.name,
-        'description': '...'
-    })
+        ordered_df['level'].attrs.update({
+            'title': group_col.name,
+            'description': '...'
+        })
     if subject_col is not None:
         ordered_df['subject'].attrs.update({
             'title': subject_col.name,
@@ -233,10 +234,12 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             param_name='subject_column',
             expected_type=qiime2.CategoricalMetadataColumn)
 
-    group_col = _get_series_from_col(
-        md=metadata, col_name=group_column,
-        param_name='group_column',
-        expected_type=qiime2.CategoricalMetadataColumn)
+    group_col = None
+    if group_column:
+        group_col = _get_series_from_col(
+            md=metadata, col_name=group_column,
+            param_name='group_column',
+            expected_type=qiime2.CategoricalMetadataColumn)
 
     used_controls = None
     if control_column is not None:
@@ -289,9 +292,9 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta,
     ordinal_df['group'] = time_col
     if subject_col is not None:
         ordinal_df['subject'] = subject_col
-
-    ordinal_df['class'] = group_col.name
-    ordinal_df['level'] = group_col
+    if group_col is not None:
+        ordinal_df['class'] = group_col.name
+        ordinal_df['level'] = group_col
 
     return ordinal_df.reset_index()
 
