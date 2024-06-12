@@ -164,7 +164,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
     elif distance_to == "donor" and reference_column is None:
         raise ValueError("`donor` was provided to the `distance_to` parameter"
                          " and a `reference_column` was not provided. Please"
-                         " provide a reference_column if you are investigating"
+                         " provide a `reference_column` if you are investigating"
                          " distance to donor")
     elif distance_to == "baseline" and reference_column is not None:
         raise ValueError("'baseline' was provide to the distance_to parameter"
