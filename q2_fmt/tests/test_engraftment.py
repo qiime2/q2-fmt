@@ -549,7 +549,7 @@ class TestGroupTimepoints(TestBase):
                              time_column='days_post_transplant')
 
     def test_d2_baseline_no_baseline_tp(self):
-        with self.assertRaisesRegex(ValueError, "'baseline' was provided to"
+        with self.assertRaisesRegex(ValueError, "`baseline` was provided to"
                                     " the distance_to parameter and a"
                                     " baseline_timepoint was not provided."):
             group_timepoints(diversity_measure=self.alpha,
