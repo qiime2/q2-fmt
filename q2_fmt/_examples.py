@@ -79,7 +79,8 @@ def group_timepoints_alpha_independent(use):
             metadata=metadata,
             time_column='days_post_transplant',
             reference_column='relevant_donor',
-            subject_column=False
+            subject_column=False,
+            group_column=False
         ),
         use.UsageOutputNames(
             timepoint_dists='timepoint_dists',
@@ -103,6 +104,7 @@ def group_timepoints_beta(use):
             time_column='days_post_transplant',
             reference_column='relevant_donor',
             subject_column='subject',
+            group_column=False
         ),
         use.UsageOutputNames(
             timepoint_dists='timepoint_dists',
@@ -131,7 +133,7 @@ def engraftment_baseline(use):
             where='SampleType="stool"',
             filter_missing_references=True,
             against_group='0',
-            p_val_approx='asymptotic',
+            p_val_approx='asymptotic'
         ),
         use.UsageOutputNames(
             stats='stats',
