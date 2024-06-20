@@ -164,7 +164,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
     elif distance_to == "donor" and reference_column is None:
         raise ValueError("`donor` was provided to the `distance_to` parameter"
                          " and a `reference_column` was not provided. Please"
-                         " provide a `reference_column` if you are "
+                         " provide a `reference_column` if you are"
                          " investigating distance to donor")
     elif distance_to == "baseline" and reference_column is not None:
         raise ValueError("`baseline` was provided to the `distance_to`"
@@ -172,9 +172,9 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                          " `reference_column`. These values can not be passed"
                          " in together.")
     elif distance_to == "baseline" and baseline_timepoint is None:
-        raise ValueError("`baseline` was provided to the `distance_to` "
-                         " parameter and a `baseline_timepoint` was not "
-                         " provided. Please provide a `baseline_timepoint` "
+        raise ValueError("`baseline` was provided to the `distance_to`"
+                         " parameter and a `baseline_timepoint` was not"
+                         " provided. Please provide a `baseline_timepoint`"
                          " if you are investigating distance to baseline")
 
     def _get_series_from_col(md, col_name, param_name, expected_type=None,
@@ -220,7 +220,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             if len(reference) != 1:
                 raise ValueError("More than one baseline sample was found per"
                                  " subject. Only one baseline sample can be"
-                                 " used as a reference. Please group baseline "
+                                 " used as a reference. Please group baseline"
                                  " replicates.")
             temp_baseline_ref = temp_baseline_ref + samples.index.to_list()
             reference_list = \

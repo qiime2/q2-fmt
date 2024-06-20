@@ -613,7 +613,7 @@ class TestGroupTimepoints(TestBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_no_baseline_duplicates(self):
-        with self.assertRaisesRegex(ValueError, "More then one baseline sample"
+        with self.assertRaisesRegex(ValueError, "More than one baseline sample"
                                     " was found per subject.*"):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha, distance_to='baseline',
