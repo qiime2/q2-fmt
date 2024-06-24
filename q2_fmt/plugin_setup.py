@@ -46,10 +46,11 @@ plugin.pipelines.register_function(
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata,
                 'compare': T_compare,
+                'distance_to': Str,
                 'time_column': Str, 'reference_column': Str,
                 'subject_column': T_engraft_subject, 'control_column': Str,
-                'filter_missing_references': Bool, 'where': Str,
-                'against_group': Str,
+                'filter_missing_references': Bool, 'baseline_timepoint': Str,
+                'where': Str, 'against_group': Str,
                 'alternative': Str % Choices('two-sided', 'greater', 'less'),
                 'p_val_approx': Str % Choices('auto', 'exact', 'asymptotic')},
     outputs=[
@@ -132,10 +133,11 @@ plugin.pipelines.register_function(
 plugin.methods.register_function(
     function=q2_fmt.group_timepoints,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
-    parameters={'metadata': Metadata, 'time_column': Str,
+    parameters={'metadata': Metadata, 'distance_to': Str, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
-                'control_column': Str, 'filter_missing_references': Bool,
-                'where': Str},
+                'control_column': Str,
+                'filter_missing_references': Bool,
+                "baseline_timepoint": Str, 'where': Str},
     outputs=[('timepoint_dists', GroupDist[Ordered, T_dependence]),
              ('reference_dists', GroupDist[Unordered, Independent])],
     parameter_descriptions={

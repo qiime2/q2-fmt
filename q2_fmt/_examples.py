@@ -76,6 +76,7 @@ def group_timepoints_alpha_independent(use):
         use.UsageAction('fmt', 'group_timepoints'),
         use.UsageInputs(
             diversity_measure=alpha,
+            distance_to='donor',
             metadata=metadata,
             time_column='days_post_transplant',
             reference_column='relevant_donor',
@@ -100,6 +101,7 @@ def group_timepoints_beta(use):
         use.UsageInputs(
             diversity_measure=beta,
             metadata=metadata,
+            distance_to='donor',
             time_column='days_post_transplant',
             reference_column='relevant_donor',
             subject_column='subject',
@@ -124,6 +126,7 @@ def engraftment_baseline(use):
         use.UsageInputs(
             diversity_measure=div_measure,
             metadata=md,
+            distance_to='donor',
             compare='baseline',
             time_column='week',
             reference_column='InitialDonorSampleID',
