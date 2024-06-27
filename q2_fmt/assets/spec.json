@@ -44,8 +44,8 @@
       "bind": {"input": "range", "min": 5, "max": 100 }
     },
     {"name": "title", "value": {"{{REPLACE_PARAM}}": "title"}, "bind": {"input": "input"}},
-    {"name": "y_label", "value": {"{{REPLACE_PARAM}}": "y_label_name"}, "bind": {"input": "input"}},
-    {"name": "x_label", "value": {"{{REPLACE_PARAM}}": "x_label_name"}, "bind": {"input": "input"}}
+    {"name": "yLabel", "value": {"{{REPLACE_PARAM}}": "y_label_name"}, "bind": {"input": "input"}},
+    {"name": "xLabel", "value": {"{{REPLACE_PARAM}}": "x_label_name"}, "bind": {"input": "input"}}
   ],
   "scales": [
     {
@@ -77,8 +77,8 @@
     }
   ],
   "axes": [
-    {"scale": "Y_label", "orient": "left", "title":{"signal": "y_label"}},
-    {"scale": "X_label", "orient": "bottom", "title":{"signal": "x_label"}}
+    {"scale": "Y_label", "orient": "left", "title":{"signal": "yLabel"}},
+    {"scale": "X_label", "orient": "bottom", "title":{"signal": "xLabel"}}
   ],
   "marks": [
     {
