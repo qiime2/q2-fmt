@@ -24,10 +24,16 @@ def engraftment(
 
     results = []
 
-    time_dist, ref_dist = group_timepoints(diversity_measure, metadata,
-                                           time_column, reference_column,
-                                           subject_column, control_column,
-                                           filter_missing_references, where)
+    time_dist, ref_dist = group_timepoints(
+                          diversity_measure=diversity_measure,
+                          metadata=metadata,
+                          time_column=time_column,
+                          reference_column=reference_column,
+                          subject_column=subject_column,
+                          control_column=control_column,
+                          filter_missing_references=filter_missing_references,
+                          where=where,
+                          group_column=False)
 
     if compare == 'reference' or compare == 'all-pairwise':
         mann_whitney_u = ctx.get_action('stats', 'mann_whitney_u')
