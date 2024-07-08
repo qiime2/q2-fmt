@@ -33,9 +33,8 @@ def engraftment(
                           control_column=control_column,
                           filter_missing_references=filter_missing_references,
                           where=where,
-                          baseline_timepoint=baseline_timepoint
+                          baseline_timepoint=baseline_timepoint,
                           group_column=False)
-
 
     if compare == 'reference' or compare == 'all-pairwise':
         mann_whitney_u = ctx.get_action('stats', 'mann_whitney_u')
@@ -59,22 +58,25 @@ def engraftment(
 
 def group_timepoints(
        diversity_measure: pd.Series, metadata: qiime2.Metadata,
-        distance_to: str, time_column: str, reference_column: str, 
-        group_column: str = False, 
+        distance_to: str, time_column: str, reference_column: str = None,
+        group_column: str = False,
         subject_column: str = False, control_column: str = None,
-        filter_missing_references: bool = False, 
+        filter_missing_references: bool = False,
         baseline_timepoint: str = None,
         where: str = None) -> (pd.DataFrame, pd.DataFrame):
+
+    print("baseline_timepoint")
+    print(baseline_timepoint)
 
     if isinstance(diversity_measure.index, pd.MultiIndex):
         diversity_measure.index = _sort_multi_index(diversity_measure.index)
 
-    is_beta, used_references, time_col, subject_col, used_controls = \
-        _data_filtering(diversity_measure, metadata, time_column, distance_to,
-                        group_column, reference_column, subject_column, 
-                        control_column, filter_missing_references, 
-                        where, baseline_timepoint)
-
+    (is_beta, used_references, time_col, subject_col, group_col,
+     used_controls) = \
+        _data_filtering(diversity_measure, metadata, distance_to, time_column,
+                        reference_column, group_column, subject_column,
+                        control_column, filter_missing_references,
+                        baseline_timepoint, where)
 
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
@@ -150,13 +152,12 @@ def group_timepoints(
 
 # HELPER FUNCTION FOR DATA FILTERING
 def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
-                    time_column: str, distance_to: str,
-                    reference_column: str = False,
+                    distance_to: str, time_column: str,
+                    reference_column: str = None,
                     group_column: str = None,
-
                     subject_column: str = False, control_column: str = None,
                     filter_missing_references: bool = False,
-                    where: str = None, baseline_timepoint: int = None):
+                    baseline_timepoint: str = None, where: str = None,):
 
     if diversity_measure.empty:
         raise ValueError('Empty diversity measure detected.'
@@ -353,7 +354,7 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta,
 
     if subject_col is not None:
         ordinal_df['subject'] = subject_col
-        
+
     if group_col is not None:
         ordinal_df['class'] = group_col.name
         ordinal_df['level'] = group_col

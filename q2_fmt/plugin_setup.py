@@ -142,10 +142,9 @@ plugin.methods.register_function(
                 'reference_column': Str, 'subject_column': T_subject,
                 'group_column': T_group, 'control_column': Str,
                 'filter_missing_references': Bool, 'where': Str,
-                "baseline_timepoint": Str, 'where': Str},
+                'baseline_timepoint': Str, 'where': Str},
     outputs=[('timepoint_dists', Dist1D[T_nested, T_dependence]),
              ('reference_dists', Dist1D[Unordered, Independent])],
-
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -162,6 +161,9 @@ plugin.methods.register_function(
                             ' sample to compare against.',
         'subject_column': 'The column within the `metadata` that contains the'
                           ' subject ID to be tracked against timepoints.',
+        'group_column': 'The column within the metadata that contains'
+                        ' information about groups (ex: treatment group)'
+                        ' in order to compare engraftment between groups',
         'filter_missing_references': 'Filter out references contained within'
                                      ' the metadata that are not present'
                                      ' in the diversity measure.'
