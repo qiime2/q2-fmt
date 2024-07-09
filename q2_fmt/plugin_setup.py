@@ -17,8 +17,8 @@ from q2_types.distance_matrix import DistanceMatrix
 import q2_fmt
 from q2_types.feature_table import (
     FeatureTable, Frequency, RelativeFrequency, PresenceAbsence)
-from q2_stats._type import (GroupDist, Matched, Independent, Ordered,
-                            Unordered, StatsTable, Pairwise)
+from q2_stats._type import (Dist1D, Matched, Independent, Ordered,
+                            Unordered, StatsTable, Pairwise, NestedOrdered)
 import q2_fmt._examples as ex
 
 citations = Citations.load('citations.bib', package='q2_fmt')
@@ -29,6 +29,11 @@ plugin = Plugin(name='fmt',
                 package='q2_fmt',
                 description='This QIIME 2 plugin supports FMT analyses.',
                 short_description='Plugin for analyzing FMT data.')
+
+T_group, T_nested = TypeMap({
+    Bool % Choices(False): Ordered,
+    Str: NestedOrdered
+})
 
 T_subject, T_dependence = TypeMap({
     Bool % Choices(False): Independent,
@@ -135,11 +140,11 @@ plugin.methods.register_function(
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata, 'distance_to': Str, 'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
-                'control_column': Str,
-                'filter_missing_references': Bool,
-                "baseline_timepoint": Str, 'where': Str},
-    outputs=[('timepoint_dists', GroupDist[Ordered, T_dependence]),
-             ('reference_dists', GroupDist[Unordered, Independent])],
+                'group_column': T_group, 'control_column': Str,
+                'filter_missing_references': Bool, 'where': Str,
+                'baseline_timepoint': Str, 'where': Str},
+    outputs=[('timepoint_dists', Dist1D[T_nested, T_dependence]),
+             ('reference_dists', Dist1D[Unordered, Independent])],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -156,6 +161,9 @@ plugin.methods.register_function(
                             ' sample to compare against.',
         'subject_column': 'The column within the `metadata` that contains the'
                           ' subject ID to be tracked against timepoints.',
+        'group_column': 'The column within the metadata that contains'
+                        ' information about groups (ex: treatment group)'
+                        ' in order to compare engraftment between groups',
         'filter_missing_references': 'Filter out references contained within'
                                      ' the metadata that are not present'
                                      ' in the diversity measure.'
@@ -206,7 +214,7 @@ plugin.pipelines.register_function(
 
 plugin.visualizers.register_function(
     function=q2_fmt.peds_heatmap,
-    inputs={'data': GroupDist[Ordered, Matched] % Properties("peds")},
+    inputs={'data': Dist1D[Ordered, Matched] % Properties("peds")},
     parameters={'level_delimiter': Str},
     parameter_descriptions={},
     name='PEDS Heatmap',
@@ -222,7 +230,7 @@ plugin.methods.register_function(
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str]},
-    outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
+    outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -269,7 +277,7 @@ plugin.methods.register_function(
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool},
-    outputs=[('peds_dists', GroupDist[Ordered, Matched] % Properties("peds"))],
+    outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -300,6 +308,5 @@ plugin.methods.register_function(
         'peds_methods': ex.feature_peds_method
     }
 )
-
 
 importlib.import_module('q2_fmt._transformer')

@@ -63,7 +63,7 @@ def peds_md_factory():
 
 def peds_dist_factory():
     return qiime2.Artifact.import_data(
-        "GroupDist[Ordered, Matched] % Properties('peds')",
+        "Dist1D[Ordered, Matched] % Properties('peds')",
         _get_data_from_tests('peds_dist')
     )
 
@@ -80,7 +80,8 @@ def group_timepoints_alpha_independent(use):
             metadata=metadata,
             time_column='days_post_transplant',
             reference_column='relevant_donor',
-            subject_column=False
+            subject_column=False,
+            group_column=False
         ),
         use.UsageOutputNames(
             timepoint_dists='timepoint_dists',
@@ -88,8 +89,8 @@ def group_timepoints_alpha_independent(use):
         )
     )
 
-    timepoints.assert_output_type('GroupDist[Ordered, Independent]')
-    references.assert_output_type('GroupDist[Unordered, Independent]')
+    timepoints.assert_output_type('Dist1D[Ordered, Independent]')
+    references.assert_output_type('Dist1D[Unordered, Independent]')
 
 
 def group_timepoints_beta(use):
@@ -105,6 +106,7 @@ def group_timepoints_beta(use):
             time_column='days_post_transplant',
             reference_column='relevant_donor',
             subject_column='subject',
+            group_column=False
         ),
         use.UsageOutputNames(
             timepoint_dists='timepoint_dists',
@@ -112,8 +114,8 @@ def group_timepoints_beta(use):
         )
     )
 
-    timepoints.assert_output_type('GroupDist[Ordered, Matched]')
-    references.assert_output_type('GroupDist[Unordered, Independent]')
+    timepoints.assert_output_type('Dist1D[Ordered, Matched]')
+    references.assert_output_type('Dist1D[Unordered, Independent]')
 
 
 # Engraftment example using faith PD, baseline0 comparison
@@ -134,7 +136,7 @@ def engraftment_baseline(use):
             where='SampleType="stool"',
             filter_missing_references=True,
             against_group='0',
-            p_val_approx='asymptotic',
+            p_val_approx='asymptotic'
         ),
         use.UsageOutputNames(
             stats='stats',
@@ -165,7 +167,7 @@ def peds_method(use):
 
     )
 
-    peds_group_dists.assert_output_type("GroupDist[Ordered, Matched] %"
+    peds_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
                                         " Properties('peds')")
 
 
@@ -188,7 +190,7 @@ def feature_peds_method(use):
 
     )
 
-    peds_group_dists.assert_output_type("GroupDist[Ordered, Matched] %"
+    peds_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
                                         " Properties('peds')")
 
 
