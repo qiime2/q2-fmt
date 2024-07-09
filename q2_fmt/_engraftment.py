@@ -157,7 +157,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                     group_column: str = None,
                     subject_column: str = False, control_column: str = None,
                     filter_missing_references: bool = False,
-                    baseline_timepoint: str = None, where: str = None,):
+                    baseline_timepoint: str = None, where: str = None):
 
     if diversity_measure.empty:
         raise ValueError('Empty diversity measure detected.'
