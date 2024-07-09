@@ -65,7 +65,6 @@ def group_timepoints(
         baseline_timepoint: str = None,
         where: str = None) -> (pd.DataFrame, pd.DataFrame):
 
-
     if isinstance(diversity_measure.index, pd.MultiIndex):
         diversity_measure.index = _sort_multi_index(diversity_measure.index)
 
