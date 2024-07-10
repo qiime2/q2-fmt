@@ -1287,7 +1287,7 @@ class TestSim(TestBase):
                                 time_column="group",
                                 reference_column="Ref",
                                 subject_column="subject",
-                                bootstrap_replicates=999)
+                                replicates=999)
         real_median = stats["A:measure"].values
         fake_median = stats["B:measure"].values
         self.assertGreater(real_median, fake_median)
