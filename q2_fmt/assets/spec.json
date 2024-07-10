@@ -1,13 +1,14 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
   "description": "A Basic Heatmap",
-  "width": {"signal": "ncolumns * columnwidth"},
-  "height": {"signal": "nrows * rowheight"},
+  "width": {"signal": "ncolumns * columnWidth"},
+  "height": {"signal": "nrows * rowHeight"},
   "padding": 0,
   "title": {"text": {"signal": "title"}},
   "data": [
     {"name": "table",
-     "values": {"{{REPLACE_PARAM}}": "data"}
+     "values": {"{{REPLACE_PARAM}}": "data"},
+     "transform": [{"type": "formula", "expr": {"{{REPLACE_PARAM}}": "data_denom"}, "as": "denom"}]
     },
     {
       "name": "rowtable",
@@ -21,6 +22,7 @@
     }
   ],
   "signals": [
+    {"name": "sampleSize", "value": true, "bind": {"input": "checkbox"}},
     {
       "name": "palette",
       "value": "Viridis",
@@ -31,46 +33,52 @@
     },
     {"name": "nrows", "value": 1, "update": "length(data(\"rowtable\"))"},
     {
-      "name": "rowheight",
+      "name": "rowHeight",
       "value": 15,
       "bind": {"input": "range", "min": 5, "max": 100}
     },
     {"name": "ncolumns", "value": 1, "update": "length(data(\"columntable\"))"},
     {
-      "name": "columnwidth",
+      "name": "columnWidth",
       "value": 30,
       "bind": {"input": "range", "min": 5, "max": 100 }
     },
     {"name": "title", "value": {"{{REPLACE_PARAM}}": "title"}, "bind": {"input": "input"}},
-    {"name": "y_label", "value": {"{{REPLACE_PARAM}}": "y_label_name"}, "bind": {"input": "input"}},
-    {"name": "x_label", "value": {"{{REPLACE_PARAM}}": "x_label_name"}, "bind": {"input": "input"}}
+    {"name": "yLabel", "value": {"{{REPLACE_PARAM}}": "y_label_name"}, "bind": {"input": "input"}},
+    {"name": "xLabel", "value": {"{{REPLACE_PARAM}}": "x_label_name"}, "bind": {"input": "input"}}
   ],
   "scales": [
     {
       "name": "Y_label",
       "type": "band",
       "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "y_label"}},
-      "range": "height",
-      "paddingInner": 0.05
+      "range": {"step": {"signal": "rowHeight"}},
+      "paddingInner": {"signal": "1/rowHeight"}
     },
     {
       "name": "X_label",
       "type": "band",
       "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "x_label"}, 
                   "sort":{"{{REPLACE_PARAM}}": "order"}},
-      "range": "width",
-      "paddingInner": 0.01
+      "range": {"step": {"signal": "columnWidth"}},
+      "paddingInner":{"signal": "1/columnWidth"}
     },
     {
       "name": "color",
       "type": "sequential",
       "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "measure"}},
       "range": {"scheme": {"signal": "palette"}}
+    },
+    {
+      "name": "featureSize",
+      "type": "linear",
+      "domain": {"data": "table", "field": {"{{REPLACE_PARAM}}": "n_label"}},
+      "range": [0, 1]
     }
   ],
   "axes": [
-    {"scale": "Y_label", "orient": "left", "title":{"signal": "y_label"}},
-    {"scale": "X_label", "orient": "bottom", "title":{"signal": "x_label"}}
+    {"scale": "Y_label", "orient": "left", "title":{"signal": "yLabel"}},
+    {"scale": "X_label", "orient": "bottom", "title":{"signal": "xLabel"}}
   ],
   "marks": [
     {
@@ -80,15 +88,31 @@
         "update": {
           "y": {"field": {"{{REPLACE_PARAM}}": "y_label"}, "scale": "Y_label"},
           "x": {"field": {"{{REPLACE_PARAM}}": "x_label"}, "scale": "X_label"},
-          "height": {"band": 1, "scale": "Y_label"},
-          "width": {"band": 1, "scale": "X_label"},
+          "height": {"signal": "bandwidth('Y_label')"},
+          "width": {"signal": "(sampleSize? scale('featureSize', datum.denom): 1 ) * bandwidth('X_label')"},
           "fill": {"scale": "color", "field": {"{{REPLACE_PARAM}}": "measure"}},
           "tooltip": {
             "signal": "datum"
           }
         }
       }
-    }
+    },
+    {
+      "type":"rect",
+      "from": {"data": "table"},
+      "encode":{
+        "update":{
+          "y": {"field": {"{{REPLACE_PARAM}}": "y_label"}, "scale": "Y_label"},
+          "x": {"field": {"{{REPLACE_PARAM}}": "x_label"}, "scale": "X_label"},
+          "height": {"signal": "bandwidth('Y_label')"},
+          "width": {"signal": "bandwidth('X_label')"},
+          "fill":  { "value": "#808080"},
+          "opacity": {"value": 0},
+          "tooltip": {"signal": "datum"}
+    
+              }
+            }
+          }
   ],
   "legends": [
     {

@@ -46,6 +46,7 @@ class ErrorMixins:
                                     'time_column.*foo.*metadata'):
             group_timepoints(diversity_measure=self.div,
                              metadata=self.md,
+                             distance_to='donor',
                              time_column='foo',
                              reference_column='relevant_donor',
                              control_column='control')
@@ -55,6 +56,7 @@ class ErrorMixins:
                                     'reference_column.*foo.*metadata'):
             group_timepoints(diversity_measure=self.div,
                              metadata=self.md,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='foo',
                              control_column='control')
@@ -64,6 +66,7 @@ class ErrorMixins:
                                     'control_column.*foo.*metadata'):
             group_timepoints(diversity_measure=self.div,
                              metadata=self.md,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='relevant_donor',
                              control_column='foo')
@@ -73,6 +76,7 @@ class ErrorMixins:
                                     'time_column.*categorical.*numeric'):
             group_timepoints(diversity_measure=self.div,
                              metadata=self.md,
+                             distance_to='donor',
                              time_column='non_numeric_time_column',
                              reference_column='relevant_donor',
                              control_column='control')
@@ -117,6 +121,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor',
                                            control_column='control')
@@ -147,6 +152,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor',
                                            control_column='control',
@@ -158,6 +164,7 @@ class TestGroupTimepoints(TestBase):
     def test_beta_dists_with_same_donor_for_all_samples(self):
         _, ref_df = group_timepoints(diversity_measure=self.dm,
                                      metadata=self.md_beta,
+                                     distance_to='donor',
                                      time_column='days_post_transplant',
                                      reference_column='relevant_donor_all')
 
@@ -169,6 +176,7 @@ class TestGroupTimepoints(TestBase):
                                     ' sample data'):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='single_donor',
                              control_column='control')
@@ -184,6 +192,7 @@ class TestGroupTimepoints(TestBase):
 
         _, ref_df = group_timepoints(diversity_measure=self.dm,
                                      metadata=self.md_beta,
+                                     distance_to='donor',
                                      time_column='days_post_transplant',
                                      reference_column='relevant_donor',
                                      control_column='single_control')
@@ -207,6 +216,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=self.md_beta,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor')
 
@@ -214,12 +224,13 @@ class TestGroupTimepoints(TestBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_beta_dists_no_donors_with_controls(self):
-        with self.assertRaisesRegex(
-            TypeError,
-            r"group_timepoints\(\) missing 1 required positional argument: "
-                "'reference_column'"):
+        with self.assertRaisesRegex(ValueError, "`donor` was provided to the"
+                                    " `distance_to` parameter and a"
+                                    " `reference_column` was not provided."
+                                    " Please provide a `reference_column` *"):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              control_column='control')
 
@@ -229,6 +240,7 @@ class TestGroupTimepoints(TestBase):
                                     ' measure.*foo.*bar.*baz'):
             group_timepoints(diversity_measure=self.dm,
                              metadata=self.md_beta,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='invalid_ref_control',
                              control_column='control')
@@ -240,6 +252,7 @@ class TestGroupTimepoints(TestBase):
                                     'Empty diversity measure detected'):
             group_timepoints(diversity_measure=empty_beta_series,
                              metadata=self.md_beta,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='relevant_donor',
                              control_column='control')
@@ -268,6 +281,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.dm,
                                            metadata=extra_md,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor',
                                            control_column='control')
@@ -284,6 +298,7 @@ class TestGroupTimepoints(TestBase):
                                     ' in the metadata'):
             group_timepoints(diversity_measure=extra_dm,
                              metadata=self.md_beta,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='relevant_donor',
                              control_column='control')
@@ -307,6 +322,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor',
                                            control_column='control')
@@ -334,6 +350,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor',
                                            control_column='control',
@@ -360,6 +377,7 @@ class TestGroupTimepoints(TestBase):
         time_df, ref_df = group_timepoints(
             diversity_measure=self.alpha, metadata=self.md_alpha,
             time_column='days_post_transplant',
+            distance_to='donor',
             reference_column='relevant_donor_all',
             control_column='control')
 
@@ -372,6 +390,7 @@ class TestGroupTimepoints(TestBase):
                                     ' sample data'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='single_donor',
                              control_column='control')
@@ -393,6 +412,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor',
                                            control_column='single_control')
@@ -416,6 +436,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=self.md_alpha,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor')
 
@@ -423,12 +444,13 @@ class TestGroupTimepoints(TestBase):
         pd.testing.assert_frame_equal(ref_df, exp_ref_df)
 
     def test_alpha_dists_no_donors_with_controls(self):
-        with self.assertRaisesRegex(
-            TypeError,
-            r"group_timepoints\(\) missing 1 required positional argument: "
-                "'reference_column'"):
+        with self.assertRaisesRegex(ValueError, "`donor` was provided to the"
+                                    " `distance_to` parameter and a"
+                                    " `reference_column` was not provided."
+                                    " Please provide a `reference_column` *"):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              control_column='control')
 
@@ -438,6 +460,7 @@ class TestGroupTimepoints(TestBase):
                                     ' measure.*foo.*bar.*baz'):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='invalid_ref_control',
                              control_column='control')
@@ -449,6 +472,7 @@ class TestGroupTimepoints(TestBase):
                                     'Empty diversity measure detected'):
             group_timepoints(diversity_measure=empty_alpha_series,
                              metadata=self.md_alpha,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='relevant_donor',
                              control_column='control')
@@ -474,6 +498,7 @@ class TestGroupTimepoints(TestBase):
 
         time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
                                            metadata=extra_md,
+                                           distance_to='donor',
                                            time_column='days_post_transplant',
                                            reference_column='relevant_donor',
                                            control_column='control')
@@ -489,9 +514,113 @@ class TestGroupTimepoints(TestBase):
                                     ' present in the metadata'):
             group_timepoints(diversity_measure=extra_alpha,
                              metadata=self.md_alpha,
+                             distance_to='donor',
                              time_column='days_post_transplant',
                              reference_column='relevant_donor',
                              control_column='control')
+
+    def test_d2_donor_reference_col_baseline_tp(self):
+        with self.assertRaisesRegex(ValueError, "`donor` was provided to the"
+                                    " `distance_to` parameter and a value was"
+                                    " provided to `baseline_timepoint`. These"
+                                    " values can not be passed in together."):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha, distance_to='donor',
+                             reference_column='relevant_donor',
+                             baseline_timepoint="1",
+                             time_column='days_post_transplant')
+
+    def test_d2_donor_no_reference_col(self):
+        with self.assertRaisesRegex(ValueError, "`donor` was provided to the"
+                                    " `distance_to` parameter and a"
+                                    " `reference_column` was not provided."
+                                    " Please provide a `reference_column` *"):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha, distance_to='donor',
+                             time_column='days_post_transplant')
+
+    def test_d2_baseline_baseline_tp_ref_col(self):
+        with self.assertRaisesRegex(ValueError, "`baseline` was provided to"
+                                    " the `distance_to` parameter and a value"
+                                    " was provided to `reference_column`. *"):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha, distance_to='baseline',
+                             reference_column='relevant_donor',
+                             baseline_timepoint="1",
+                             time_column='days_post_transplant')
+
+    def test_d2_baseline_no_baseline_tp(self):
+        with self.assertRaisesRegex(ValueError, "`baseline` was provided to"
+                                    " the `distance_to` parameter and a"
+                                    " `baseline_timepoint` was not provided."):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha, distance_to='baseline',
+                             time_column='days_post_transplant')
+
+    def test_d2_baseline_alpha(self):
+        md_baseline = Metadata.load(self.get_data_path(
+                       'sample_metadata_a_div_baseline.txt'))
+
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleD', 'sampleC', 'sampleE', 'sampleF'],
+            'measure': [6, 15, 44, 17,],
+            'group': [11.0, 9.0, 11.0, 9.0,],
+            'subject': ['subject1', 'subject2', 'subject2', 'subject2']
+        })
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['sampleA', 'sampleB',
+                   'sampleC', 'sampleD', 'sampleE', 'sampleF'],
+            'measure': [24, 37, 15, 6, 44, 17],
+            'group': ['reference', 'reference',
+                      'control1', 'control1', 'control2', 'control2']
+        })
+
+        time_df, ref_df = group_timepoints(diversity_measure=self.alpha,
+                                           metadata=md_baseline,
+                                           distance_to='baseline',
+                                           time_column='days_post_transplant',
+                                           subject_column='subject',
+                                           baseline_timepoint=7.0,
+                                           control_column='control')
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    def test_d2_baseline_beta_dists(self):
+        exp_time_df = pd.DataFrame({
+            'id': ['sampleC', 'sampleD', 'sampleE'],
+            'measure': [0.52, 0.51, 0.36],
+            'group': [9.0, 11.0, 11.0],
+            'subject': ['subject1', 'subject1', 'subject2']
+        })
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['sampleA..sampleB'],
+            'measure': [0.48],
+            'group': ['reference'],
+            'A': ['sampleA'],
+            'B': ['sampleB']
+        })
+
+        time_df, ref_df = group_timepoints(diversity_measure=self.dm,
+                                           metadata=self.md_beta,
+                                           distance_to='baseline',
+                                           subject_column='subject',
+                                           time_column='days_post_transplant',
+                                           baseline_timepoint=7)
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    def test_no_baseline_duplicates(self):
+        with self.assertRaisesRegex(ValueError, "More than one baseline sample"
+                                    " was found per subject.*"):
+            group_timepoints(diversity_measure=self.alpha,
+                             metadata=self.md_alpha, distance_to='baseline',
+                             baseline_timepoint="1",
+                             time_column='days_post_transplant',
+                             subject_column='subject')
 
     def test_examples(self):
         self.execute_examples()

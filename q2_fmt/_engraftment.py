@@ -13,10 +13,10 @@ import qiime2
 
 
 def engraftment(
-    ctx, diversity_measure, metadata, compare, time_column,
-    reference_column, subject_column, control_column=None,
-    filter_missing_references=False, where=None, against_group=None,
-    alternative='two-sided', p_val_approx='auto'
+    ctx, diversity_measure, metadata, compare, distance_to, time_column,
+    subject_column, reference_column=None, control_column=None,
+    filter_missing_references=False, baseline_timepoint=None, where=None,
+    against_group=None, alternative='two-sided', p_val_approx='auto'
 ):
 
     raincloud_plot = ctx.get_action('stats', 'plot_rainclouds')
@@ -24,10 +24,17 @@ def engraftment(
 
     results = []
 
-    time_dist, ref_dist = group_timepoints(diversity_measure, metadata,
-                                           time_column, reference_column,
-                                           subject_column, control_column,
-                                           filter_missing_references, where)
+    time_dist, ref_dist = group_timepoints(
+                          diversity_measure=diversity_measure,
+                          metadata=metadata, distance_to=distance_to,
+                          time_column=time_column,
+                          reference_column=reference_column,
+                          subject_column=subject_column,
+                          control_column=control_column,
+                          filter_missing_references=filter_missing_references,
+                          where=where,
+                          baseline_timepoint=baseline_timepoint,
+                          group_column=False)
 
     if compare == 'reference' or compare == 'all-pairwise':
         mann_whitney_u = ctx.get_action('stats', 'mann_whitney_u')
@@ -50,25 +57,31 @@ def engraftment(
 
 
 def group_timepoints(
-        diversity_measure: pd.Series, metadata: qiime2.Metadata,
-        time_column: str, reference_column: str, subject_column: str = False,
-        control_column: str = None, filter_missing_references: bool = False,
+       diversity_measure: pd.Series, metadata: qiime2.Metadata,
+        distance_to: str, time_column: str, reference_column: str = None,
+        group_column: str = False,
+        subject_column: str = False, control_column: str = None,
+        filter_missing_references: bool = False,
+        baseline_timepoint: str = None,
         where: str = None) -> (pd.DataFrame, pd.DataFrame):
 
     if isinstance(diversity_measure.index, pd.MultiIndex):
         diversity_measure.index = _sort_multi_index(diversity_measure.index)
 
-    is_beta, used_references, time_col, subject_col, used_controls = \
-        _data_filtering(diversity_measure, metadata, time_column,
-                        reference_column, subject_column, control_column,
-                        filter_missing_references, where)
+    (is_beta, used_references, time_col, subject_col, group_col,
+     used_controls) = \
+        _data_filtering(diversity_measure, metadata, distance_to, time_column,
+                        reference_column, group_column, subject_column,
+                        control_column, filter_missing_references,
+                        baseline_timepoint, where)
 
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
     diversity_measure.index.name = 'id'
 
     ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
-                                time_col, subject_col)
+                                time_col, subject_col=subject_col,
+                                group_col=group_col)
 
     id_annotation = {
         'title': used_references.index.name,
@@ -85,6 +98,16 @@ def group_timepoints(
         'title': time_col.name,
         'description': '...'
     })
+    if group_col is not None:
+        ordered_df['class'].attrs.update({
+            'title': "selected metadata column",
+            'description': '...'
+        })
+
+        ordered_df['level'].attrs.update({
+            'title': group_col.name,
+            'description': '...'
+        })
     if subject_col is not None:
         ordered_df['subject'].attrs.update({
             'title': subject_col.name,
@@ -126,10 +149,12 @@ def group_timepoints(
 
 # HELPER FUNCTION FOR DATA FILTERING
 def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
-                    time_column: str, reference_column: str,
+                    distance_to: str, time_column: str,
+                    reference_column: str = None,
+                    group_column: str = None,
                     subject_column: str = False, control_column: str = None,
                     filter_missing_references: bool = False,
-                    where: str = None):
+                    baseline_timepoint: str = None, where: str = None):
 
     if diversity_measure.empty:
         raise ValueError('Empty diversity measure detected.'
@@ -151,6 +176,26 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                     .filter_ids(ids_to_keep=metadata
                                 .get_ids(where=where))
                     )
+
+    if distance_to == "donor" and baseline_timepoint is not None:
+        raise ValueError("`donor` was provided to the `distance_to` parameter"
+                         " and a value was provided to `baseline_timepoint`."
+                         " These values can not be passed in together.")
+    elif distance_to == "donor" and reference_column is None:
+        raise ValueError("`donor` was provided to the `distance_to` parameter"
+                         " and a `reference_column` was not provided. Please"
+                         " provide a `reference_column` if you are"
+                         " investigating distance to donor")
+    elif distance_to == "baseline" and reference_column is not None:
+        raise ValueError("`baseline` was provided to the `distance_to`"
+                         " parameter and a value was provided to"
+                         " `reference_column`. These values can not be passed"
+                         " in together.")
+    elif distance_to == "baseline" and baseline_timepoint is None:
+        raise ValueError("`baseline` was provided to the `distance_to`"
+                         " parameter and a `baseline_timepoint` was not"
+                         " provided. Please provide a `baseline_timepoint`"
+                         " if you are investigating distance to baseline")
 
     def _get_series_from_col(md, col_name, param_name, expected_type=None,
                              drop_missing_values=False):
@@ -178,13 +223,40 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         md=metadata, col_name=time_column,
         param_name='time_column',
         expected_type=qiime2.NumericMetadataColumn)
-
-    reference_col = _get_series_from_col(
-        md=metadata, col_name=reference_column,
-        param_name='reference_column',
-        expected_type=qiime2.CategoricalMetadataColumn)
-
-    used_references = reference_col[~time_col.isna()]
+    if distance_to == 'donor':
+        reference_col = _get_series_from_col(
+            md=metadata, col_name=reference_column,
+            param_name='reference_column',
+            expected_type=qiime2.CategoricalMetadataColumn)
+        used_references = reference_col[~time_col.isna()]
+    elif distance_to == 'baseline':
+        temp_baseline_ref = []
+        reference_list = []
+        baseline_ref_df = pd.DataFrame()
+        for sub, samples in metadata.to_dataframe().groupby([subject_column]):
+            reference = \
+                samples[samples[
+                    time_column] == float(baseline_timepoint)].index.to_list()
+            if len(reference) != 1:
+                raise ValueError("More than one baseline sample was found per"
+                                 " subject. Only one baseline sample can be"
+                                 " used as a reference. Please group baseline"
+                                 " replicates.")
+            temp_baseline_ref = temp_baseline_ref + samples.index.to_list()
+            reference_list = \
+                reference_list + (reference * len(samples.index.to_list()))
+        baseline_ref_df["sample_name"] = temp_baseline_ref
+        baseline_ref_df["relevant_baseline"] = reference_list
+        baseline_ref_df = \
+            baseline_ref_df[~baseline_ref_df['sample_name'].isin(
+                reference_list)].set_index("sample_name")
+        reference_col = _get_series_from_col(
+            md=qiime2.Metadata(baseline_ref_df), col_name="relevant_baseline",
+            param_name='reference_column',
+            expected_type=qiime2.CategoricalMetadataColumn)
+        # this is so the variables for distance to donor and distance to
+        # baseline have the same variable name
+        used_references = reference_col
 
     if used_references.isna().any():
         if filter_missing_references:
@@ -220,6 +292,13 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
             param_name='subject_column',
             expected_type=qiime2.CategoricalMetadataColumn)
 
+    group_col = None
+    if group_column:
+        group_col = _get_series_from_col(
+            md=metadata, col_name=group_column,
+            param_name='group_column',
+            expected_type=qiime2.CategoricalMetadataColumn)
+
     used_controls = None
     if control_column is not None:
         control_col = _get_series_from_col(md=metadata,
@@ -227,7 +306,8 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                                            param_name='control_column')
         used_controls = control_col[~control_col.isna()]
 
-    return is_beta, used_references, time_col, subject_col, used_controls
+    return (is_beta, used_references, time_col, subject_col,
+            group_col, used_controls)
 
 
 # HELPER FUNCTION FOR sorting a multi-index (for dist matrix and metadata)
@@ -237,9 +317,9 @@ def _sort_multi_index(index):
     return sorted_multi
 
 
-# HELPER FUNCTION FOR GroupDists[Ordered, Matched | Independent]
+# HELPER FUNCTION FOR Dists1D[Ordered | NestedOrdered, Matched | Independent]
 def _ordered_dists(diversity_measure: pd.Series, is_beta,
-                   used_references, time_col, subject_col):
+                   used_references, time_col, subject_col, group_col):
     if is_beta:
         idx = pd.MultiIndex.from_frame(
             used_references.to_frame().reset_index())
@@ -268,8 +348,13 @@ def _ordered_dists(diversity_measure: pd.Series, is_beta,
 
     ordinal_df = sliced_df[['measure']]
     ordinal_df['group'] = time_col
+
     if subject_col is not None:
         ordinal_df['subject'] = subject_col
+
+    if group_col is not None:
+        ordinal_df['class'] = group_col.name
+        ordinal_df['level'] = group_col
 
     return ordinal_df.reset_index()
 
