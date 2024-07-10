@@ -26,7 +26,6 @@ setup(
     author='Chloe Herman and Liz Gehret',
     author_email='crh423@nau.edu',
     description='QIIME 2 Plugin used for FMT analyses.',
-    license='BSD-3-Clause',
     url='https://github.com/qiime2/q2-fmt',
     zip_safe=False,
     entry_points={
