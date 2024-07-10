@@ -1,6 +1,6 @@
 # q2-fmt (fecal microbiota transplant)
 
-![](https://github.com/qiime2/q2-fmt/actions/workflows/ci-dev.yaml/badge.svg)
+A [QIIME 2](https://qiime2.org) plugin [developed](https://develop.qiime2.org) by Chloe Herman (crh423@nau.edu). 🔌
 
 ## Demo
 [![](https://raw.githubusercontent.com/qiime2/q2-fmt/master/demo/screenshot.png)
@@ -122,3 +122,15 @@ qiime stats plot-rainclouds \
   --i-stats stats_baseline0.qza \
   --o-visualization raincloud-baseline0.qzv
 ```
+## About
+
+The `q2-fmt` Python package was [created from template](https://develop.qiime2.org/en/latest/plugins/tutorials/create-from-template.html).
+To learn more about `q2-fmt`, refer to the [project website](https://example.com).
+To learn how to use QIIME 2, refer to the [QIIME 2 User Documentation](https://docs.qiime2.org).
+To learn QIIME 2 plugin development, refer to [*Developing with QIIME 2*](https://develop.qiime2.org).
+
+`q2-fmt` is a QIIME 2 community plugin, meaning that it is not necessarily developed and maintained by the developers of QIIME 2.
+Please be aware that because community plugins are developed by the QIIME 2 developer community, and not necessarily the QIIME 2 developers themselves, some may not be actively maintained or compatible with current release versions of the QIIME 2 distributions.
+More information on development and support for community plugins can be found [here](https://library.qiime2.org).
+If you need help with a community plugin, first refer to the [project website](https://example.com).
+If that page doesn't provide information on how to get help, or you need additional help, head to the [Community Plugins category](https://forum.qiime2.org/c/community-contributions/community-plugins/14) on the QIIME 2 Forum where the QIIME 2 developers will do their best to help you.
