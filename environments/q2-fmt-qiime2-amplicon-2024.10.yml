@@ -1,0 +1,17 @@
+name: q2-fmt-qiime2-amplicon-2024.10
+channels:
+- https://packages.qiime2.org/qiime2/2024.10/amplicon/passed
+- conda-forge
+- bioconda
+dependencies:
+  - qiime2-amplicon
+  # Note 1: Add any additional conda dependencies here.
+  - pip
+  - pip:
+  # Note 2: Add any additional pip dependencies here.
+  #   - # some pip dependency
+  # Note 3: If you host your repository on GitHub, and you uncomment and modify
+  # the following lines to replace REPO-OWNER with the user or organization
+  # name that owns the repository, your installation commands can be updated to
+  # install from this file without additional steps.
+  #   - "q2-fmt @ git+https://github.com/REPO-OWNER/q2-fmt.git"

@@ -1,0 +1,55 @@
+name: Test and lint
+
+on:
+  pull_request:
+    branches: ["main"]
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-test-qiime2-amplicon-2024-10:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-13]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        activate-environment: q2-fmt-qiime2-amplicon-2024.10
+        environment-file: environments/q2-fmt-qiime2-amplicon-2024.10.yml
+        auto-activate-base: false
+
+    - name: Install plugin
+      shell: bash -l {0}
+      run: make install
+
+    - name: Run tests
+      shell: bash -l {0}
+      run: make test
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout source
+      uses: actions/checkout@v3
+
+    - name: set up python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -q https://github.com/qiime2/q2lint/archive/master.zip
+        pip install -q flake8
+
+    - name: run flake8
+      run: flake8
+
+    - name: run q2lint
+      run: q2lint
