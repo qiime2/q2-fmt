@@ -214,8 +214,7 @@ plugin.pipelines.register_function(
 
 plugin.visualizers.register_function(
     function=q2_fmt.peds_heatmap,
-
-   inputs={'data': Dist1D[Ordered, Matched] % Properties("peds"),
+    inputs={'data': Dist1D[Ordered, Matched] % Properties("peds"),
             'stats': StatsTable[Pairwise]},
     parameters={'level_delimiter': Str},
     parameter_descriptions={},
