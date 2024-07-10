@@ -13,6 +13,8 @@ import versioneer
 setup(
     name='q2-fmt',
     version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
+    license="BSD-3-Clause",
     packages=find_packages(),
     package_data={
         'q2_fmt': [
@@ -21,8 +23,8 @@ setup(
         'q2_fmt.tests': ['data/*', 'data/peds_dist/*'],
 
     },
-    author='Liz Gehret',
-    author_email='elizabeth.gehret@nau.edu',
+    author='Chloe Herman and Liz Gehret',
+    author_email='crh423@nau.edu',
     description='QIIME 2 Plugin used for FMT analyses.',
     license='BSD-3-Clause',
     url='https://github.com/qiime2/q2-fmt',
