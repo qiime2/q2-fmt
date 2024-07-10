@@ -2,9 +2,9 @@ name: Test and lint
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: ["dev"]
   push:
-    branches: ["main"]
+    branches: ["dev"]
 
 jobs:
   build-and-test-qiime2-amplicon-2024-10:
