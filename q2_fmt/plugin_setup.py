@@ -357,7 +357,7 @@ plugin.methods.register_function(
                 ' recipient',
     citations=[citations['aggarwala_precise_2021']],
     examples={
-        'peds_methods': ex.bootstrap_peds_method
+        'peds_methods': ex.simulation_peds_method
     }
 )
 
