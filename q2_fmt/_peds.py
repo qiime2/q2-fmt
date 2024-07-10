@@ -492,13 +492,13 @@ def _mask_recipient(donor_mask, recip_df):
     return maskedrecip
 
 
-def peds_bootstrap(table: pd.DataFrame, metadata: qiime2.Metadata,
-                   time_column: str, reference_column: str,
-                   subject_column: str,
-                   filter_missing_references: bool = False,
-                   drop_incomplete_subjects: bool = False,
-                   drop_incomplete_timepoint: list = None,
-                   bootstrap_replicates: int = 999) -> (pd.DataFrame):
+def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
+                    time_column: str, reference_column: str,
+                    subject_column: str,
+                    filter_missing_references: bool = False,
+                    drop_incomplete_subjects: bool = False,
+                    drop_incomplete_timepoint: list = None,
+                    replicates: int = 999) -> (pd.DataFrame):
 
     metadata_df = metadata.to_dataframe()
     donor = metadata_df[metadata_df.index.isin(
@@ -507,7 +507,7 @@ def peds_bootstrap(table: pd.DataFrame, metadata: qiime2.Metadata,
 
     recipient = metadata_df.loc[metadata_df[reference_column].notnull()]
     fake_donor = pd.DataFrame([])
-    for i in range(0, bootstrap_replicates+1):
+    for i in range(0, replicates+1):
         if i == 0:
             peds = sample_peds(
                 table=table, metadata=metadata,
@@ -537,11 +537,11 @@ def peds_bootstrap(table: pd.DataFrame, metadata: qiime2.Metadata,
     # These are not being used currently but will be soon
     fake_donors_CLES = fake_donor.median(axis=0)
     agree = ((fake_donors_CLES <
-              real_temp.median()).sum())/bootstrap_replicates
+              real_temp.median()).sum())/replicates
     disagree = 1 - agree
     cles = agree - disagree
     cles
-
+    # TODO: REFACTOR STATISTICS
     s, p = mannwhitneyu(real_temp, fake_donor_series.to_list(),
                         alternative='greater')
 

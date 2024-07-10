@@ -311,7 +311,7 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
-    function=q2_fmt.peds_bootstrap,
+    function=q2_fmt.peds_simulation,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
@@ -319,7 +319,7 @@ plugin.methods.register_function(
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str],
-                'bootstrap_replicates': Int % Range(999, None)},
+                'replicates': Int % Range(999, None)},
     outputs=[('stats', StatsTable[Pairwise])],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
@@ -340,13 +340,21 @@ plugin.methods.register_function(
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
+        'drop_incomplete_timepoint': 'Filter out timepoints that do not have'
+                                    ' enough samples.'
+                                    ' Default behavior is to raise an error.',
+        'replicates': 'The number of replicates to run the Monte Carlo'
+                      ' simulation on'
     },
     output_descriptions={
-        'stats': 'stats table for comparing real PEDS values'
-        ' from fake Bootstrapped values'
+        'stats': 'stats table for comparing if the actual PEDS values'
+        ' to Shuffled simulated values'
     },
     name='',
-    description='',
+    description='A Monte Carlo Simulation that shuffles the recipient and'
+                ' donated microbiome in order to investigate if the true'
+                ' donated microbiome is the most similar to their true FMT'
+                ' recipient',
     citations=[citations['aggarwala_precise_2021']],
     examples={
         'peds_methods': ex.bootstrap_peds_method
