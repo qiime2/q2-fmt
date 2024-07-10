@@ -20,7 +20,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _check_subject_column, _check_column_type,
                           _drop_incomplete_timepoints, feature_peds,
                           _check_column_missing, _rename_features,
-                          peds_bootstrap)
+                          peds_simulation)
 
 
 class TestBase(TestPluginBase):
@@ -1259,7 +1259,7 @@ class TestPeds(TestBase):
         self.assertEqual("2", Fs2)
 
 
-class TestBoot(TestBase):
+class TestSim(TestBase):
     def test_high_donor_overlap(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
@@ -1282,12 +1282,12 @@ class TestBoot(TestBase):
             'Feature3': [0, 0, 1, 0, 0, 1]}).set_index('id')
         metadata = Metadata(metadata_df)
 
-        stats = peds_bootstrap(metadata=metadata,
-                               table=table_df,
-                               time_column="group",
-                               reference_column="Ref",
-                               subject_column="subject",
-                               bootstrap_replicates=999)
+        stats = peds_simulation(metadata=metadata,
+                                table=table_df,
+                                time_column="group",
+                                reference_column="Ref",
+                                subject_column="subject",
+                                bootstrap_replicates=999)
         real_median = stats["A:measure"].values
         fake_median = stats["B:measure"].values
         self.assertGreater(real_median, fake_median)
@@ -1314,12 +1314,12 @@ class TestBoot(TestBase):
             'Feature3': [0, 0, 1, 1, 1, 0]}).set_index('id')
         metadata = Metadata(metadata_df)
 
-        stats = peds_bootstrap(metadata=metadata,
-                               table=table_df,
-                               time_column="group",
-                               reference_column="Ref",
-                               subject_column="subject",
-                               bootstrap_replicates=999)
+        stats = peds_simulation(metadata=metadata,
+                                table=table_df,
+                                time_column="group",
+                                reference_column="Ref",
+                                subject_column="subject",
+                                replicates=999)
 
         real_median = stats["A:measure"].values
         fake_median = stats["B:measure"].values
