@@ -320,7 +320,8 @@ plugin.methods.register_function(
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str],
                 'replicates': Int % Range(999, None)},
-    outputs=[('stats', StatsTable[Pairwise])],
+    outputs=[('per-subject-stats', StatsTable[Pairwise]),
+             ('global-stats', StatsTable[Pairwise])],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -347,7 +348,9 @@ plugin.methods.register_function(
                       ' simulation on'
     },
     output_descriptions={
-        'stats': 'stats table for comparing if the actual PEDS values'
+        'per-subject-stats': 'stats table for comparing if the actual PEDS'
+        ' values to shuffled simulated values per subject',
+        'global-stats': 'stats table for comparing if the actual PEDS values'
         ' to Shuffled simulated values'
     },
     name='',

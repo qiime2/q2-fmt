@@ -498,14 +498,30 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                     filter_missing_references: bool = False,
                     drop_incomplete_subjects: bool = False,
                     drop_incomplete_timepoint: list = None,
-                    replicates: int = 999) -> (pd.DataFrame):
+                    replicates: int = 999) -> (pd.DataFrame, pd.DataFrame):
 
     metadata_df = metadata.to_dataframe()
     donor = metadata_df[metadata_df.index.isin(
         _check_reference_column(metadata=metadata_df,
                                 reference_column=reference_column))]
-
+    try:
+        donor.index.unique() != 1
+    except AssertionError as e:
+        raise AssertionError("There is only one donated microbiome in your"
+                             " data. A Monte Carlo simulation shuffles"
+                             " your donated microbiome and recipient pairing"
+                             "  and needs more than one donated microbiome"
+                             " to successfully shuffle") from e
     recipient = metadata_df.loc[metadata_df[reference_column].notnull()]
+    try:
+        recipient.index.unique() != 1
+    except AssertionError as e:
+        raise AssertionError("There is only one recipient in your"
+                             " data. A Monte Carlo simulation shuffles"
+                             " your donated microbiome and recipient pairing"
+                             "  and needs more than one recipient"
+                             " to successfully shuffle") from e
+
     shuffled_donor = pd.DataFrame([])
     peds = sample_peds(
            table=table, metadata=metadata,
@@ -528,6 +544,21 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                drop_incomplete_subjects=drop_incomplete_subjects,
                drop_incomplete_timepoint=drop_incomplete_timepoint)
         shuffled_donor[i] = peds["measure"]
+        per_sub_stats = _per_subject_stats(actual_temp, shuffled_donor,
+                                           replicates)
+        global_stats = _global_stats(per_sub_stats['p-value'])
+    return per_sub_stats, global_stats
+
+
+def _shuffle_donor_associations(recipient, reference_column, donor):
+    shuffled_list = recipient[reference_column].sample(frac=1).to_list()
+    recipient.loc[:, reference_column] = shuffled_list
+    metadata_df = pd.concat([donor, recipient])
+    metadata = qiime2.Metadata(metadata_df)
+    return metadata
+
+
+def _per_subject_stats(actual_temp, shuffled_donor, replicates): 
 
     # Calculating per-subject p-values
     actual_element_wise = actual_temp.values[:, None]
@@ -574,8 +605,9 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     per_sub_stats['B:measure'].attrs.update(measure)
     per_sub_stats['n'].attrs.update(dict(title='count', description='Number of'
                                     'comparisons'))
-    per_sub_stats['test-statistic'].attrs.update(dict(title='Mann-Whitney U',
-                                                 description='Mann-Whitney U'
+    # TODO: ask about this
+    per_sub_stats['test-statistic'].attrs.update(dict(title='...',
+                                                 description='....'
                                                              'test statistic'))
     per_sub_stats['p-value'].attrs.update(dict(title='one-tail p-value',
                                           description='one-tail p-value'))
@@ -588,13 +620,30 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     per_sub_stats['rank-biserial-correlation'].attrs.update(
         dict(title='rank biserial correlation',
              description='rank biserial correlation'))
-
     return per_sub_stats
 
 
-def _shuffle_donor_associations(recipient, reference_column, donor):
-    shuffled_list = recipient[reference_column].sample(frac=1).to_list()
-    recipient.loc[:, reference_column] = shuffled_list
-    metadata_df = pd.concat([donor, recipient])
-    metadata = qiime2.Metadata(metadata_df)
-    return metadata
+def _global_stats(p_series):
+    stats, p = combine_pvalues(p_series, method="stouffer")
+    global_stats = pd.DataFrame([["p-values", p_series.size, stats, p,
+                                  np.nan]],
+                                columns=['Measure', 'n', 'test-statistic',
+                                         'p-value', 'q-value'])
+    global_stats['Measure'].attrs.update({'title': ('p-value'),
+                                          'description': ("p-value")})
+    global_stats['test-statistic'].attrs.update(dict(title="Stouffer's",
+                                                description="Stouffer's Z"
+                                                " score method"))
+    global_stats['p-value'].attrs.update(dict(title='one-tail p-value',
+                                         description='one-tail p-value'))
+    global_stats['q-value'].attrs.update(
+        dict(title='Benjamini–Hochberg', description='FDR corrections using'
+             'Benjamini–Hochberg procedure'))
+    return global_stats
+    # TODO: Do I need?
+    # per_sub_stats['disagree'].attrs.update(
+    #   dict(title='values that agree with the null hypothesis',
+    #         description='values that agree with the null hypothesis'))
+    # per_sub_stats['rank-biserial-correlation'].attrs.update(
+    #    dict(title='rank biserial correlation',
+    #         description='rank biserial correlation'))
