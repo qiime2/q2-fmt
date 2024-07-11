@@ -506,7 +506,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                                 reference_column=reference_column))]
 
     recipient = metadata_df.loc[metadata_df[reference_column].notnull()]
-    fake_donor = pd.DataFrame([])
+    shuffled_donor = pd.DataFrame([])
     peds = sample_peds(
            table=table, metadata=metadata,
            time_column=time_column,
@@ -515,15 +515,10 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
            filter_missing_references=filter_missing_references,
            drop_incomplete_subjects=drop_incomplete_subjects,
            drop_incomplete_timepoint=drop_incomplete_timepoint)
-    real_temp = peds["measure"]
+    actual_temp = peds["measure"]
     for i in range(replicates):
-        recipient[reference_column].sample(frac=1).reset_index(drop=True)
-        # TODO: Deprecated Below:
-        shuffled_list = recipient[reference_column].sample(frac=1).to_list()
-        recipient.loc[:, reference_column] = shuffled_list
-        metadata_df = pd.concat([donor, recipient])
-        # TODO: ^^ Deprecated
-        metadata = qiime2.Metadata(metadata_df)
+        metadata = _shuffle_donor_associations(recipient, reference_column,
+                                               donor)
         peds = sample_peds(
                table=table, metadata=metadata,
                time_column=time_column,
@@ -532,48 +527,73 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                filter_missing_references=filter_missing_references,
                drop_incomplete_subjects=drop_incomplete_subjects,
                drop_incomplete_timepoint=drop_incomplete_timepoint)
-        fake_donor[i] = peds["measure"]
-    fake_donor_series = fake_donor.median(axis=1)
+        shuffled_donor[i] = peds["measure"]
+    shuffled_donor_series = shuffled_donor.median(axis=1)
     # Common Langauge effect size calcs in prep for stats refactor.
     # These are not being used currently but will be soon
-    fake_donors_CLES = fake_donor.median(axis=0)
-    agree = ((fake_donors_CLES <
-              real_temp.median()).sum())/replicates
+
+    # Calculating per-subject p-values
+    actual_element_wise = actual_temp.values[:, None]
+    agree_df = shuffled_donor < actual_element_wise
+    agree = agree_df.sum(axis=1)
+    # adding 1 here because you can mathmatically can get p-value of 0 from a 
+    # Monte Carlo Simulation
     disagree = 1 - agree
+    per_subject_p = (agree + 1)/(replicates+1)
+    raise ValueError(per_subject_p)
+    
     cles = agree - disagree
-    cles
+    cles()
     # TODO: REFACTOR STATISTICS
-    s, p = mannwhitneyu(real_temp, fake_donor_series.to_list(),
+    s, p = mannwhitneyu(actual_temp, shuffled_donor_series.to_list(),
                         alternative='greater')
+    p = 50
 
-    stats_df = pd.DataFrame([["real_values", real_temp.size,
-                              real_temp.median(), "fake_values",
-                              fake_donor_series.size,
-                              fake_donor_series.median(),
-                              fake_donor_series.size,
-                              s, p, np.nan]])
-    stats_df.columns = ['A:group', 'A:n', 'A:measure', 'B:group', 'B:n',
-                        'B:measure', 'n', 'test-statistic', 'p-value',
-                        'q-value']
+    stats_df = pd.DataFrame([["actual_values", actual_temp.size,
+                              actual_temp.median(), "shuffled_values",
+                              shuffled_donor_series.size,
+                              shuffled_donor_series.median(),
+                              shuffled_donor_series.size,
+                              s, p, np.nan]],
+                            columns=['A:group', 'A:n', 'A:measure',
+                                     'B:group', 'B:n', 'B:measure', 'n',
+                                     'test-statistic', 'p-value', 'q-value'])
 
-    stats_df['A:group'].attrs.update({'title': 'real_values',
-                                     'description': '...'})
-    stats_df['B:group'].attrs.update({'title': 'randomized_values',
-                                     'description': '...'})
-    n = {'title': 'count', 'description': '...'}
+    stats_df['A:group'].attrs.update({'title': 'actual_values',
+                                     'description': 'PEDS values calculated'
+                                      ' with actual recipient and donated'
+                                      ' microbiome pairing'})
+    stats_df['B:group'].attrs.update({'title': 'shuffled_values',
+                                     'description': 'PEDS values calculated'
+                                      ' with shuffled recupient and donated'
+                                      ' microbiome pairings'})
+    n = {'title': 'count', 'description': 'Number of recipients and donated'
+         ' microbiome pairings'}
     stats_df['A:n'].attrs.update(n)
     stats_df['B:n'].attrs.update(n)
     measure = {
         'title': 'Median PEDS Value',
-        'description': '...'
+        'description': 'Median PEDS Value'
     }
     stats_df['A:measure'].attrs.update(measure)
     stats_df['B:measure'].attrs.update(measure)
-    stats_df['n'].attrs.update(dict(title='count', description='...'))
+    stats_df['n'].attrs.update(dict(title='count', description='Number of'
+                                    'comparisons'))
     stats_df['test-statistic'].attrs.update(dict(title='Mann-Whitney U',
-                                                 description='...'))
-    stats_df['p-value'].attrs.update(dict(title='one-tail', description='...'))
+                                                 description='Mann-Whitney U'
+                                                             'test statistic'))
+    stats_df['p-value'].attrs.update(dict(title='one-tail p-value',
+                                          description='one-tail p-value'))
     stats_df['q-value'].attrs.update(
-        dict(title='Benjamini–Hochberg', description='...'))
+        dict(title='Benjamini–Hochberg', description='FDR corrections using'
+             'Benjamini–Hochberg procedure'))
 
     return stats_df
+
+
+def _shuffle_donor_associations(recipient, reference_column, donor):
+    shuffled_list = recipient[reference_column].sample(frac=1).to_list()
+    recipient.loc[:, reference_column] = shuffled_list
+    metadata_df = pd.concat([donor, recipient])
+    metadata = qiime2.Metadata(metadata_df)
+    return metadata
