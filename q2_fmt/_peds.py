@@ -10,7 +10,7 @@ import qiime2
 import pandas as pd
 import numpy as np
 import warnings
-from scipy.stats import mannwhitneyu
+from scipy.stats import false_discovery_control, combine_pvalues
 from collections import Counter
 import os
 import pkg_resources
@@ -528,67 +528,68 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                drop_incomplete_subjects=drop_incomplete_subjects,
                drop_incomplete_timepoint=drop_incomplete_timepoint)
         shuffled_donor[i] = peds["measure"]
-    shuffled_donor_series = shuffled_donor.median(axis=1)
-    # Common Langauge effect size calcs in prep for stats refactor.
-    # These are not being used currently but will be soon
 
     # Calculating per-subject p-values
     actual_element_wise = actual_temp.values[:, None]
-    agree_df = shuffled_donor < actual_element_wise
-    agree = agree_df.sum(axis=1)
-    # adding 1 here because you can mathmatically can get p-value of 0 from a 
+    agree_df = shuffled_donor > actual_element_wise
+    agree_series = agree_df.sum(axis=1)
+    # adding 1 here because you can mathmatically can get p-value of 0 from a
     # Monte Carlo Simulation
-    disagree = 1 - agree
-    per_subject_p = (agree + 1)/(replicates+1)
-    raise ValueError(per_subject_p)
-    
-    cles = agree - disagree
-    cles()
-    # TODO: REFACTOR STATISTICS
-    s, p = mannwhitneyu(actual_temp, shuffled_donor_series.to_list(),
-                        alternative='greater')
-    p = 50
+    per_subject_p = (agree_series + 1)/(replicates+1)
+    per_subject_q = false_discovery_control(ps=per_subject_p, method='bh')
+    # Common Langauge effect size calcs in prep for stats refactor.
+    disagree = 1 - per_subject_p
+    rank_biserial = per_subject_p - disagree
 
-    stats_df = pd.DataFrame([["actual_values", actual_temp.size,
-                              actual_temp.median(), "shuffled_values",
-                              shuffled_donor_series.size,
-                              shuffled_donor_series.median(),
-                              shuffled_donor_series.size,
-                              s, p, np.nan]],
-                            columns=['A:group', 'A:n', 'A:measure',
-                                     'B:group', 'B:n', 'B:measure', 'n',
-                                     'test-statistic', 'p-value', 'q-value'])
-
-    stats_df['A:group'].attrs.update({'title': 'actual_values',
-                                     'description': 'PEDS values calculated'
-                                      ' with actual recipient and donated'
-                                      ' microbiome pairing'})
-    stats_df['B:group'].attrs.update({'title': 'shuffled_values',
-                                     'description': 'PEDS values calculated'
-                                      ' with shuffled recupient and donated'
-                                      ' microbiome pairings'})
+    per_sub_stats = pd.DataFrame({'A:group': "actual_values",
+                                 'A:n': actual_temp.size,
+                                  'A:measure': actual_temp,
+                                  'B:group': "shuffled_values",
+                                  'B:n': replicates,
+                                  'B:measure': shuffled_donor.median(axis=1),
+                                  'n': replicates*actual_temp.size,
+                                  'test-statistic': agree_series,
+                                  'p-value': per_subject_p,
+                                  'q-value': per_subject_q,
+                                  'disagree': disagree,
+                                  'rank-biserial-correlation': rank_biserial})
+    per_sub_stats['A:group'].attrs.update({'title': 'actual_values',
+                                          'description': 'PEDS values'
+                                           ' calculated with actual recipient'
+                                           ' and donated microbiome pairing'})
+    per_sub_stats['B:group'].attrs.update({'title': 'shuffled_values',
+                                          'description': 'PEDS values'
+                                           ' calculated with shuffled'
+                                           ' recipient and donated microbiome'
+                                           ' pairings'})
     n = {'title': 'count', 'description': 'Number of recipients and donated'
          ' microbiome pairings'}
-    stats_df['A:n'].attrs.update(n)
-    stats_df['B:n'].attrs.update(n)
+    per_sub_stats['A:n'].attrs.update(n)
+    per_sub_stats['B:n'].attrs.update(n)
     measure = {
         'title': 'Median PEDS Value',
         'description': 'Median PEDS Value'
     }
-    stats_df['A:measure'].attrs.update(measure)
-    stats_df['B:measure'].attrs.update(measure)
-    stats_df['n'].attrs.update(dict(title='count', description='Number of'
+    per_sub_stats['A:measure'].attrs.update(measure)
+    per_sub_stats['B:measure'].attrs.update(measure)
+    per_sub_stats['n'].attrs.update(dict(title='count', description='Number of'
                                     'comparisons'))
-    stats_df['test-statistic'].attrs.update(dict(title='Mann-Whitney U',
+    per_sub_stats['test-statistic'].attrs.update(dict(title='Mann-Whitney U',
                                                  description='Mann-Whitney U'
                                                              'test statistic'))
-    stats_df['p-value'].attrs.update(dict(title='one-tail p-value',
+    per_sub_stats['p-value'].attrs.update(dict(title='one-tail p-value',
                                           description='one-tail p-value'))
-    stats_df['q-value'].attrs.update(
+    per_sub_stats['q-value'].attrs.update(
         dict(title='Benjamini–Hochberg', description='FDR corrections using'
              'Benjamini–Hochberg procedure'))
+    per_sub_stats['disagree'].attrs.update(
+        dict(title='values that agree with the null hypothesis',
+             description='values that agree with the null hypothesis'))
+    per_sub_stats['rank-biserial-correlation'].attrs.update(
+        dict(title='rank biserial correlation',
+             description='rank biserial correlation'))
 
-    return stats_df
+    return per_sub_stats
 
 
 def _shuffle_donor_associations(recipient, reference_column, donor):
