@@ -507,31 +507,32 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
 
     recipient = metadata_df.loc[metadata_df[reference_column].notnull()]
     fake_donor = pd.DataFrame([])
-    for i in range(0, replicates+1):
-        if i == 0:
-            peds = sample_peds(
-                table=table, metadata=metadata,
-                time_column=time_column,
-                reference_column=reference_column,
-                subject_column=subject_column,
-                filter_missing_references=filter_missing_references,
-                drop_incomplete_subjects=drop_incomplete_subjects,
-                drop_incomplete_timepoint=drop_incomplete_timepoint)
-            real_temp = peds["measure"]
-        else:
-            shifted_list = recipient[reference_column].sample(frac=1).to_list()
-            recipient.loc[:, reference_column] = shifted_list
-            metadata_df = pd.concat([donor, recipient])
-            metadata = qiime2.Metadata(metadata_df)
-            peds = sample_peds(
-                table=table, metadata=metadata,
-                time_column=time_column,
-                reference_column=reference_column,
-                subject_column=subject_column,
-                filter_missing_references=filter_missing_references,
-                drop_incomplete_subjects=drop_incomplete_subjects,
-                drop_incomplete_timepoint=drop_incomplete_timepoint)
-            fake_donor[i] = peds["measure"]
+    peds = sample_peds(
+           table=table, metadata=metadata,
+           time_column=time_column,
+           reference_column=reference_column,
+           subject_column=subject_column,
+           filter_missing_references=filter_missing_references,
+           drop_incomplete_subjects=drop_incomplete_subjects,
+           drop_incomplete_timepoint=drop_incomplete_timepoint)
+    real_temp = peds["measure"]
+    for i in range(replicates):
+        recipient[reference_column].sample(frac=1).reset_index(drop=True)
+        # TODO: Deprecated Below:
+        shuffled_list = recipient[reference_column].sample(frac=1).to_list()
+        recipient.loc[:, reference_column] = shuffled_list
+        metadata_df = pd.concat([donor, recipient])
+        # TODO: ^^ Deprecated
+        metadata = qiime2.Metadata(metadata_df)
+        peds = sample_peds(
+               table=table, metadata=metadata,
+               time_column=time_column,
+               reference_column=reference_column,
+               subject_column=subject_column,
+               filter_missing_references=filter_missing_references,
+               drop_incomplete_subjects=drop_incomplete_subjects,
+               drop_incomplete_timepoint=drop_incomplete_timepoint)
+        fake_donor[i] = peds["measure"]
     fake_donor_series = fake_donor.median(axis=1)
     # Common Langauge effect size calcs in prep for stats refactor.
     # These are not being used currently but will be soon

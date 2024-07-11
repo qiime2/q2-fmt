@@ -631,12 +631,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor2', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub2', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 1, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor2', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
         reference_series = metadata_df['Ref'].dropna()
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -662,12 +662,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor2', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub2', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 1, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor2', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
         reference_series = metadata_df['Ref'].dropna()
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -693,12 +693,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor2', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub2', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 1, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor2', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
         reference_series = metadata_df['Ref'].dropna()
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -724,12 +724,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': [float("Nan"), float("Nan"), float("Nan"), float("Nan"),
-                    float("Nan"), float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub2', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 1, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': [np.nan, np.nan, np.nan, np.nan,
+                    np.nan, np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
         reference_series = metadata_df['Ref']
         with self.assertRaisesRegex(KeyError, 'Missing references for'
                                     ' the associated sample data. Please make'
@@ -747,12 +747,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -777,12 +777,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -811,12 +811,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         with self.assertRaisesRegex(KeyError, ".*the provided"
                                     " `--p-reference-column`: `R` in the"
                                     " metadata"):
@@ -826,12 +826,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         with self.assertRaisesRegex(KeyError,
                                     ".*the provided `--p-time-column`: `time`"
                                     " in the metadata"):
@@ -841,12 +841,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         with self.assertRaisesRegex(KeyError, ".*the provided"
                                     " `--p-subject-column`: `sub` in the"
                                     " metadata"):
@@ -856,12 +856,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -889,12 +889,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -921,12 +921,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -954,12 +954,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -978,12 +978,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 2, 1, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 2, 1, np.nan,
+                      np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -1003,9 +1003,9 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
                    'donor1'],
-            'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
-            'group': [1, 1, 1, float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', np.nan],
+            'group': [1, 1, 1, np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
@@ -1028,12 +1028,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 2, 1, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 2, 1, np.nan,
+                      np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
             'id': ['s1', 's2', 's3', 's4',
@@ -1053,12 +1053,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': ["t1", "t2", "t3", "t2", float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': ["t1", "t2", "t3", "t2", np.nan,
+                      np.nan]}).set_index('id')
         metadata_obj = Metadata(metadata_df)
         column_properties = metadata_obj.columns
         with self.assertRaisesRegex(AssertionError, ".*Column with non-numeric"
@@ -1069,12 +1069,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': [1, 1, 1, 2, float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': [1, 1, 1, 2, np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata_obj = Metadata(metadata_df)
         column_properties = metadata_obj.columns
         with self.assertRaisesRegex(AssertionError, ".*Column with"
@@ -1087,12 +1087,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['1', '1', '2', '2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub2', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 1, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['1', '1', '2', '2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
         reference_series = metadata_df['Ref'].dropna()
         table_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
@@ -1116,12 +1116,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         with self.assertRaisesRegex(KeyError, ".*`--p-subject-column` can not"
                                     " be the same as the index of"
                                     " metadata: `id`"):
@@ -1131,12 +1131,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata_df = _drop_incomplete_timepoints(metadata_df, "group", [3])
         self.assertEqual(metadata_df["group"].unique()[0], float(1))
         self.assertEqual(metadata_df["group"].unique()[1], float(2))
@@ -1145,12 +1145,12 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
-            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', float("Nan"),
-                        float("Nan")],
-            'group': [1, 2, 3, 2, float("Nan"),
-                      float("Nan")]}).set_index('id')
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
         metadata_df = _drop_incomplete_timepoints(metadata_df, "group", [3, 2])
         self.assertEqual(metadata_df["group"].dropna().unique(), [float(1)])
 
@@ -1158,9 +1158,9 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
                 'id': ['sample1', 'sample2', 'sample3',
                        'donor1'],
-                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
-                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
-                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+                'Ref': ['donor1', 'donor1', 'donor1', np.nan],
+                'subject': ['sub1', 'sub1', 'sub1', np.nan],
+                'group': [1, 1, 1, np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
                 'id': ['sample1', 'sample2', 'sample3',
@@ -1184,9 +1184,9 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
                 'id': ['sample1', 'sample2', 'sample3',
                        'donor1'],
-                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
-                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
-                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+                'Ref': ['donor1', 'donor1', 'donor1', np.nan],
+                'subject': ['sub1', 'sub1', 'sub1', np.nan],
+                'group': [1, 1, 1, np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
                 'id': ['sample1', 'sample2', 'sample3',
@@ -1210,9 +1210,9 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
                 'id': ['sample1', 'sample2', 'sample3',
                        'donor1'],
-                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
-                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
-                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+                'Ref': ['donor1', 'donor1', 'donor1', np.nan],
+                'subject': ['sub1', 'sub1', 'sub1', np.nan],
+                'group': [1, 1, 1, np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
                 'id': ['sample1', 'sample2', 'sample3',
@@ -1236,9 +1236,9 @@ class TestPeds(TestBase):
         metadata_df = pd.DataFrame({
                 'id': ['sample1', 'sample2', 'sample3',
                        'donor1'],
-                'Ref': ['donor1', 'donor1', 'donor1', float("Nan")],
-                'subject': ['sub1', 'sub1', 'sub1', float("Nan")],
-                'group': [1, 1, 1, float("Nan")]}).set_index('id')
+                'Ref': ['donor1', 'donor1', 'donor1', np.nan],
+                'subject': ['sub1', 'sub1', 'sub1', np.nan],
+                'group': [1, 1, 1, np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
                 'id': ['sample1', 'sample2', 'sample3',
@@ -1264,14 +1264,14 @@ class TestSim(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
                    'donor1', 'donor2', 'donor3'],
-            'Ref': ['donor1', 'donor2', 'donor3', float("Nan"), float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub2', 'sub3', float("Nan"), float("Nan"),
-                        float("Nan")],
-            'group': [1, 1, 1, float("Nan"), float("Nan"),
-                      float("Nan")],
-            "Location": [float("Nan"), float("Nan"),
-                         float("Nan"), 'test', 'test',
+            'Ref': ['donor1', 'donor2', 'donor3', np.nan, np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub2', 'sub3', np.nan, np.nan,
+                        np.nan],
+            'group': [1, 1, 1, np.nan, np.nan,
+                      np.nan],
+            "Location": [np.nan, np.nan,
+                         np.nan, 'test', 'test',
                          'test']}).set_index('id')
 
         table_df = pd.DataFrame({
@@ -1296,14 +1296,14 @@ class TestSim(TestBase):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
                    'donor1', 'donor2', 'donor3'],
-            'Ref': ['donor1', 'donor2', 'donor3', float("Nan"), float("Nan"),
-                    float("Nan")],
-            'subject': ['sub1', 'sub2', 'sub3', float("Nan"), float("Nan"),
-                        float("Nan")],
-            'group': [1, 1, 1, float("Nan"), float("Nan"),
-                      float("Nan")],
-            "Location": [float("Nan"), float("Nan"),
-                         float("Nan"), 'test', 'test',
+            'Ref': ['donor1', 'donor2', 'donor3', np.nan, np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub2', 'sub3', np.nan, np.nan,
+                        np.nan],
+            'group': [1, 1, 1, np.nan, np.nan,
+                      np.nan],
+            "Location": [np.nan, np.nan,
+                         np.nan, 'test', 'test',
                          'test']}).set_index('id')
 
         table_df = pd.DataFrame({
