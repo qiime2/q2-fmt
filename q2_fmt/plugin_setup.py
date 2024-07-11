@@ -122,7 +122,7 @@ plugin.pipelines.register_function(
         'stats': 'Either the Mann-Whitney U or Wilcoxon SRT table'
                  ' for the chosen comparison.',
         'raincloud_plot': 'Raincloud plot for the computed significance test'
-                          ' (either Mann-Whitney U or Wilxocon SRT) from the'
+                          ' (either Mann-Whitney U or Wilcoxon SRT) from the'
                           ' grouped diversity data and selected comparison.',
     },
     name='Engraftment Pipeline for FMT Analysis',
@@ -251,7 +251,7 @@ plugin.methods.register_function(
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
         'drop_incomplete_timepoint': 'Filter out a list of provided timepoint.'
-                                     ' This will be preformed before'
+                                     ' This will be performed before'
                                      ' drop_incomplete_subjects if the'
                                      ' drop_incomplete_subjects parameter is'
                                      ' passed.'
@@ -259,8 +259,8 @@ plugin.methods.register_function(
     output_descriptions={
         'peds_dists': 'The distributions for the PEDS measure,'
                       ' grouped by the selected `time_column`.'
-                      ' also contains the Numerator and Denominator for'
-                      ' PEDS calulations. May also contain subject IDs,'
+                      ' Also contains the Numerator and Denominator for'
+                      ' PEDS calculations. May also contain subject IDs,'
                       ' if `subject_column` is provided in the `metadata`.'
     },
     name='',
@@ -298,8 +298,8 @@ plugin.methods.register_function(
     output_descriptions={
         'peds_dists': 'The distributions for the PEDS measure,'
                       ' grouped by the selected `time_column`.'
-                      ' also contains the Numerator and Denominator for'
-                      ' PEDS calulations. May also contain subject IDs,'
+                      ' Also contains the Numerator and Denominator for'
+                      ' PEDS calculations. May also contain subject IDs,'
                       ' if `subject_column` is provided in the `metadata`.'
     },
     name='',
