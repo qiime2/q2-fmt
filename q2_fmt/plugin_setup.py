@@ -215,7 +215,8 @@ plugin.pipelines.register_function(
 plugin.visualizers.register_function(
     function=q2_fmt.peds_heatmap,
     inputs={'data': Dist1D[Ordered, Matched] % Properties("peds"),
-            'stats': StatsTable[Pairwise]},
+            'per-subject-stats': StatsTable[Pairwise],
+            'global-stats': StatsTable[Pairwise]},
     parameters={'level_delimiter': Str},
     parameter_descriptions={},
     name='PEDS Heatmap',
@@ -357,7 +358,11 @@ plugin.methods.register_function(
     description='A Monte Carlo Simulation that shuffles the recipient and'
                 ' donated microbiome in order to investigate if the true'
                 ' donated microbiome is the most similar to their true FMT'
-                ' recipient',
+                ' recipient. This method is not investigating engraftment'
+                ' extent, but is instead identifying if the recipients'
+                ' engrafted unique features from their respective donated'
+                ' microbiome as opposed to features common to the gut'
+                ' microbiome',
     citations=[citations['aggarwala_precise_2021']],
     examples={
         'peds_methods': ex.simulation_peds_method

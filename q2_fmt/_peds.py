@@ -70,10 +70,14 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
 
 
 def peds_heatmap(output_dir: str, data: pd.DataFrame,
-                 level_delimiter: str = None, stats: pd.DataFrame = None):
+                 level_delimiter: str = None, 
+                 per_subject_stats: pd.DataFrame = None,
+                 global_stats):
     _rename_features(data=data, level_delimiter=level_delimiter)
-    if stats is not None:
-        table1, stats = _make_stats(stats)
+    if  per_subject_stats is not None:
+        table1, psstats = _make_stats(per_subject_stats)
+    if  global_stats is not None:
+        table2, gstats = _make_stats(global_stats)
     J_ENV = jinja2.Environment(
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
@@ -111,8 +115,10 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
 
     with open(os.path.join(output_dir, 'index.html'), 'w') as fh:
         spec_string = json.dumps(full_spec)
-        fh.write(index.render(spec=spec_string, stats=stats,
-                              table1=table1))
+        fh.write(index.render(spec=spec_string, 
+                              per_subject_stats=psstats,
+                              global_stats=gstats,
+                              table1=table1, table2=table2))
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
@@ -562,15 +568,16 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
 
     # Calculating per-subject p-values
     actual_element_wise = actual_temp.values[:, None]
-    agree_df = shuffled_donor > actual_element_wise
-    agree_series = agree_df.sum(axis=1)
+    disagree_df = shuffled_donor >= actual_element_wise
+    disagree_series = disagree_df.sum(axis=1)
+    agree_series=replicates-disagree_series
     # adding 1 here because you can mathmatically can get p-value of 0 from a
     # Monte Carlo Simulation
-    per_subject_p = (agree_series + 1)/(replicates+1)
+    per_subject_p = (disagree_series + 1)/(replicates+1)
     per_subject_q = false_discovery_control(ps=per_subject_p, method='bh')
     # Common Langauge effect size calcs in prep for stats refactor.
-    disagree = 1 - per_subject_p
-    rank_biserial = per_subject_p - disagree
+    agree = 1 - per_subject_p
+    rank_biserial = agree - per_subject_p
 
     per_sub_stats = pd.DataFrame({'A:group': "actual_values",
                                  'A:n': actual_temp.size,
@@ -582,7 +589,7 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
                                   'test-statistic': agree_series,
                                   'p-value': per_subject_p,
                                   'q-value': per_subject_q,
-                                  'disagree': disagree,
+                                  'CLES': agree,
                                   'rank-biserial-correlation': rank_biserial})
     per_sub_stats['A:group'].attrs.update({'title': 'actual_values',
                                           'description': 'PEDS values'
@@ -605,21 +612,21 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
     per_sub_stats['B:measure'].attrs.update(measure)
     per_sub_stats['n'].attrs.update(dict(title='count', description='Number of'
                                     'comparisons'))
-    # TODO: ask about this
-    per_sub_stats['test-statistic'].attrs.update(dict(title='...',
-                                                 description='....'
-                                                             'test statistic'))
+    per_sub_stats['test-statistic'].attrs.update(
+        dict(title='Iteration',
+             description='Number of iterations that agree with the ALTERNATIVE'
+                         'hypothesis'))
     per_sub_stats['p-value'].attrs.update(dict(title='one-tail p-value',
                                           description='one-tail p-value'))
     per_sub_stats['q-value'].attrs.update(
         dict(title='Benjamini–Hochberg', description='FDR corrections using'
              'Benjamini–Hochberg procedure'))
-    per_sub_stats['disagree'].attrs.update(
-        dict(title='values that agree with the null hypothesis',
-             description='values that agree with the null hypothesis'))
+    per_sub_stats['CLES'].attrs.update(
+        dict(title='Common Language Effect Size',
+             description='Common Language Effect Size'))
     per_sub_stats['rank-biserial-correlation'].attrs.update(
         dict(title='rank biserial correlation',
-             description='rank biserial correlation'))
+             description='rank biserial correlation ranging from -1 to 1'))
     return per_sub_stats
 
 
@@ -640,10 +647,3 @@ def _global_stats(p_series):
         dict(title='Benjamini–Hochberg', description='FDR corrections using'
              'Benjamini–Hochberg procedure'))
     return global_stats
-    # TODO: Do I need?
-    # per_sub_stats['disagree'].attrs.update(
-    #   dict(title='values that agree with the null hypothesis',
-    #         description='values that agree with the null hypothesis'))
-    # per_sub_stats['rank-biserial-correlation'].attrs.update(
-    #    dict(title='rank biserial correlation',
-    #         description='rank biserial correlation'))
