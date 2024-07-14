@@ -83,6 +83,7 @@ plugin.pipelines.register_function(
                    ' The "all-pairwise" comparison defines Group A as all'
                    ' groups in `reference_column` and `control_column`, and'
                    ' Group B is all timepoints in `time_column`.',
+        'distance_to': 'what reference type to calculate distance to against',
         'time_column': 'The column within the `metadata` that the'
                        ' `diversity_measure` should be grouped by.'
                        ' This column should contain simple integer values.',
@@ -101,6 +102,8 @@ plugin.pipelines.register_function(
                                      ' the metadata that are not present in'
                                      ' the diversity measure.'
                                      ' Default behavior is to raise an error.',
+        'baseline_timepoint': 'If `baseline` is selected for `distance_to`,'
+                              ' the timepoint to use as baseline reference.',
         'where': 'Additional filtering for the associated `metadata` file.'
                  ' This can be used to filter by a subset of the `metadata`,'
                  ' such as a specific value in one of the `metadata` columns.',
@@ -153,6 +156,7 @@ plugin.methods.register_function(
     },
     parameter_descriptions={
         'metadata': 'The sample metadata.',
+        'distance_to': 'what reference type to calculate distance to against',
         'time_column': 'The column within the `metadata` that the'
                        ' `diversity_measure` should be grouped by.'
                        ' This column should contain simple integer values.',
@@ -177,6 +181,8 @@ plugin.methods.register_function(
         'where': 'Additional filtering for the associated `metadata` file.'
                  ' This can be used to filter by a subset of the `metadata`,'
                  ' such as a specific value in one of the `metadata` columns.',
+        'baseline_timepoint': 'If `baseline` is selected for `distance_to`,'
+                              ' the timepoint to use as baseline reference.',
     },
     output_descriptions={
         'timepoint_dists': 'The distributions for the `diversity_measure`,'
