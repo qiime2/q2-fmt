@@ -72,12 +72,12 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
 def peds_heatmap(output_dir: str, data: pd.DataFrame,
                  level_delimiter: str = None, 
                  per_subject_stats: pd.DataFrame = None,
-                 global_stats):
+                 global_stats: pd.DataFrame = None):
     _rename_features(data=data, level_delimiter=level_delimiter)
-    if  per_subject_stats is not None:
-        table1, psstats = _make_stats(per_subject_stats)
-    if  global_stats is not None:
-        table2, gstats = _make_stats(global_stats)
+    if global_stats is not None:
+        table1, gstats = _make_stats(global_stats)
+    if per_subject_stats is not None:
+        table2, psstats = _make_stats(per_subject_stats)
     J_ENV = jinja2.Environment(
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
@@ -115,7 +115,7 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
 
     with open(os.path.join(output_dir, 'index.html'), 'w') as fh:
         spec_string = json.dumps(full_spec)
-        fh.write(index.render(spec=spec_string, 
+        fh.write(index.render(spec=spec_string,
                               per_subject_stats=psstats,
                               global_stats=gstats,
                               table1=table1, table2=table2))
@@ -564,13 +564,13 @@ def _shuffle_donor_associations(recipient, reference_column, donor):
     return metadata
 
 
-def _per_subject_stats(actual_temp, shuffled_donor, replicates): 
+def _per_subject_stats(actual_temp, shuffled_donor, replicates):
 
     # Calculating per-subject p-values
     actual_element_wise = actual_temp.values[:, None]
     disagree_df = shuffled_donor >= actual_element_wise
     disagree_series = disagree_df.sum(axis=1)
-    agree_series=replicates-disagree_series
+    agree_series = replicates-disagree_series
     # adding 1 here because you can mathmatically can get p-value of 0 from a
     # Monte Carlo Simulation
     per_subject_p = (disagree_series + 1)/(replicates+1)
