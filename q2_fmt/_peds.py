@@ -75,9 +75,10 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
                  global_stats: pd.DataFrame = None):
     _rename_features(data=data, level_delimiter=level_delimiter)
     if global_stats is not None:
-        table1, gstats = _make_stats(global_stats)
+        gstats = global_stats.to_html(index=False)
+        #table2, gstats = _make_stats(global_stats)
     if per_subject_stats is not None:
-        table2, psstats = _make_stats(per_subject_stats)
+        table1, psstats = _make_stats(per_subject_stats)
     J_ENV = jinja2.Environment(
         loader=jinja2.PackageLoader('q2_fmt', 'assets')
     )
@@ -116,9 +117,9 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
     with open(os.path.join(output_dir, 'index.html'), 'w') as fh:
         spec_string = json.dumps(full_spec)
         fh.write(index.render(spec=spec_string,
-                              per_subject_stats=psstats,
-                              global_stats=gstats,
-                              table1=table1, table2=table2))
+                              persubjectstats=psstats,
+                              globalstats=gstats,
+                              table1=table1))
 
 
 def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
@@ -537,9 +538,6 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
            drop_incomplete_timepoint=drop_incomplete_timepoint)
     actual_temp = peds["measure"]
     for i in range(replicates):
-        print(recipient)
-        print(reference_column)
-        print(donor)
         metadata = _shuffle_donor_associations(recipient, reference_column,
                                                donor)
         peds = sample_peds(
@@ -578,7 +576,7 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
     per_subject_q = false_discovery_control(ps=per_subject_p, method='bh')
     # Common Langauge effect size calcs in prep for stats refactor.
     agree = 1 - per_subject_p
-    rank_biserial = agree - per_subject_p
+    #rank_biserial = agree - per_subject_p
 
     per_sub_stats = pd.DataFrame({'A:group': "actual_values",
                                  'A:n': actual_temp.size,
@@ -589,9 +587,9 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
                                   'n': replicates*actual_temp.size,
                                   'test-statistic': agree_series,
                                   'p-value': per_subject_p,
-                                  'q-value': per_subject_q,
-                                  'CLES': agree,
-                                  'rank-biserial-correlation': rank_biserial})
+                                  'q-value': per_subject_q})
+                                  #'CLES': agree,
+                                  #'rank-biserial-correlation': rank_biserial})
     per_sub_stats['A:group'].attrs.update({'title': 'actual_values',
                                           'description': 'PEDS values'
                                            ' calculated with actual recipient'
@@ -622,12 +620,12 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
     per_sub_stats['q-value'].attrs.update(
         dict(title='Benjamini–Hochberg', description='FDR corrections using'
              'Benjamini–Hochberg procedure'))
-    per_sub_stats['CLES'].attrs.update(
-        dict(title='Common Language Effect Size',
-             description='Common Language Effect Size'))
-    per_sub_stats['rank-biserial-correlation'].attrs.update(
-        dict(title='rank biserial correlation',
-             description='rank biserial correlation ranging from -1 to 1'))
+    #per_sub_stats['CLES'].attrs.update(
+     #   dict(title='Common Language Effect Size',
+      #       description='Common Language Effect Size'))
+    #per_sub_stats['rank-biserial-correlation'].attrs.update(
+    #    dict(title='rank biserial correlation',
+    #         description='rank biserial correlation ranging from -1 to 1'))
     return per_sub_stats
 
 

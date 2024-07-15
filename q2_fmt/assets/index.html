@@ -44,7 +44,7 @@
       right: 212px !important;
       top: 85px !important;
     }
-    #stats table {
+    #persubjectstats table {
       margin-top: 50px;
       width: 100%;
       text-align: right;
@@ -53,21 +53,47 @@
       font-family: monospace;
     }
 
-    #stats thead tr {
+    #persubjectstats thead tr {
       border: none;
     }
 
-    #stats tr th {
-      border: none;
-      padding-right: 10px;
-    }
-
-    #stats td {
+    #persubjectstats tr th {
       border: none;
       padding-right: 10px;
     }
 
-    #stats tr {
+    #persubjectstats td {
+      border: none;
+      padding-right: 10px;
+    }
+
+    #persubjectstats tr {
+      border-top: 1px solid;
+    }
+    #globalstats table {
+      margin-top: 50px;
+      width: 100%;
+      text-align: right;
+      border-collapse: collapse;
+      border: 0px;
+      font-family: monospace;
+    }
+
+    #globalstats thead tr {
+      border: none;
+    }
+
+    #globalstats tr th {
+      border: none;
+      padding-right: 10px;
+    }
+
+    #globalstats td {
+      border: none;
+      padding-right: 10px;
+    }
+
+    #globalstats tr {
       border-top: 1px solid;
     }
 
@@ -80,12 +106,19 @@
 <p><strong>sampleSize:</strong> If clicked, the sampleSize box scales your heatmap boxes based on the denominator of the PEDS proportion </p>
 
 
-{% if stats %}
-<div id='stats'>
-{{ stats }}
+{% if persubjectstats %}
+<div id='persubjectstats'>
+{{ persubjectstats }}
 </div>
 <p><strong>Table 1.</strong> {{ table1 }}</p>
 {% endif %}
+
+{% if globalstats %}
+<div id='globalstats'>
+{{ globalstats }}
+</div>
+{% endif %}
+
 
 <script type="text/javascript">
   var spec = JSON.parse(document.getElementById('spec').innerHTML);
