@@ -126,7 +126,7 @@ plugin.pipelines.register_function(
         'stats': 'Either the Mann-Whitney U or Wilcoxon SRT table'
                  ' for the chosen comparison.',
         'raincloud_plot': 'Raincloud plot for the computed significance test'
-                          ' (either Mann-Whitney U or Wilxocon SRT) from the'
+                          ' (either Mann-Whitney U or Wilcoxon SRT) from the'
                           ' grouped diversity data and selected comparison.',
     },
     name='Engraftment Pipeline for FMT Diversity Community'
@@ -304,8 +304,8 @@ plugin.methods.register_function(
     output_descriptions={
         'peds_dists': 'The distributions for the PEDS measure,'
                       ' grouped by the selected `time_column`.'
-                      ' also contains the Numerator and Denominator for'
-                      ' PEDS calulations. May also contain subject IDs,'
+                      ' Also contains the Numerator and Denominator for'
+                      ' PEDS calculations. May also contain subject IDs,'
                       ' if `subject_column` is provided in the `metadata`.'
     },
     name='Proportional Engraftment of Donor Strains (Features) in each'
