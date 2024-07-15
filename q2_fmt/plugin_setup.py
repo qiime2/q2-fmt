@@ -83,7 +83,7 @@ plugin.pipelines.register_function(
                    ' The "all-pairwise" comparison defines Group A as all'
                    ' groups in `reference_column` and `control_column`, and'
                    ' Group B is all timepoints in `time_column`.',
-        'distance_to': 'what reference type to calculate distance to against',
+        'distance_to': 'What reference type to calculate distance to against',
         'time_column': 'The column within the `metadata` that the'
                        ' `diversity_measure` should be grouped by.'
                        ' This column should contain simple integer values.',
@@ -148,7 +148,7 @@ plugin.methods.register_function(
                 'group_column': T_group, 'control_column': Str,
                 'filter_missing_references': Bool, 'where': Str,
                 'baseline_timepoint': Str, 'where': Str},
-    outputs=[('timepoint_dists', Dist1D[Ordered, T_dependence]),
+    outputs=[('timepoint_dists', Dist1D[T_nested, T_dependence]),
              ('reference_dists', Dist1D[Unordered, Independent])],
     input_descriptions={
         'diversity_measure': 'diversity metric to put in a long form data'
@@ -156,7 +156,7 @@ plugin.methods.register_function(
     },
     parameter_descriptions={
         'metadata': 'The sample metadata.',
-        'distance_to': 'what reference type to calculate distance to against',
+        'distance_to': 'What reference type to calculate distance to against',
         'time_column': 'The column within the `metadata` that the'
                        ' `diversity_measure` should be grouped by.'
                        ' This column should contain simple integer values.',
@@ -241,7 +241,7 @@ plugin.pipelines.register_function(
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
-        'drop_incomplete_timepoint': 'Filter out a list of provided timepoint.'
+        'drop_incomplete_timepoint': 'Filter out provided timepoint.'
                                      ' This will be performed before'
                                      ' drop_incomplete_subjects if the'
                                      ' drop_incomplete_subjects parameter is'
