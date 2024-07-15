@@ -20,7 +20,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _check_subject_column, _check_column_type,
                           _drop_incomplete_timepoints, feature_peds,
                           _check_column_missing, _rename_features,
-                          peds_simulation)
+                          peds_simulation, _shuffle_donor_associations)
 
 
 class TestBase(TestPluginBase):
@@ -1282,14 +1282,14 @@ class TestSim(TestBase):
             'Feature3': [0, 0, 1, 0, 0, 1]}).set_index('id')
         metadata = Metadata(metadata_df)
 
-        stats = peds_simulation(metadata=metadata,
-                                table=table_df,
-                                time_column="group",
-                                reference_column="Ref",
-                                subject_column="subject",
-                                replicates=999)
-        real_median = stats["A:measure"].values
-        fake_median = stats["B:measure"].values
+        stats, _ = peds_simulation(metadata=metadata,
+                                   table=table_df,
+                                   time_column="group",
+                                   reference_column="Ref",
+                                   subject_column="subject",
+                                   replicates=999)
+        real_median = np.median(stats["A:measure"].values)
+        fake_median = np.median(stats["B:measure"].values)
         self.assertGreater(real_median, fake_median)
 
     def test_low_donor_overlap(self):
@@ -1314,13 +1314,77 @@ class TestSim(TestBase):
             'Feature3': [0, 0, 1, 1, 1, 0]}).set_index('id')
         metadata = Metadata(metadata_df)
 
-        stats = peds_simulation(metadata=metadata,
-                                table=table_df,
-                                time_column="group",
-                                reference_column="Ref",
-                                subject_column="subject",
-                                replicates=999)
+        stats, _ = peds_simulation(metadata=metadata,
+                                   table=table_df,
+                                   time_column="group",
+                                   reference_column="Ref",
+                                   subject_column="subject",
+                                   replicates=999)
 
-        real_median = stats["A:measure"].values
-        fake_median = stats["B:measure"].values
+        real_median = np.median(stats["A:measure"].values)
+        fake_median = np.median(stats["B:measure"].values)
         self.assertGreater(fake_median, real_median)
+
+    def test_single_donor(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1'],
+            'Ref': ['donor1', 'donor1', 'donor1', np.nan],
+            'subject': ['sub1', 'sub2', 'sub3', np.nan],
+            'group': [1, 1, 1, np.nan],
+            "Location": [np.nan, np.nan,
+                         np.nan, 'test']}).set_index('id')
+
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1'],
+            'Feature1': [1, 0, 0, 0],
+            'Feature2': [0, 1, 0, 1],
+            'Feature3': [0, 0, 1, 1]}).set_index('id')
+        metadata = Metadata(metadata_df)
+
+        with self.assertRaisesRegex(AssertionError, "There is only one"
+                                    " donated microbiome in your data. *"):
+            peds_simulation(metadata=metadata,
+                            table=table_df,
+                            time_column="group",
+                            reference_column="Ref",
+                            subject_column="subject",
+                            replicates=999)
+
+    def test_is_shuffled(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2', 'donor3'],
+            'Ref': ['donor1', 'donor2', 'donor3', np.nan, np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub2', 'sub3', np.nan, np.nan,
+                        np.nan],
+            'group': [1, 1, 1, np.nan, np.nan,
+                      np.nan],
+            "Location": [np.nan, np.nan,
+                         np.nan, 'test', 'test',
+                         'test']}).set_index('id')
+
+        reference = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3'],
+            'Ref': ['donor1', 'donor2', 'donor3'],
+            'subject': ['sub1', 'sub2', 'sub3'],
+            'group': [1, 1, 1],
+            "Location": [np.nan, np.nan,
+                         np.nan]}).set_index('id')
+        reference_column = "Ref"
+        donor = pd.DataFrame({
+            'id': ['donor1', 'donor2', 'donor3'],
+            'Ref': [np.nan, np.nan, np.nan],
+            'subject': [np.nan, np.nan, np.nan],
+            'group': [np.nan, np.nan, np.nan],
+            "Location": ['test', 'test',
+                         'test']}).set_index('id')
+
+        shuffled_metadata = \
+            _shuffle_donor_associations(recipient=reference,
+                                        reference_column=reference_column,
+                                        donor=donor).to_dataframe()
+        equals = metadata_df.equals(shuffled_metadata)
+        self.assertFalse(equals)

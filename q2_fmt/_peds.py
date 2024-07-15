@@ -510,23 +510,21 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     donor = metadata_df[metadata_df.index.isin(
         _check_reference_column(metadata=metadata_df,
                                 reference_column=reference_column))]
-    try:
-        donor.index.unique() != 1
-    except AssertionError as e:
+
+    if len(donor.index.unique()) == 1:
         raise AssertionError("There is only one donated microbiome in your"
                              " data. A Monte Carlo simulation shuffles"
                              " your donated microbiome and recipient pairing"
-                             "  and needs more than one donated microbiome"
-                             " to successfully shuffle") from e
+                             " and needs more than one donated microbiome"
+                             " to successfully shuffle")
     recipient = metadata_df.loc[metadata_df[reference_column].notnull()]
-    try:
-        recipient.index.unique() != 1
-    except AssertionError as e:
+
+    if len(recipient.index.unique()) == 1:
         raise AssertionError("There is only one recipient in your"
                              " data. A Monte Carlo simulation shuffles"
                              " your donated microbiome and recipient pairing"
-                             "  and needs more than one recipient"
-                             " to successfully shuffle") from e
+                             " and needs more than one recipient"
+                             " to successfully shuffle")
 
     shuffled_donor = pd.DataFrame([])
     peds = sample_peds(
@@ -539,6 +537,9 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
            drop_incomplete_timepoint=drop_incomplete_timepoint)
     actual_temp = peds["measure"]
     for i in range(replicates):
+        print(recipient)
+        print(reference_column)
+        print(donor)
         metadata = _shuffle_donor_associations(recipient, reference_column,
                                                donor)
         peds = sample_peds(

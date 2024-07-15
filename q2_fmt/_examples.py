@@ -240,7 +240,7 @@ def simulation_peds_method(use):
     md = use.init_metadata('md', peds_md_factory)
     peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
 
-    peds_stats, = use.action(
+    peds_stats, global_stats = use.action(
         use.UsageAction('fmt', 'peds_simulation'),
         use.UsageInputs(
             table=peds_table,
@@ -250,9 +250,11 @@ def simulation_peds_method(use):
             subject_column='SubjectID'
         ),
         use.UsageOutputNames(
-            stats='stats'
+            per_subject_stats='per_subject_stats',
+            global_stats='global_stats'
         )
 
     )
 
     peds_stats.assert_output_type("StatsTable[Pairwise]")
+    global_stats.assert_output_type("StatsTable[Pairwise]")
