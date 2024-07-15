@@ -242,7 +242,7 @@ plugin.pipelines.register_function(
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
         'drop_incomplete_timepoint': 'Filter out a list of provided timepoint.'
-                                     ' This will be preformed before'
+                                     ' This will be performed before'
                                      ' drop_incomplete_subjects if the'
                                      ' drop_incomplete_subjects parameter is'
                                      ' passed.',
@@ -296,7 +296,7 @@ plugin.methods.register_function(
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
         'drop_incomplete_timepoint': 'Filter out a list of provided timepoint.'
-                                     ' This will be preformed before'
+                                     ' This will be performed before'
                                      ' drop_incomplete_subjects if the'
                                      ' drop_incomplete_subjects parameter is'
                                      ' passed.'
@@ -310,8 +310,8 @@ plugin.methods.register_function(
     },
     name='Proportional Engraftment of Donor Strains (Features) in each'
          ' recipient sample',
-    description='Calculates percentage of microbes that where found in the'
-    'donated material that are found in the recipient',
+    description='Calculates percentage of microbes that where found in the '
+    'donated material that are found in the recipient.',
     citations=[citations['aggarwala_precise_2021']],
     examples={
         'peds_methods': ex.peds_method
@@ -325,7 +325,7 @@ plugin.methods.register_function(
                 'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
-    input_descriptions={'table': 'A feature table to calculate PEDS on'},
+    input_descriptions={'table': 'A feature table to calculate PEDS on.'},
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -351,7 +351,7 @@ plugin.methods.register_function(
                       ' if `subject_column` is provided in the `metadata`.'
     },
     name='Porportional Engraftment of Donor Strains per feature',
-    description='Calculates how many reciepients recieved a given'
+    description='Calculates how many recipients recieved a given'
                 ' donated material feature ',
     examples={
         'peds_methods': ex.feature_peds_method
