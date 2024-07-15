@@ -70,7 +70,7 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
 
 
 def peds_heatmap(output_dir: str, data: pd.DataFrame,
-                 level_delimiter: str = None, 
+                 level_delimiter: str = None,
                  per_subject_stats: pd.DataFrame = None,
                  global_stats: pd.DataFrame = None):
     _rename_features(data=data, level_delimiter=level_delimiter)
