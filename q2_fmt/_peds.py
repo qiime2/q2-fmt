@@ -9,6 +9,7 @@
 import qiime2
 import pandas as pd
 import numpy as np
+import random
 import warnings
 from scipy.stats import false_discovery_control, combine_pvalues
 from collections import Counter
@@ -535,7 +536,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
            subject_column=subject_column,
            filter_missing_references=filter_missing_references,
            drop_incomplete_subjects=drop_incomplete_subjects,
-           drop_incomplete_timepoint=drop_incomplete_timepoint)
+           drop_incomplete_timepoint=drop_incomplete_timepoint).set_index("id")
     actual_temp = peds["measure"]
     for i in range(replicates):
         metadata = _shuffle_donor_associations(recipient, reference_column,
@@ -547,16 +548,19 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                subject_column=subject_column,
                filter_missing_references=filter_missing_references,
                drop_incomplete_subjects=drop_incomplete_subjects,
-               drop_incomplete_timepoint=drop_incomplete_timepoint)
+               drop_incomplete_timepoint=drop_incomplete_timepoint
+               ).set_index("id")
         shuffled_donor[i] = peds["measure"]
-        per_sub_stats = _per_subject_stats(actual_temp, shuffled_donor,
-                                           replicates)
-        global_stats = _global_stats(per_sub_stats['p-value'])
+    per_sub_stats = _per_subject_stats(actual_temp, shuffled_donor,
+                                       replicates)
+    global_stats = _global_stats(per_sub_stats['p-value'])
     return per_sub_stats, global_stats
 
 
 def _shuffle_donor_associations(recipient, reference_column, donor):
-    shuffled_list = recipient[reference_column].sample(frac=1).to_list()
+    donors = recipient[reference_column].unique()
+    shuffled_list = random.choices(donors, k=len(recipient))
+    # shuffled_list = recipient[reference_column].sample(frac=1).to_list()
     recipient.loc[:, reference_column] = shuffled_list
     metadata_df = pd.concat([donor, recipient])
     metadata = qiime2.Metadata(metadata_df)
@@ -577,14 +581,15 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
     # Common Langauge effect size calcs in prep for stats refactor.
     agree = 1 - per_subject_p
     rank_biserial = agree - per_subject_p
+    shuffled_names = "shuffled_" + shuffled_donor.reset_index()["id"]
 
-    per_sub_stats = pd.DataFrame({'A:group': "actual_values",
-                                 'A:n': actual_temp.size,
+    per_sub_stats = pd.DataFrame({'A:group': actual_temp.index,
+                                 'A:n': 1,
                                   'A:measure': actual_temp,
-                                  'B:group': "shuffled_values",
+                                  'B:group': shuffled_names.values,
                                   'B:n': replicates,
-                                  'B:measure': shuffled_donor.median(axis=1),
-                                  'n': replicates*actual_temp.size,
+                                  'B:measure': shuffled_donor.mean(axis=1),
+                                  'n': replicates,
                                   'test-statistic': agree_series,
                                   'p-value': per_subject_p,
                                   'q-value': per_subject_q,
@@ -604,10 +609,12 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
     per_sub_stats['A:n'].attrs.update(n)
     per_sub_stats['B:n'].attrs.update(n)
     measure = {
-        'title': 'Median PEDS Value',
-        'description': 'Median PEDS Value'
+        'title': 'Mean PEDS Value',
+        'description': 'Mean PEDS Value'
     }
-    per_sub_stats['A:measure'].attrs.update(measure)
+    per_sub_stats['A:measure'].attrs.update({'title': 'PEDS Value',
+                                            'description': 'PEDS Value'
+                                             })
     per_sub_stats['B:measure'].attrs.update(measure)
     per_sub_stats['n'].attrs.update(dict(title='count', description='Number of'
                                     'comparisons'))
