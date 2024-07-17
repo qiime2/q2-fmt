@@ -559,6 +559,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
 
 def _shuffle_donor_associations(recipient, reference_column, donor):
     donors = recipient[reference_column].unique()
+    # Randomize donors using a uniform distribution
     shuffled_list = random.choices(donors, k=len(recipient))
     # shuffled_list = recipient[reference_column].sample(frac=1).to_list()
     recipient.loc[:, reference_column] = shuffled_list
