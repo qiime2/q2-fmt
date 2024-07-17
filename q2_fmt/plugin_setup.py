@@ -325,11 +325,7 @@ plugin.methods.register_function(
         'time_column': 'The column within the `metadata` that the'
                        ' `table` should be grouped by. This column'
                        ' should contain simple integer values.',
-        'reference_column': 'The column within the `metadata` that contains'
-                            ' the sample to use as a reference'
-                            ' for a given `table`.'
-                            ' For example, this may be the relevant donor'
-                            ' sample to compare against.',
+        'baseline_timepoint': ' The timepoint to use as baseline reference.',
         'subject_column': 'The column within the `metadata` that contains the'
                           ' subject ID to be tracked against timepoints.',
         'filter_missing_references': 'Filter out references contained within'
