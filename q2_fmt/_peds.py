@@ -10,6 +10,7 @@ import qiime2
 import pandas as pd
 import numpy as np
 import random
+import itertools
 import warnings
 from scipy.stats import false_discovery_control, combine_pvalues
 from collections import Counter
@@ -366,7 +367,6 @@ def _check_reference_column(metadata, reference_column):
 
 def _filter_associated_reference(reference_series, metadata, time_column,
                                  filter_missing_references, reference_column):
-
     used_references = reference_series[~metadata[time_column].isna()]
 
     if used_references.isna().any():
@@ -490,14 +490,12 @@ def _create_masking(time_metadata, donor_df, recip_df, reference_column):
     donor_df = donor_df.to_numpy()
     donor_mask = donor_df[donor_index_masking]
     donor_mask = donor_mask.astype(int)
-    recipdf = recip_df.to_numpy()
-    recipdf = recipdf.astype(int)
     return donor_mask
 
 
 def _mask_recipient(donor_mask, recip_df):
-    maskedrecip = donor_mask & recip_df
-    return maskedrecip
+    recip_mask = donor_mask & recip_df
+    return recip_mask
 
 
 def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
@@ -509,11 +507,16 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                     replicates: int = 999) -> (pd.DataFrame, pd.DataFrame):
 
     metadata_df = metadata.to_dataframe()
-    donor = metadata_df[metadata_df.index.isin(
-        _check_reference_column(metadata=metadata_df,
-                                reference_column=reference_column))]
+    reference_series = _check_reference_column(metadata_df,
+                                               reference_column)
 
-    if len(donor.index.unique()) == 1:
+    (metadata_df,
+     used_references) = _filter_associated_reference(reference_series,
+                                                     metadata_df, time_column,
+                                                     filter_missing_references,
+                                                     reference_column)
+
+    if len(used_references.unique()) == 1:
         raise AssertionError("There is only one donated microbiome in your"
                              " data. A Monte Carlo simulation shuffles"
                              " your donated microbiome and recipient pairing"
@@ -528,7 +531,6 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                              " and needs more than one recipient"
                              " to successfully shuffle")
 
-    shuffled_donor = pd.DataFrame([])
     peds = sample_peds(
            table=table, metadata=metadata,
            time_column=time_column,
@@ -538,34 +540,67 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
            drop_incomplete_subjects=drop_incomplete_subjects,
            drop_incomplete_timepoint=drop_incomplete_timepoint).set_index("id")
     actual_temp = peds["measure"]
-    for i in range(replicates):
-        metadata = _shuffle_donor_associations(recipient, reference_column,
-                                               donor)
-        peds = sample_peds(
-               table=table, metadata=metadata,
-               time_column=time_column,
-               reference_column=reference_column,
-               subject_column=subject_column,
-               filter_missing_references=filter_missing_references,
-               drop_incomplete_subjects=drop_incomplete_subjects,
-               drop_incomplete_timepoint=drop_incomplete_timepoint
-               ).set_index("id")
-        shuffled_donor[i] = peds["measure"]
-    per_sub_stats = _per_subject_stats(actual_temp, shuffled_donor,
+
+    # Mismatch simulation:
+    table = table > 0
+    recip_df = _create_recipient_table(used_references, metadata_df, table)
+    donor_df = table[table.index.isin(used_references)]
+    duplicated_table, mismatch_df = \
+        _create_mismatch_pairs(recip_df,
+                               metadata_df,
+                               used_references,
+                               reference_column)
+    donor_mask = _create_sim_masking(mismatch_df, donor_df, reference_column)
+    recip_mask = donor_mask & duplicated_table
+    num_sum = np.sum(recip_mask.values, axis=1)
+    donor_sum = np.sum(donor_mask, axis=1)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        mismatch_peds = num_sum/donor_sum
+    mismatchpairs_df = _simulate_uniform_distro(recip_df, mismatch_peds,
+                                                replicates)
+    per_sub_stats = _per_subject_stats(actual_temp,  mismatchpairs_df,
                                        replicates)
     global_stats = _global_stats(per_sub_stats['p-value'])
     return per_sub_stats, global_stats
 
 
-def _shuffle_donor_associations(recipient, reference_column, donor):
-    donors = recipient[reference_column].unique()
-    # Randomize donors using a uniform distribution
-    shuffled_list = random.choices(donors, k=len(recipient))
-    # shuffled_list = recipient[reference_column].sample(frac=1).to_list()
-    recipient.loc[:, reference_column] = shuffled_list
-    metadata_df = pd.concat([donor, recipient])
-    metadata = qiime2.Metadata(metadata_df)
-    return metadata
+# Simulation helper
+def _create_mismatch_pairs(recip_df, metadata, used_references,
+                           reference_column):
+    mismatch_pairs = []
+    for x in itertools.product(recip_df.index,
+                               metadata[reference_column].dropna()):
+        mismatch_pairs.append(x)
+    mismatched_t = list(zip(used_references.index, used_references))
+    # Removes matched donor and recipient pairs
+    filtered = [tuple for tuple in mismatch_pairs if tuple not in mismatched_t]
+    idx, values = zip(*filtered)
+    mismatched_df = pd.DataFrame({"id": idx,
+                                  reference_column: values}).set_index("id")
+    duplicated_table = \
+        mismatched_df.merge(recip_df, left_index=True, right_index=True,
+                            how='left').drop(mismatched_df.columns, axis=1)
+    return duplicated_table, mismatched_df
+
+
+def _create_sim_masking(mismatch_df, donor_df, reference_column):
+    donors = mismatch_df[reference_column]
+    donor_index_masking = []
+    for donor in donors:
+        donor_index_masking.append(donor_df.index.get_loc(donor))
+    donor_df_np = donor_df.to_numpy()
+    donor_mask = donor_df_np[donor_index_masking]
+    donor_mask = donor_mask.astype(int)
+    return donor_mask
+
+
+def _simulate_uniform_distro(recip_df, mismatch_peds, replicates):
+    mismatchpairs_df = pd.DataFrame([], columns=range(replicates))
+    for x in range(len(recip_df.index)):
+        peds_iters = random.choices(mismatch_peds, k=replicates)
+        mismatchpairs_df.loc[len(mismatchpairs_df)] = peds_iters
+    return mismatchpairs_df
 
 
 def _per_subject_stats(actual_temp, shuffled_donor, replicates):
@@ -582,12 +617,10 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
     # Common Langauge effect size calcs in prep for stats refactor.
     agree = 1 - per_subject_p
     rank_biserial = agree - per_subject_p
-    shuffled_names = "shuffled_" + shuffled_donor.reset_index()["id"]
-
     per_sub_stats = pd.DataFrame({'A:group': actual_temp.index,
                                  'A:n': 1,
-                                  'A:measure': actual_temp,
-                                  'B:group': shuffled_names.values,
+                                  'A:measure': actual_temp.values,
+                                  'B:group': "shuffled_recipients",
                                   'B:n': replicates,
                                   'B:measure': shuffled_donor.mean(axis=1),
                                   'n': replicates,

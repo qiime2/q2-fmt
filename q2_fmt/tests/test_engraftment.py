@@ -20,7 +20,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _check_subject_column, _check_column_type,
                           _drop_incomplete_timepoints, feature_peds,
                           _check_column_missing, _rename_features,
-                          peds_simulation, _shuffle_donor_associations)
+                          peds_simulation)
 
 
 class TestBase(TestPluginBase):
@@ -1351,40 +1351,3 @@ class TestSim(TestBase):
                             reference_column="Ref",
                             subject_column="subject",
                             replicates=999)
-
-    def test_is_shuffled(self):
-        metadata_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3',
-                   'donor1', 'donor2', 'donor3'],
-            'Ref': ['donor1', 'donor2', 'donor3', np.nan, np.nan,
-                    np.nan],
-            'subject': ['sub1', 'sub2', 'sub3', np.nan, np.nan,
-                        np.nan],
-            'group': [1, 1, 1, np.nan, np.nan,
-                      np.nan],
-            "Location": [np.nan, np.nan,
-                         np.nan, 'test', 'test',
-                         'test']}).set_index('id')
-
-        reference = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3'],
-            'Ref': ['donor1', 'donor2', 'donor3'],
-            'subject': ['sub1', 'sub2', 'sub3'],
-            'group': [1, 1, 1],
-            "Location": [np.nan, np.nan,
-                         np.nan]}).set_index('id')
-        reference_column = "Ref"
-        donor = pd.DataFrame({
-            'id': ['donor1', 'donor2', 'donor3'],
-            'Ref': [np.nan, np.nan, np.nan],
-            'subject': [np.nan, np.nan, np.nan],
-            'group': [np.nan, np.nan, np.nan],
-            "Location": ['test', 'test',
-                         'test']}).set_index('id')
-
-        shuffled_metadata = \
-            _shuffle_donor_associations(recipient=reference,
-                                        reference_column=reference_column,
-                                        donor=donor).to_dataframe()
-        equals = metadata_df.equals(shuffled_metadata)
-        self.assertFalse(equals)
