@@ -20,7 +20,8 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _check_subject_column, _check_column_type,
                           _drop_incomplete_timepoints, feature_peds,
                           _check_column_missing, _rename_features,
-                          peds_simulation)
+                          peds_simulation, _create_mismatch_pairs,
+                          _simulate_uniform_distro, _create_sim_masking)
 
 
 class TestBase(TestPluginBase):
@@ -1351,3 +1352,82 @@ class TestSim(TestBase):
                             reference_column="Ref",
                             subject_column="subject",
                             replicates=999)
+
+    def test_mismatch_pairs(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2', 'donor3'],
+            'Ref': ['donor1', 'donor2', 'donor3', np.nan, np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub2', 'sub3', np.nan, np.nan,
+                        np.nan],
+            'group': [1, 1, 1, np.nan, np.nan,
+                      np.nan],
+            "Location": [np.nan, np.nan,
+                         np.nan, 'test', 'test',
+                         'test']}).set_index('id')
+
+        recip_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
+
+        used_references = pd.Series(data=['donor1', 'donor2', 'donor3'],
+                                    index=['sample1', 'sample2', 'sample3'],
+                                    name='Ref')
+        used_references.index.name = "id"
+        _, mismatched_df = _create_mismatch_pairs(recip_df, metadata_df,
+                                                  used_references,
+                                                  reference_column='Ref')
+        exp_mismatched_df = pd.DataFrame({'id': ["sample1", "sample1",
+                                                 "sample2", "sample2",
+                                                 "sample3", "sample3"],
+                                          "Ref": ["donor2", "donor3",
+                                                  "donor1", "donor3",
+                                                  "donor1", "donor2"]}
+                                         ).set_index('id')
+        pd.testing.assert_frame_equal(mismatched_df, exp_mismatched_df)
+
+    def test_uniform_distro(self):
+        recip_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
+
+        mismatch_peds = [0, 0, 0, 0, 0, 0]
+
+        replicates = 999
+
+        mismatchpairs_df = _simulate_uniform_distro(recip_df, mismatch_peds,
+                                                    999)
+        self.assertEquals(mismatchpairs_df.size,
+                          (recip_df.index.size * replicates))
+
+    def test_sim_masking(self):
+
+        mismatched_df = pd.DataFrame({'id': ["sample1", "sample1",
+                                             "sample2", "sample2",
+                                             "sample3", "sample3"],
+                                      "Ref": ["donor2", "donor3",
+                                              "donor1", "donor3",
+                                              "donor1", "donor2"]}
+                                     ).set_index('id')
+
+        donor_df = pd.DataFrame({
+            'id': ['donor1', 'donor2', 'donor3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
+
+        exp_mask = [[0, 1, 0],
+                    [0, 0, 1],
+                    [1, 0, 0],
+                    [0, 0, 1],
+                    [1, 0, 0],
+                    [0, 1, 0]]
+
+        donor_mask = _create_sim_masking(mismatched_df, donor_df,
+                                         reference_column='Ref')
+        np.testing.assert_array_equal(donor_mask, exp_mask)
