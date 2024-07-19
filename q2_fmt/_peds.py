@@ -691,8 +691,14 @@ def _global_stats(p_series):
 
 def _make_stats(stats):
     method = stats['test-statistic'].attrs['title']
-    group_unit = (stats['A:group'].attrs['title']
-                  + ' vs ' + stats['B:group'].attrs['title'])
+    try:
+        group_unit = (stats['A:group'].attrs['title']
+                      + ' vs ' + stats['B:group'].attrs['title'])
+    except KeyError as e:
+        raise AssertionError("The wrong stats table was handed to"
+                             " per-subject-stats. Check to make sure you are"
+                             " passing in the correct stats tables") from e
+
     pval_method = stats['p-value'].attrs['title']
     qval_method = stats['q-value'].attrs['title']
     table1 = (f'{method} tests between groups ({group_unit}), with'
