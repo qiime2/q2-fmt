@@ -51,7 +51,7 @@ plugin.pipelines.register_function(
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata,
                 'compare': T_compare,
-                'distance_to': Str,
+                'distance_to': Str % Choices('baseline', 'donor'),
                 'time_column': Str, 'reference_column': Str,
                 'subject_column': T_engraft_subject, 'control_column': Str,
                 'filter_missing_references': Bool, 'baseline_timepoint': Str,
@@ -63,7 +63,8 @@ plugin.pipelines.register_function(
         ('raincloud_plot', Visualization)
     ],
     input_descriptions={
-        'diversity_measure': '',
+        'diversity_measure': 'A diveristy measure to compare against donated'
+                             ' microbiome',
     },
     parameter_descriptions={
         'metadata': 'The sample `metadata`.',
@@ -82,6 +83,7 @@ plugin.pipelines.register_function(
                    ' The "all-pairwise" comparison defines Group A as all'
                    ' groups in `reference_column` and `control_column`, and'
                    ' Group B is all timepoints in `time_column`.',
+        'distance_to': 'What reference type to calculate distance to against',
         'time_column': 'The column within the `metadata` that the'
                        ' `diversity_measure` should be grouped by.'
                        ' This column should contain simple integer values.',
@@ -100,6 +102,8 @@ plugin.pipelines.register_function(
                                      ' the metadata that are not present in'
                                      ' the diversity measure.'
                                      ' Default behavior is to raise an error.',
+        'baseline_timepoint': 'If `baseline` is selected for `distance_to`,'
+                              ' the timepoint to use as baseline reference.',
         'where': 'Additional filtering for the associated `metadata` file.'
                  ' This can be used to filter by a subset of the `metadata`,'
                  ' such as a specific value in one of the `metadata` columns.',
@@ -122,14 +126,15 @@ plugin.pipelines.register_function(
         'stats': 'Either the Mann-Whitney U or Wilcoxon SRT table'
                  ' for the chosen comparison.',
         'raincloud_plot': 'Raincloud plot for the computed significance test'
-                          ' (either Mann-Whitney U or Wilxocon SRT) from the'
+                          ' (either Mann-Whitney U or Wilcoxon SRT) from the'
                           ' grouped diversity data and selected comparison.',
     },
-    name='Engraftment Pipeline for FMT Analysis',
+    name='Engraftment Pipeline for FMT Diversity Community'
+         ' Coalescence Analysis',
     description='Applies group timepoints to Fecal Microbiota Transplant data'
          ' and then applies statistical tests (Wilcoxon signed rank test or'
          ' Mann–Whitney U test) on alpha or beta diversity metrics to assess'
-         ' engraftment success.',
+         ' Community Coalescense of the FMT.',
     examples={
         'engraftment_baseline': ex.engraftment_baseline
     }
@@ -138,15 +143,22 @@ plugin.pipelines.register_function(
 plugin.methods.register_function(
     function=q2_fmt.group_timepoints,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
-    parameters={'metadata': Metadata, 'distance_to': Str, 'time_column': Str,
+    parameters={'metadata': Metadata,
+                'distance_to': Str % Choices('baseline', 'donor'),
+                'time_column': Str,
                 'reference_column': Str, 'subject_column': T_subject,
                 'group_column': T_group, 'control_column': Str,
                 'filter_missing_references': Bool, 'where': Str,
                 'baseline_timepoint': Str, 'where': Str},
     outputs=[('timepoint_dists', Dist1D[T_nested, T_dependence]),
              ('reference_dists', Dist1D[Unordered, Independent])],
+    input_descriptions={
+        'diversity_measure': 'diversity metric to put in a long form data'
+                             ' structure'
+    },
     parameter_descriptions={
         'metadata': 'The sample metadata.',
+        'distance_to': 'What reference type to calculate distance to against',
         'time_column': 'The column within the `metadata` that the'
                        ' `diversity_measure` should be grouped by.'
                        ' This column should contain simple integer values.',
@@ -171,6 +183,8 @@ plugin.methods.register_function(
         'where': 'Additional filtering for the associated `metadata` file.'
                  ' This can be used to filter by a subset of the `metadata`,'
                  ' such as a specific value in one of the `metadata` columns.',
+        'baseline_timepoint': 'If `baseline` is selected for `distance_to`,'
+                              ' the timepoint to use as baseline reference.',
     },
     output_descriptions={
         'timepoint_dists': 'The distributions for the `diversity_measure`,'
@@ -185,8 +199,10 @@ plugin.methods.register_function(
                            ' Otherwise, these are just the per-sample'
                            ' measurements of alpha-diversity.'
     },
-    name='',
-    description='',
+    name='Prep Method for organizing metadata and diversity metrics'
+         ' for appropriate statisics ',
+    description='Puts diversity metric data in a long form data structure'
+                ' that includes relevant metadata information',
     examples={
         'group_timepoints_alpha_ind': ex.group_timepoints_alpha_independent,
         'group_timepoints_beta': ex.group_timepoints_beta
@@ -206,10 +222,37 @@ plugin.pipelines.register_function(
                 'drop_incomplete_timepoint': List[Str],
                 'level_delimiter': Str},
     outputs=[('peds_heatmap', Visualization)],
-    parameter_descriptions={},
-    output_descriptions={},
-    name='',
-    description=''
+    input_descriptions={'table': 'A feature table to calculate PEDS on'},
+    parameter_descriptions={
+        'metadata': 'The sample metadata.',
+        'peds_metric': 'PEDS metric to run.',
+        'time_column': 'The column within the `metadata` that the'
+                       ' `table` should be grouped by. This column'
+                       ' should contain simple integer values.',
+        'reference_column': 'The column within the `metadata` that contains'
+                            ' the sample to use as a reference'
+                            ' for a given `table`.'
+                            ' For example, this may be the relevant donor'
+                            ' sample to compare against.',
+        'subject_column': 'The column within the `metadata` that contains the'
+                          ' subject ID to be tracked against timepoints.',
+        'filter_missing_references': 'Filter out references contained within'
+                                     ' the metadata that are not present'
+                                     ' in the table.'
+                                     ' Default behavior is to raise an error.',
+        'drop_incomplete_subjects': 'Filter out subjects that do not have'
+                                    ' a sample at every timepoint.'
+                                    ' Default behavior is to raise an error.',
+        'drop_incomplete_timepoint': 'Filter out provided timepoint.'
+                                     ' This will be performed before'
+                                     ' drop_incomplete_subjects if the'
+                                     ' drop_incomplete_subjects parameter is'
+                                     ' passed.',
+        'level_delimiter': 'delimiter to split taxonomic string on'},
+    output_descriptions={'peds_heatmap': 'PEDS heatmap visualization'},
+    name='PEDS pipeline to calculate feature or sample PEDS',
+    description='Runs a pipeline to calculate sample or feature PEDS,'
+                '  and generate the relevant heatmap'
 )
 
 plugin.visualizers.register_function(
@@ -217,10 +260,13 @@ plugin.visualizers.register_function(
     inputs={'data': Dist1D[Ordered, Matched] % Properties("peds"),
             'per_subject_stats': StatsTable[Pairwise],
             'global_stats': StatsTable[Pairwise]},
+    input_descriptions={'data': 'PEDS output to plot'},
     parameters={'level_delimiter': Str},
-    parameter_descriptions={},
+    parameter_descriptions={
+                            'level_delimiter': 'delimiter to split taxonomic'
+                                               ' string on'},
     name='PEDS Heatmap',
-    description=''
+    description='Plot heatmap for PEDS value over time'
 )
 
 plugin.methods.register_function(
@@ -233,6 +279,7 @@ plugin.methods.register_function(
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str]},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
+    input_descriptions={'table': 'A feature table to calculate PEDS on'},
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -253,7 +300,7 @@ plugin.methods.register_function(
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',
         'drop_incomplete_timepoint': 'Filter out a list of provided timepoint.'
-                                     ' This will be preformed before'
+                                     ' This will be performed before'
                                      ' drop_incomplete_subjects if the'
                                      ' drop_incomplete_subjects parameter is'
                                      ' passed.'
@@ -261,12 +308,14 @@ plugin.methods.register_function(
     output_descriptions={
         'peds_dists': 'The distributions for the PEDS measure,'
                       ' grouped by the selected `time_column`.'
-                      ' also contains the Numerator and Denominator for'
-                      ' PEDS calulations. May also contain subject IDs,'
+                      ' Also contains the Numerator and Denominator for'
+                      ' PEDS calculations. May also contain subject IDs,'
                       ' if `subject_column` is provided in the `metadata`.'
     },
-    name='',
-    description='',
+    name='Proportional Engraftment of Donor Strains (Features) in each'
+         ' recipient sample',
+    description='Calculates percentage of microbes that where found in the '
+    'donated material that are found in the recipient.',
     citations=[citations['aggarwala_precise_2021']],
     examples={
         'peds_methods': ex.peds_method
@@ -280,6 +329,7 @@ plugin.methods.register_function(
                 'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
+    input_descriptions={'table': 'A feature table to calculate PEDS on.'},
     parameter_descriptions={
         'metadata': 'The sample metadata.',
         'time_column': 'The column within the `metadata` that the'
@@ -304,8 +354,9 @@ plugin.methods.register_function(
                       ' PEDS calulations. May also contain subject IDs,'
                       ' if `subject_column` is provided in the `metadata`.'
     },
-    name='',
-    description='',
+    name='Porportional Engraftment of Donor Strains per feature',
+    description='Calculates how many recipients recieved a given'
+                ' donated material feature ',
     examples={
         'peds_methods': ex.feature_peds_method
     }
