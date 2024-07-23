@@ -260,7 +260,13 @@ plugin.visualizers.register_function(
     inputs={'data': Dist1D[Ordered, Matched] % Properties("peds"),
             'per_subject_stats': StatsTable[Pairwise],
             'global_stats': StatsTable[Pairwise]},
-    input_descriptions={'data': 'PEDS output to plot'},
+    input_descriptions={'data': 'PEDS output to plot',
+                        'per_subject_stats': 'stats table for comparing if the'
+                                             ' actual PEDS values to shuffled'
+                                             ' simulated values per subject',
+                        'global_stats': 'stats table for comparing if the'
+                                        ' actual PEDS values to shuffled'
+                                        ' simulated values globally.'},
     parameters={'level_delimiter': Str},
     parameter_descriptions={
                             'level_delimiter': 'delimiter to split taxonomic'
@@ -403,7 +409,7 @@ plugin.methods.register_function(
         'per_subject_stats': 'stats table for comparing if the actual PEDS'
         ' values to shuffled simulated values per subject',
         'global_stats': 'stats table for comparing if the actual PEDS values'
-        ' to Shuffled simulated values'
+        ' to shuffled simulated values globally.'
     },
     name='',
     description='A Monte Carlo Simulation that shuffles the recipient and'

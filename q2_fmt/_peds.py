@@ -20,7 +20,7 @@ import jinja2
 import json
 
 from q2_fmt._util import json_replace
-from q2_stats._visualizer import _make_group_col
+from q2_stats._visualizer import _make_stats
 
 
 def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
@@ -614,9 +614,6 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
     # Monte Carlo Simulation
     per_subject_p = (disagree_series + 1)/(replicates+1)
     per_subject_q = false_discovery_control(ps=per_subject_p, method='bh')
-    # Common Langauge effect size calcs in prep for stats refactor.
-    agree = 1 - per_subject_p
-    rank_biserial = agree - per_subject_p
     per_sub_stats = pd.DataFrame({'A:group': actual_temp.index,
                                  'A:n': 1,
                                   'A:measure': actual_temp.values,
@@ -626,9 +623,7 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
                                   'n': replicates,
                                   'test-statistic': agree_series,
                                   'p-value': per_subject_p,
-                                  'q-value': per_subject_q,
-                                  'CLES': agree,
-                                  'rank-biserial-correlation': rank_biserial})
+                                  'q-value': per_subject_q})
     per_sub_stats['A:group'].attrs.update({'title': 'actual_values',
                                           'description': 'PEDS values'
                                            ' calculated with actual recipient'
@@ -661,12 +656,6 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
     per_sub_stats['q-value'].attrs.update(
         dict(title='Benjamini–Hochberg', description='FDR corrections using'
              'Benjamini–Hochberg procedure'))
-    per_sub_stats['CLES'].attrs.update(
-        dict(title='Common Language Effect Size',
-             description='Common Language Effect Size'))
-    per_sub_stats['rank-biserial-correlation'].attrs.update(
-        dict(title='rank biserial correlation',
-             description='rank biserial correlation ranging from -1 to 1'))
     return per_sub_stats
 
 
@@ -687,43 +676,3 @@ def _global_stats(p_series):
         dict(title='Benjamini–Hochberg', description='FDR corrections using'
              'Benjamini–Hochberg procedure'))
     return global_stats
-
-
-def _make_stats(stats):
-    method = stats['test-statistic'].attrs['title']
-    try:
-        group_unit = (stats['A:group'].attrs['title']
-                      + ' vs ' + stats['B:group'].attrs['title'])
-    except KeyError as e:
-        raise AssertionError("The wrong stats table was handed to"
-                             " per-subject-stats. Check to make sure you are"
-                             " passing in the correct stats tables") from e
-
-    pval_method = stats['p-value'].attrs['title']
-    qval_method = stats['q-value'].attrs['title']
-    table1 = (f'{method} tests between groups ({group_unit}), with'
-              f' {pval_method} p-value calculations and {qval_method}'
-              f' correction for multiple comparisons (q-value).')
-    df = pd.DataFrame(index=stats.index)
-    group_a = _make_group_col('A', stats)
-    df[group_a.name] = group_a
-    group_b = _make_group_col('B', stats)
-    df[group_b.name] = group_b
-    df['A'] = stats['A:measure']
-    df['B'] = stats['B:measure']
-    df = df.merge(stats.iloc[:, 6:], left_index=True, right_index=True)
-    df.columns = pd.MultiIndex.from_tuples([
-        ('Group A', stats['A:group'].attrs['title']),
-        ('Group B', stats['B:group'].attrs['title']),
-        ('A', stats['A:measure'].attrs['title']),
-        ('B', stats['B:measure'].attrs['title']),
-        ('', 'n'),
-        ('', 'test-statistic'),
-        ('', 'p-value'),
-        ('', 'q-value'),
-        ('', 'CLES'),
-        ('', 'rank-biserial-correlation'),
-    ])
-    html = df.to_html(index=False)
-
-    return table1, html
