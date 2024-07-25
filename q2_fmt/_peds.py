@@ -34,22 +34,12 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
 
     if peds_metric == 'sample':
         sample_peds = ctx.get_action('fmt', 'sample_peds')
-        peds_bootstrap = ctx.get_action('fmt', 'peds_bootstrap')
         peds_dist = sample_peds(
             table=table, metadata=metadata, time_column=time_column,
             subject_column=subject_column, reference_column=reference_column,
             drop_incomplete_subjects=drop_incomplete_subjects,
             drop_incomplete_timepoint=drop_incomplete_timepoint,
             filter_missing_references=filter_missing_references)
-
-        peds_stats = peds_bootstrap(
-            table=table, metadata=metadata, time_column=time_column,
-            subject_column=subject_column,
-            reference_column=reference_column,
-            drop_incomplete_subjects=drop_incomplete_subjects,
-            drop_incomplete_timepoint=drop_incomplete_timepoint,
-            filter_missing_references=filter_missing_references)
-        stat = peds_stats[0]
 
     else:
         if drop_incomplete_subjects or drop_incomplete_timepoint:
@@ -64,8 +54,7 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
             table=table, metadata=metadata, time_column=time_column,
             subject_column=subject_column, reference_column=reference_column,
             filter_missing_references=filter_missing_references)
-        stat = None
-    results += peds_heatmap(data=peds_dist[0], stats=stat,
+    results += peds_heatmap(data=peds_dist[0],
                             level_delimiter=level_delimiter)
 
     return tuple(results)
@@ -504,7 +493,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                     filter_missing_references: bool = False,
                     drop_incomplete_subjects: bool = False,
                     drop_incomplete_timepoint: list = None,
-                    replicates: int = 999) -> (pd.DataFrame, pd.DataFrame):
+                    iterations: int = 999) -> (pd.DataFrame, pd.DataFrame):
 
     metadata_df = metadata.to_dataframe()
     reference_series = _check_reference_column(metadata_df,
@@ -545,36 +534,45 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     table = table > 0
     recip_df = _create_recipient_table(used_references, metadata_df, table)
     donor_df = table[table.index.isin(used_references)]
-    duplicated_table, mismatch_df = \
-        _create_mismatch_pairs(recip_df,
-                               metadata_df,
-                               used_references,
-                               reference_column)
-    donor_mask = _create_sim_masking(mismatch_df, donor_df, reference_column)
+    duplicated_table, mismatched_df = \
+        _create_mismatched_pairs(recip_df,
+                                 metadata_df,
+                                 used_references,
+                                 reference_column)
+    donor_mask = _create_sim_masking(mismatched_df, donor_df, reference_column)
     recip_mask = donor_mask & duplicated_table
+    # Numerator for PEDS Calc. (Number of Donor features in the Recipient)
     num_sum = np.sum(recip_mask.values, axis=1)
+    # Denominator for PEDS Calc. (Number of unique features in the Donor)
     donor_sum = np.sum(donor_mask, axis=1)
+    # This ignores warnings that come from dividing by 0.
+    # mismatched_peds will be Nan if the denominator is 0 and thats reasonable.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        mismatch_peds = num_sum/donor_sum
-    mismatchpairs_df = _simulate_uniform_distro(recip_df, mismatch_peds,
-                                                replicates)
-    per_sub_stats = _per_subject_stats(actual_temp,  mismatchpairs_df,
-                                       replicates)
+        mismatched_peds = num_sum/donor_sum
+    mismatchedpairs_df = _simulate_uniform_distro(recip_df, mismatched_peds,
+                                                  iterations)
+    per_sub_stats = _per_subject_stats(actual_temp, mismatchedpairs_df,
+                                       iterations)
     global_stats = _global_stats(per_sub_stats['p-value'])
     return per_sub_stats, global_stats
 
 
 # peds_simulation helper functions
-def _create_mismatch_pairs(recip_df, metadata, used_references,
-                           reference_column):
-    mismatch_pairs = []
+
+def _create_mismatched_pairs(recip_df, metadata, used_references,
+                             reference_column):
+    # creates mismatched_pairs of donors and recipients.
+    # Also creates a recipient feature table where there is a duplicate
+    # recipient sample for every pair.
+    # This makes numpy array math much simpler later.
+    mismatched_pairs = []
     for x in itertools.product(recip_df.index,
                                metadata[reference_column].dropna()):
-        mismatch_pairs.append(x)
+        mismatched_pairs.append(x)
     mismatched_t = list(zip(used_references.index, used_references))
     # Removes matched donor and recipient pairs
-    filtered = [tuple for tuple in mismatch_pairs if tuple not in mismatched_t]
+    filtered = [pair for pair in mismatched_pairs if pair not in mismatched_t]
     idx, values = zip(*filtered)
     mismatched_df = pd.DataFrame({"id": idx,
                                   reference_column: values}).set_index("id")
@@ -584,8 +582,11 @@ def _create_mismatch_pairs(recip_df, metadata, used_references,
     return duplicated_table, mismatched_df
 
 
-def _create_sim_masking(mismatch_df, donor_df, reference_column):
-    donors = mismatch_df[reference_column]
+def _create_sim_masking(mismatched_df, donor_df, reference_column):
+    # Creates a Donor Numpy array that duplicates donor samples to match up
+    # with duplicated_table. This will mask recipient feature that aren't
+    # in the donor.
+    donors = mismatched_df[reference_column]
     donor_index_masking = []
     for donor in donors:
         donor_index_masking.append(donor_df.index.get_loc(donor))
@@ -595,32 +596,34 @@ def _create_sim_masking(mismatch_df, donor_df, reference_column):
     return donor_mask
 
 
-def _simulate_uniform_distro(recip_df, mismatch_peds, replicates):
-    mismatchpairs_df = pd.DataFrame([], columns=range(replicates))
+def _simulate_uniform_distro(recip_df, mismatched_peds, iterations):
+    # samples a list of mismatched_peds calculations n (iterations) number
+    # of times uniformly.
+    mismatchedpairs_df = pd.DataFrame([], columns=range(iterations))
     for x in range(len(recip_df.index)):
-        peds_iters = random.choices(mismatch_peds, k=replicates)
-        mismatchpairs_df.loc[len(mismatchpairs_df)] = peds_iters
-    return mismatchpairs_df
+        peds_iters = random.choices(mismatched_peds, k=iterations)
+        mismatchedpairs_df.loc[len(mismatchedpairs_df)] = peds_iters
+    return mismatchedpairs_df
 
 
-def _per_subject_stats(actual_temp, shuffled_donor, replicates):
-
+def _per_subject_stats(actual_temp, shuffled_donor, iterations):
     # Calculating per-subject p-values
     actual_element_wise = actual_temp.values[:, None]
     disagree_df = shuffled_donor >= actual_element_wise
     disagree_series = disagree_df.sum(axis=1)
-    agree_series = replicates-disagree_series
+    agree_series = iterations-disagree_series
     # adding 1 here because you can mathmatically can get p-value of 0 from a
     # Monte Carlo Simulation
-    per_subject_p = (disagree_series + 1)/(replicates+1)
+    per_subject_p = (disagree_series + 1)/(iterations+1)
     per_subject_q = false_discovery_control(ps=per_subject_p, method='bh')
     per_sub_stats = pd.DataFrame({'A:group': actual_temp.index,
                                  'A:n': 1,
                                   'A:measure': actual_temp.values,
                                   'B:group': "shuffled_recipients",
-                                  'B:n': replicates,
+                                  'B:n': iterations,  # TODO: Change to num
+                                                      # mismatched_pairs
                                   'B:measure': shuffled_donor.mean(axis=1),
-                                  'n': replicates,
+                                  'n': iterations,
                                   'test-statistic': agree_series,
                                   'p-value': per_subject_p,
                                   'q-value': per_subject_q})
@@ -660,6 +663,7 @@ def _per_subject_stats(actual_temp, shuffled_donor, replicates):
 
 
 def _global_stats(p_series):
+    # Calculates global stats based off of the per-subject p-values.
     stats, p = combine_pvalues(p_series, method="stouffer")
     global_stats = pd.DataFrame([["p-values", p_series.size, stats, p,
                                   np.nan]],

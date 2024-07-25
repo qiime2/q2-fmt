@@ -20,7 +20,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _check_subject_column, _check_column_type,
                           _drop_incomplete_timepoints, feature_peds,
                           _check_column_missing, _rename_features,
-                          peds_simulation, _create_mismatch_pairs,
+                          peds_simulation, _create_mismatched_pairs,
                           _simulate_uniform_distro, _create_sim_masking)
 
 
@@ -1288,7 +1288,7 @@ class TestSim(TestBase):
                                    time_column="group",
                                    reference_column="Ref",
                                    subject_column="subject",
-                                   replicates=999)
+                                   iterations=999)
         real_median = np.median(stats["A:measure"].values)
         fake_median = np.median(stats["B:measure"].values)
         self.assertGreater(real_median, fake_median)
@@ -1320,7 +1320,7 @@ class TestSim(TestBase):
                                    time_column="group",
                                    reference_column="Ref",
                                    subject_column="subject",
-                                   replicates=999)
+                                   iterations=999)
 
         real_median = np.median(stats["A:measure"].values)
         fake_median = np.median(stats["B:measure"].values)
@@ -1351,7 +1351,7 @@ class TestSim(TestBase):
                             time_column="group",
                             reference_column="Ref",
                             subject_column="subject",
-                            replicates=999)
+                            iterations=999)
 
     def test_mismatch_pairs(self):
         metadata_df = pd.DataFrame({
@@ -1377,9 +1377,9 @@ class TestSim(TestBase):
                                     index=['sample1', 'sample2', 'sample3'],
                                     name='Ref')
         used_references.index.name = "id"
-        _, mismatched_df = _create_mismatch_pairs(recip_df, metadata_df,
-                                                  used_references,
-                                                  reference_column='Ref')
+        _, mismatched_df = _create_mismatched_pairs(recip_df, metadata_df,
+                                                    used_references,
+                                                    reference_column='Ref')
         exp_mismatched_df = pd.DataFrame({'id': ["sample1", "sample1",
                                                  "sample2", "sample2",
                                                  "sample3", "sample3"],
@@ -1398,12 +1398,12 @@ class TestSim(TestBase):
 
         mismatch_peds = [0, 0, 0, 0, 0, 0]
 
-        replicates = 999
+        iterations = 999
 
         mismatchpairs_df = _simulate_uniform_distro(recip_df, mismatch_peds,
                                                     999)
         self.assertEquals(mismatchpairs_df.size,
-                          (recip_df.index.size * replicates))
+                          (recip_df.index.size * iterations))
 
     def test_sim_masking(self):
 

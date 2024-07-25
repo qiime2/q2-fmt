@@ -372,14 +372,14 @@ plugin.methods.register_function(
     function=q2_fmt.peds_simulation,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
-    parameters={'metadata': Metadata, 
+    parameters={'metadata': Metadata,
                 'time_column': Str,
-                'reference_column': Str, 
+                'reference_column': Str,
                 'subject_column': T_subject,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str],
-                'replicates': Int % Range(999, None)},
+                'iterations': Int % Range(99, None)},
     outputs=[('per_subject_stats', StatsTable[Pairwise]),
              ('global_stats', StatsTable[Pairwise])],
     parameter_descriptions={
@@ -396,31 +396,39 @@ plugin.methods.register_function(
         'filter_missing_references': 'Filter out references contained within'
                                      ' the metadata that are not present'
                                      ' in the input feature table.'
-                                     ' Default behavior is to raise an error if some reference ids are in the metadata but not the feature table.',
+                                     ' Default behavior is to raise an error'
+                                     ' if some reference ids are in the'
+                                     ' metadata but not the feature table.',
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
-                                    ' Default behavior is to raise an error.',
-        'drop_incomplete_timepoint': 'Filter out timepoints that do not have'
-                                    ' enough samples.'
-                                    ' Default behavior is to raise an error.',
-        'replicates': 'The number of replicates to run the Monte Carlo'
+                                    ' Default behavior is to raise an error '
+                                    ' if any subject is missing a timepoint',
+        'drop_incomplete_timepoint': 'Filter out a `problematic` timepoint'
+                                     ' that is causing subject to be dropped.'
+                                     ' Default behavior is to raise an error'
+                                     ' if any subject is missing a timepoint.',
+        'iterations': 'The number of iterations to run the Monte Carlo'
                       ' simulation on'
     },
     output_descriptions={
-        'per_subject_stats': 'stats table for comparing if the actual PEDS'
-        ' values to shuffled simulated values per subject',
-        'global_stats': 'stats table for comparing if the actual PEDS values'
-        ' to shuffled simulated values globally.'
+        'per_subject_stats': 'Table describing significance of PEDS scores'
+                             ' compared to mismatched donor-recipient pairs'
+                             ' on a per-subject basis',
+        'global_stats': 'Table describing significance of PEDS scores across'
+                        ' all subjects.'
     },
-    name='',
-    description='A Monte Carlo Simulation that shuffles the recipient and'
-                ' donated microbiome in order to investigate if the true'
-                ' donated microbiome is the most similar to their true FMT'
-                ' recipient. This method is not investigating engraftment'
-                ' extent, but is instead identifying if the recipients'
-                ' engrafted unique features from their respective donated'
-                ' microbiome as opposed to features common to the gut'
-                ' microbiome',
+    name='PEDS Monte Carlo simulation',
+    description='A Monte Carlo simulation that randomizes the relationships'
+                ' between donors and recipients, to test whether the PEDS'
+                ' score between a recipient and their actual donor is'
+                ' significantly higher than PEDS scores between other'
+                ' recipients and a random donor. This is intended to only work'
+                ' in studies where there are distinct donors, and will yield'
+                ' insignificant results if there are too few donors.'
+                ' This method attempts to quantify the extent to which'
+                ' indicator features that are unique to a given donor are'
+                ' transferred to their recipients, as opposed to features that'
+                ' are not indicative of any specific donor.',
     citations=[citations['aggarwala_precise_2021']],
     examples={
         'peds_methods': ex.simulation_peds_method
