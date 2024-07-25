@@ -540,6 +540,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                                  used_references,
                                  reference_column)
     donor_mask = _create_sim_masking(mismatched_df, donor_df, reference_column)
+    mismatched_pairs_n = len(duplicated_table.index)
     recip_mask = donor_mask & duplicated_table
     # Numerator for PEDS Calc. (Number of Donor features in the Recipient)
     num_sum = np.sum(recip_mask.values, axis=1)
@@ -553,7 +554,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     mismatchedpairs_df = _simulate_uniform_distro(recip_df, mismatched_peds,
                                                   iterations)
     per_sub_stats = _per_subject_stats(actual_temp, mismatchedpairs_df,
-                                       iterations)
+                                       iterations, mismatched_pairs_n)
     global_stats = _global_stats(per_sub_stats['p-value'])
     return per_sub_stats, global_stats
 
@@ -568,7 +569,7 @@ def _create_mismatched_pairs(recip_df, metadata, used_references,
     # This makes numpy array math much simpler later.
     mismatched_pairs = []
     for x in itertools.product(recip_df.index,
-                               metadata[reference_column].dropna()):
+                               metadata[reference_column].dropna().unique()):
         mismatched_pairs.append(x)
     mismatched_t = list(zip(used_references.index, used_references))
     # Removes matched donor and recipient pairs
@@ -606,7 +607,8 @@ def _simulate_uniform_distro(recip_df, mismatched_peds, iterations):
     return mismatchedpairs_df
 
 
-def _per_subject_stats(actual_temp, shuffled_donor, iterations):
+def _per_subject_stats(actual_temp, shuffled_donor,
+                       iterations, mismatched_pairs_n):
     # Calculating per-subject p-values
     actual_element_wise = actual_temp.values[:, None]
     disagree_df = shuffled_donor >= actual_element_wise
@@ -620,8 +622,7 @@ def _per_subject_stats(actual_temp, shuffled_donor, iterations):
                                  'A:n': 1,
                                   'A:measure': actual_temp.values,
                                   'B:group': "shuffled_recipients",
-                                  'B:n': iterations,  # TODO: Change to num
-                                                      # mismatched_pairs
+                                  'B:n': mismatched_pairs_n,
                                   'B:measure': shuffled_donor.mean(axis=1),
                                   'n': iterations,
                                   'test-statistic': agree_series,
