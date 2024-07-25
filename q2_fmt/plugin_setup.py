@@ -372,8 +372,10 @@ plugin.methods.register_function(
     function=q2_fmt.peds_simulation,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
-    parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': T_subject,
+    parameters={'metadata': Metadata, 
+                'time_column': Str,
+                'reference_column': Str, 
+                'subject_column': T_subject,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str],
@@ -382,20 +384,19 @@ plugin.methods.register_function(
              ('global_stats', StatsTable[Pairwise])],
     parameter_descriptions={
         'metadata': 'The sample metadata.',
-        'time_column': 'The column within the `metadata` that the'
+        'time_column': 'The column within `metadata` that the'
                        ' `table` should be grouped by. This column'
-                       ' should contain simple integer values.',
-        'reference_column': 'The column within the `metadata` that contains'
-                            ' the sample to use as a reference'
-                            ' for a given `table`.'
-                            ' For example, this may be the relevant donor'
-                            ' sample to compare against.',
+                       ' should contain integer values.',
+        'reference_column': 'The column in `metadata` indicating'
+                            ' the sample to use as the reference.'
+                            ' For example, this may list the relevant donor'
+                            ' sample for each recipient sample.',
         'subject_column': 'The column within the `metadata` that contains the'
-                          ' subject ID to be tracked against timepoints.',
+                          ' subject ID for each sample.',
         'filter_missing_references': 'Filter out references contained within'
                                      ' the metadata that are not present'
-                                     ' in the table.'
-                                     ' Default behavior is to raise an error.',
+                                     ' in the input feature table.'
+                                     ' Default behavior is to raise an error if some reference ids are in the metadata but not the feature table.',
         'drop_incomplete_subjects': 'Filter out subjects that do not have'
                                     ' a sample at every timepoint.'
                                     ' Default behavior is to raise an error.',

@@ -521,7 +521,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                              " data. A Monte Carlo simulation shuffles"
                              " your donated microbiome and recipient pairing"
                              " and needs more than one donated microbiome"
-                             " to successfully shuffle")
+                             " to successfully shuffle.")
     recipient = metadata_df.loc[metadata_df[reference_column].notnull()]
 
     if len(recipient.index.unique()) == 1:
@@ -529,7 +529,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                              " data. A Monte Carlo simulation shuffles"
                              " your donated microbiome and recipient pairing"
                              " and needs more than one recipient"
-                             " to successfully shuffle")
+                             " to successfully shuffle.")
 
     peds = sample_peds(
            table=table, metadata=metadata,
@@ -565,7 +565,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     return per_sub_stats, global_stats
 
 
-# Simulation helper
+# peds_simulation helper functions
 def _create_mismatch_pairs(recip_df, metadata, used_references,
                            reference_column):
     mismatch_pairs = []
