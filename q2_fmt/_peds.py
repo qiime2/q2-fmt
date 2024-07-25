@@ -187,7 +187,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
                   reference_series: pd.Series, table: pd.Series,
                   metadata: qiime2.Metadata, time_column: str,
                   subject_column: str,
-                  reference_column: str) -> (pd.DataFrame):
+                  reference_column: str = None) -> (pd.DataFrame):
     table = table > 0
     reference_overlap = reference_series.isin(table.index)
     try:
@@ -489,14 +489,14 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
     num_timepoints = _check_for_time_column(metadata, time_column)
     _check_column_type(column_properties, "time",
                        time_column, "numeric")
-    reference_series = _check_reference_column(metadata, reference_column)
+    # not helpful
+    # reference_series = _check_reference_column(metadata, reference_column)
     # not helpful
     # _check_column_type(column_properties, "reference",
     #                   reference_column, "categorical")
     # return things that should be removed
-    
     # not helpful because there cant be missing baseline. 
-    #metadata, used_references = \
+    # metadata, used_references = \
     #    _filter_associated_reference(reference_series, metadata, time_column,
     #                                filter_missing_references,
     #                                reference_column)
