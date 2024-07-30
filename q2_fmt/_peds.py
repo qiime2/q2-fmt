@@ -534,14 +534,15 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     table = table > 0
     recip_df = _create_recipient_table(used_references, metadata_df, table)
     donor_df = table[table.index.isin(used_references)]
-    duplicated_table, mismatched_df = \
+    mismatched_df = \
         _create_mismatched_pairs(recip_df,
                                  metadata_df,
                                  used_references,
                                  reference_column)
+    duplicated_recip_table = _create_duplicated_recip_table(mismatched_df,
+                                                            recip_df)
     donor_mask = _create_sim_masking(mismatched_df, donor_df, reference_column)
-    mismatched_pairs_n = len(duplicated_table.index)
-    recip_mask = donor_mask & duplicated_table
+    recip_mask = _mask_recipient(donor_mask, recip_df)
     # Numerator for PEDS Calc. (Number of Donor features in the Recipient)
     num_sum = np.sum(recip_mask.values, axis=1)
     # Denominator for PEDS Calc. (Number of unique features in the Donor)
@@ -551,10 +552,10 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         mismatched_peds = num_sum/donor_sum
-    mismatchedpairs_df = _simulate_uniform_distro(recip_df, mismatched_peds,
-                                                  iterations)
-    per_sub_stats = _per_subject_stats(actual_temp, mismatchedpairs_df,
-                                       iterations, mismatched_pairs_n)
+    mismatched_pairs_n = len(duplicated_recip_table.index)
+    per_sub_stats = _per_subject_stats(mismatched_peds,
+                                       actual_temp, iterations,
+                                       mismatched_pairs_n)
     global_stats = _global_stats(per_sub_stats['p-value'])
     return per_sub_stats, global_stats
 
@@ -563,10 +564,59 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
 
 def _create_mismatched_pairs(recip_df, metadata, used_references,
                              reference_column):
-    # creates mismatched_pairs of donors and recipients.
-    # Also creates a recipient feature table where there is a duplicate
-    # recipient sample for every pair.
-    # This makes numpy array math much simpler later.
+    """Creates a Dataframe of all the incorrect Donor-Recipient pairs
+
+    Creates a list of tuples of all donor-recipient pairs then filters out
+    any real donor-recipient pairs. The result is a Dataframe that includes
+    only mismatched donor-recipient pairs.
+
+    Parameters
+    ----------
+    recip_df: pd.DataFrame
+        A feature table of FMT recipients.
+    metadata: pd.DataFrame
+        The sample metadata for the study.
+    used_references: pd.Series
+        A series with recipients as the index and the associated reference
+        as the values.
+    reference_column: Str
+        Name of the reference column in the Sample Metadata.
+
+    Returns
+    -------
+    mismatched_df: pd.DataFrame
+        A DataFrame containing all mismatched pairs of donors and recipients.
+
+    Examples
+    --------
+    recip_df = pd.DataFrame({
+        'id': ['sample1', 'sample2', 'sample3'],
+        'Feature1': [1, 0, 0],
+        'Feature2': [0, 1, 0],
+        'Feature3': [0, 0, 1]}).set_index('id')
+
+    metadata_df = pd.DataFrame({
+        'id': ['sample1', 'sample2', 'sample3','donor1', 'donor2', 'donor3'],
+        'Ref': ['donor1', 'donor2', 'donor3', np.nan, np.nan, np.nan],
+        'subject': ['sub1', 'sub2', 'sub3', np.nan, np.nan, np.nan],
+        'group': [1, 1, 1, np.nan, np.nan, np.nan],
+        "Location": [np.nan, np.nan,np.nan, 'test', 'test','test']}
+        ).set_index('id')
+
+    used_references = pd.Series(data=['donor1', 'donor2', 'donor3'],
+                                    index=['sample1', 'sample2', 'sample3'],
+                                    name='Ref')
+    used_references.index.name = "id"
+
+    reference_column = "Ref"
+
+    _create_mismatched_pairs(recip_df, metadata_df, used_references,
+                             reference_column)
+    pd.DataFrame({'id': ["sample1", "sample1", "sample2", "sample2",
+                         "sample3", "sample3"],
+                  "Ref": ["donor2", "donor3", "donor1", "donor3",
+                          "donor1", "donor2"]}).set_index('id')
+    """
     mismatched_pairs = []
     for x in itertools.product(recip_df.index,
                                metadata[reference_column].dropna().unique()):
@@ -577,41 +627,216 @@ def _create_mismatched_pairs(recip_df, metadata, used_references,
     idx, values = zip(*filtered)
     mismatched_df = pd.DataFrame({"id": idx,
                                   reference_column: values}).set_index("id")
+    return mismatched_df
+
+
+def _create_duplicated_recip_table(mismatched_df, recip_df):
+    """Creates a recipient feature table that is the same dimensions as
+    the mismatched_df
+
+    Creates a recipient table that duplicates feature information so that the
+    recip_df is the same dimension as the mismatched_df. This makes numpy array
+    math easier later on.
+
+    Parameters
+    ----------
+    mismatched_df: pd.DataFrame
+        A Dataframe that contains recipient samples as the index and mismatched
+        donors as the values. A recipient sample will appear as many times as
+        there are mismatched donors to pair with.
+    recip_df: pd.DataFrame
+        A feature table of FMT recipients.
+
+    Returns
+    -------
+    duplicated_table: pd.DataFrame
+        A recipent feature table where feature information is duplicated so
+        that recipient is in the same diminsion as mismatched_df
+
+    Examples
+    --------
+    mismatched_df = pd.DataFrame({
+            'id': ["sample1", "sample1", "sample2", "sample2",
+                   "sample3", "sample3"],
+            "Ref": ["donor2", "donor3", "donor1", "donor3",
+                    "donor1", "donor2"]}
+                                ).set_index('id')
+
+    recip_df = pd.DataFrame({
+        'id': ['sample1', 'sample2', 'sample3'],
+        'Feature1': [1, 0, 0],
+        'Feature2': [0, 1, 0],
+        'Feature3': [0, 0, 1]}).set_index('id')
+
+    _create_duplicated_recip_table(mismatched_df, recip_df)
+
+    pd.DataFrame({
+            'id': ["sample1", "sample1", "sample2", "sample2",
+                   "sample3", "sample3"],
+            'Feature1': [1, 1, 0, 0, 0, 0],
+            'Feature2': [0, 0, 1, 1, 0, 0],
+            'Feature3': [0, 0, 0, 0, 1, 1]}).set_index('id')
+    """
     duplicated_table = \
         mismatched_df.merge(recip_df, left_index=True, right_index=True,
                             how='left').drop(mismatched_df.columns, axis=1)
-    return duplicated_table, mismatched_df
+    return duplicated_table
 
 
 def _create_sim_masking(mismatched_df, donor_df, reference_column):
-    # Creates a Donor Numpy array that duplicates donor samples to match up
-    # with duplicated_table. This will mask recipient feature that aren't
-    # in the donor.
+    """Create a donor mask to mask recipient feature that aren't in the donor.
+
+    Creates a Donor Numpy array that duplicates donor samples to match up
+    with duplicated_table. This will mask recipient feature that aren't
+    in the donor.
+
+    Parameters
+    ----------
+    mismatched_df: pd.DataFrame
+        A Dataframe that contains recipient samples as the index and mismatched
+        donors as the values. A recipient sample will appear as many times as
+        there are mismatched donors to pair with.
+    donor_df: pd.DataFrame
+        A feature table of FMT donors.
+    reference_column: str
+        Name of the reference column in the Sample Metadata.
+
+    Returns
+    -------
+    donor_mask: ndarray
+        a numpy array of donor feature information with the same order as
+        duplicated_recip_table. This allows for easy np array math.
+
+    Examples
+    --------
+    mismatched_df = pd.DataFrame({
+            'id': ["sample1", "sample1", "sample2", "sample2",
+                   "sample3", "sample3"],
+            "Ref": ["donor2", "donor3", "donor1", "donor3",
+                    "donor1", "donor2"]}
+                                ).set_index('id')
+    donor_df = pd.DataFrame({
+            'id': ['donor1', 'donor2', 'donor3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
+
+    _create_sim_masking(mismatched_df, donor_df, reference_column)
+
+    ndarray[[0, 1, 0],
+            [0, 0, 1],
+            [1, 0, 0],
+            [0, 0, 1],
+            [1, 0, 0],
+            [0, 1, 0]]
+    """
     donors = mismatched_df[reference_column]
     donor_index_masking = []
     for donor in donors:
         donor_index_masking.append(donor_df.index.get_loc(donor))
     donor_df_np = donor_df.to_numpy()
     donor_mask = donor_df_np[donor_index_masking]
-    donor_mask = donor_mask.astype(int)
     return donor_mask
 
 
-def _simulate_uniform_distro(recip_df, mismatched_peds, iterations):
-    # samples a list of mismatched_peds calculations n (iterations) number
-    # of times uniformly.
-    mismatchedpairs_df = pd.DataFrame([], columns=range(iterations))
-    for x in range(len(recip_df.index)):
-        peds_iters = random.choices(mismatched_peds, k=iterations)
-        mismatchedpairs_df.loc[len(mismatchedpairs_df)] = peds_iters
-    return mismatchedpairs_df
+def _simulate_uniform_distro(mismatched_peds, iterations):
+    """Randomly samples the mismatched PEDS values.
+
+    Creates a uniform distribution of mismatched PEDS values by randomly
+    sampling N (iterations) times
+
+    Parameters
+    ----------
+    mismatched_peds: pd.DataFrame
+        A Dataframe that contains all mismatched PEDS values.
+    iterations: int
+        Number of iterations to run simulations (Number of times to randomly
+        sample mismatched_peds)
+
+    Returns
+    -------
+    peds_iters: pd.Series
+        a pd.Series with all iterations of mismatched PEDS Values. This will
+        later be compared to an actual PEDS value.
+
+    Examples
+    --------
+    mismatched_peds = [0, 0, 0,0 ]
+    iterations = 10
+
+    _simulate_uniform_distro(mismatched_peds, iterations)
+
+    pd.Series([data = [0, 0, 0, 0, 0, 0, 0, 0, 0],
+               index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
+    """
+    peds_iters = random.choices(mismatched_peds, k=iterations)
+    # Tranforming to series for easy series math in _per_subject_stats()
+    peds_iters = pd.Series(peds_iters)
+    return peds_iters
 
 
-def _per_subject_stats(actual_temp, shuffled_donor,
+def _per_subject_stats(mismatched_peds, actual_temp,
                        iterations, mismatched_pairs_n):
-    # Calculating per-subject p-values
-    actual_element_wise = actual_temp.values[:, None]
-    disagree_df = shuffled_donor >= actual_element_wise
+    """Creates per subject PEDS stats
+
+    Creates per subject PEDS stats by sampling mismatch PEDS values 'iteration'
+    number of time. The list of mismatched PEDS values is compared to the
+    actual PEDS value. The Test Statistic for this is the iterations - the
+    number of mismatched PEDS value that are greater than the actual p-value.
+    p-values are corrected by adding 1 to each side of the faction
+    because Monte Carlo Simulation is able to produce an invalid p-value of 0.
+
+    Parameters
+    ----------
+    mismatched_peds: pd.DataFrame
+        A Dataframe that contains all mismatched PEDS values.
+    actual_temp: pd.Series
+        A Series containing Sample IDs as the index and actual PEDS values for
+        the sample as the value.
+    iterations: int
+        Number of iterations to run simulations (Number of times to randomly
+        sample mismatched_peds)
+    mismatched_peds_n: int
+        Number of mismatched donor pairs are possible.
+
+    Returns
+    -------
+    per_subject_stats: pd.DataFrame
+        a Dataframe containing test statistics, p-values, q-values and
+        sample size info. Note: this is the DataFrame that is returned
+        to the user as the per-subject-stats.qza
+
+    Examples
+    --------
+    mismatched_peds = [0, 0, 0, 0]
+    actual_temp = pd.Series([data = [1, 1, 1, 1],
+               index = [sample1, sample2, sample3, sample4]])
+    iterations = 10
+    mismatched_pairs_n = 4
+
+    _per_subject_stats(mismatched_peds, actual_temp,
+                       iterations, mismatched_pairs_n):
+
+    pd.Dataframe({"A:group": [sample1, sample2, sample3, sample4],
+                   "A:n": [1, 1, 1, 1],
+                   "A:measure" : [1, 1, 1, 1],
+                   "B:group" : [shuffled_recipients, shuffled_recipients,
+                                shuffled_recipients, shuffled_recipients],
+                   "B:n": [4, 4, 4, 4],
+                   "B:measure": [0, 0, 0, 0],
+                   "n": [10, 10, 10, 10],
+                   "test-statistic": [10, 10, 10, 10],
+                   "p-value": [0.001, 0.001, 0.001, 0.001],
+                   "q-value": [0.004, 0.002, 0.00133, 0.001]})
+    """
+    disagree_df = pd.DataFrame([])
+    peds_iter_mean = []
+    for value in actual_temp:
+        peds_iters = _simulate_uniform_distro(mismatched_peds, iterations)
+        peds_iter_mean.append(peds_iters.mean())
+        disagree_recipient = peds_iters >= value
+        # add disagree recipient as a row in the disagree df
+        disagree_df = pd.concat([disagree_df, disagree_recipient.to_frame().T])
     disagree_series = disagree_df.sum(axis=1)
     agree_series = iterations-disagree_series
     # adding 1 here because you can mathmatically can get p-value of 0 from a
@@ -623,7 +848,7 @@ def _per_subject_stats(actual_temp, shuffled_donor,
                                   'A:measure': actual_temp.values,
                                   'B:group': "shuffled_recipients",
                                   'B:n': mismatched_pairs_n,
-                                  'B:measure': shuffled_donor.mean(axis=1),
+                                  'B:measure': peds_iter_mean,
                                   'n': iterations,
                                   'test-statistic': agree_series,
                                   'p-value': per_subject_p,
@@ -664,7 +889,35 @@ def _per_subject_stats(actual_temp, shuffled_donor,
 
 
 def _global_stats(p_series):
-    # Calculates global stats based off of the per-subject p-values.
+    """Creates global PEDS stats
+
+    Uses Stouffers Method on the per-subject-values to create a global PEDS
+    statistic.
+
+    Parameters
+    ----------
+    p_series: pd.Series
+        Series of all per-subject-stats
+
+    Returns
+    -------
+    global_stats: pd.DataFrame
+        a Dataframe containing global stat statistics, p-values, and q-values.
+        Note: this is the DataFrame that is returned
+        to the user as the global-stats.qza
+
+    Examples
+    --------
+    p_series = pd.Series([data = [0.001, 0.001, 0.001, 0.001])
+
+    _global_stats(p_series)
+
+    pd.Dataframe({"measure": [p-values],
+                   "n": [4],
+                   "test-statistic": [20.93],
+                   "p-value": [0.001]
+                   "q-value": [NaN]})
+    """
     stats, p = combine_pvalues(p_series, method="stouffer")
     global_stats = pd.DataFrame([["p-values", p_series.size, stats, p,
                                   np.nan]],

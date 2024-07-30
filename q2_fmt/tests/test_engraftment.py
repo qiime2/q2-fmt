@@ -21,7 +21,9 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           _drop_incomplete_timepoints, feature_peds,
                           _check_column_missing, _rename_features,
                           peds_simulation, _create_mismatched_pairs,
-                          _simulate_uniform_distro, _create_sim_masking)
+                          _simulate_uniform_distro, _create_sim_masking,
+                          _mask_recipient, _create_duplicated_recip_table,
+                          _per_subject_stats, _global_stats)
 
 
 class TestBase(TestPluginBase):
@@ -1353,7 +1355,7 @@ class TestSim(TestBase):
                             subject_column="subject",
                             iterations=999)
 
-    def test_mismatch_pairs(self):
+    def test_create_mismatched_pairs(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
                    'donor1', 'donor2', 'donor3'],
@@ -1389,7 +1391,18 @@ class TestSim(TestBase):
                                          ).set_index('id')
         pd.testing.assert_frame_equal(mismatched_df, exp_mismatched_df)
 
-    def test_uniform_distro(self):
+    def test_mask_recipient(self):
+        donor_mask = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0]])
+        recip_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
+        recip_mask = _mask_recipient(donor_mask, recip_df)
+        exp_r_mask = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        np.testing.assert_array_equal(recip_mask, exp_r_mask)
+
+    def test_simulate_uniform_distro(self):
         recip_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3'],
             'Feature1': [1, 0, 0],
@@ -1405,7 +1418,7 @@ class TestSim(TestBase):
         self.assertEquals(mismatchpairs_df.size,
                           (recip_df.index.size * iterations))
 
-    def test_sim_masking(self):
+    def test_create_sim_masking(self):
 
         mismatched_df = pd.DataFrame({'id': ["sample1", "sample1",
                                              "sample2", "sample2",
@@ -1431,3 +1444,82 @@ class TestSim(TestBase):
         donor_mask = _create_sim_masking(mismatched_df, donor_df,
                                          reference_column='Ref')
         np.testing.assert_array_equal(donor_mask, exp_mask)
+
+    def test_create_duplicated_table(self):
+        recip_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
+
+        mismatched_df = pd.DataFrame({'id': ["sample1", "sample1",
+                                             "sample2", "sample2",
+                                             "sample3", "sample3"],
+                                      "Ref": ["donor2", "donor3",
+                                              "donor1", "donor3",
+                                              "donor1", "donor2"]}
+                                     ).set_index('id')
+
+        duplicated_recip_table = _create_duplicated_recip_table(mismatched_df,
+                                                                recip_df)
+
+        exp_d_r_table = pd.DataFrame({
+            'id': ['sample1', 'sample1', 'sample2', 'sample2',
+                   'sample3', 'sample3'],
+            'Feature1': [1, 1, 0, 0, 0, 0],
+            'Feature2': [0, 0, 1, 1, 0, 0],
+            'Feature3': [0, 0, 0, 0, 1, 1]}).set_index('id')
+
+        pd.testing.assert_frame_equal(duplicated_recip_table,
+                                      exp_d_r_table)
+
+    def test_per_subject_stats_labels(self):
+        mismatched_peds = [0, 0, 0, 0]
+        actual_temp = pd.Series(data=[1, 1, 1, 1],
+                                index=["sample1", "sample2", "sample3",
+                                       "sample4"])
+        iterations = 10
+        mismatched_pairs_n = 4
+
+        p_s_stats = _per_subject_stats(mismatched_peds,
+                                       actual_temp, iterations,
+                                       mismatched_pairs_n)
+
+        exp_column_names = ["A:group", "A:n", "A:measure",
+                            "B:group", "B:n", "B:measure", "n",
+                            "test-statistic", "p-value", "q-value"]
+        np.testing.assert_array_equal(p_s_stats.columns.values,
+                                      exp_column_names)
+
+    def test_per_subject_stats(self):
+        mismatched_peds = [0, 0, 0, 0]
+        actual_temp = pd.Series(data=[1, 1, 1, 1],
+                                index=["sample1", "sample2", "sample3",
+                                       "sample4"])
+        iterations = 10
+        mismatched_pairs_n = 4
+
+        p_s_stats = _per_subject_stats(mismatched_peds,
+                                       actual_temp, iterations,
+                                       mismatched_pairs_n)
+
+        exp_test_stats = pd.Series([10, 10, 10, 10])
+
+        np.testing.assert_array_equal(p_s_stats["test-statistic"].values,
+                                      exp_test_stats.values)
+
+    def test_global_stats_label(self):
+        p_series = pd.Series(data=[0.001, 0.001, 0.001, 0.001])
+
+        p = _global_stats(p_series)
+
+        exp_labels = ["Measure", "n", "test-statistic", "p-value", "q-value"]
+        np.testing.assert_array_equal(p.columns.values,
+                                      exp_labels)
+
+    def test_global_stats(self):
+        p_series = pd.Series(data=[0.001, 0.001, 0.001, 0.001])
+
+        p = _global_stats(p_series)
+
+        np.testing.assert_array_equal(p["n"].values, [4])
