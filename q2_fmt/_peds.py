@@ -684,7 +684,7 @@ def _create_duplicated_recip_table(mismatched_df, recip_df):
 
 
 def _create_sim_masking(mismatched_df, donor_df, reference_column):
-    """Create a donor mask to mask recipient feature that aren't in the donor.
+    """Create a donor mask to mask recipient features that aren't in the donor.
 
     Creates a Donor Numpy array that duplicates donor samples to match up
     with duplicated_table. This will mask recipient feature that aren't
@@ -743,7 +743,7 @@ def _simulate_uniform_distro(mismatched_peds, iterations):
     """Randomly samples the mismatched PEDS values.
 
     Creates a uniform distribution of mismatched PEDS values by randomly
-    sampling N (iterations) times
+    sampling `iterations` times with replacement.
 
     Parameters
     ----------
@@ -780,10 +780,10 @@ def _per_subject_stats(mismatched_peds, actual_temp,
     """Creates per subject PEDS stats
 
     Creates per subject PEDS stats by sampling mismatch PEDS values 'iteration'
-    number of time. The list of mismatched PEDS values is compared to the
+    number of times. The list of mismatched PEDS values is compared to the
     actual PEDS value. The Test Statistic for this is the iterations - the
     number of mismatched PEDS value that are greater than the actual p-value.
-    p-values are corrected by adding 1 to each side of the faction
+    p-values are corrected by adding 1 to each side of the fraction
     because Monte Carlo Simulation is able to produce an invalid p-value of 0.
 
     Parameters
@@ -797,7 +797,7 @@ def _per_subject_stats(mismatched_peds, actual_temp,
         Number of iterations to run simulations (Number of times to randomly
         sample mismatched_peds)
     mismatched_peds_n: int
-        Number of mismatched donor pairs are possible.
+        Number of possible mismatched donor pairs.
 
     Returns
     -------
@@ -880,7 +880,7 @@ def _per_subject_stats(mismatched_peds, actual_temp,
         dict(title='Iteration',
              description='Number of iterations that agree with the ALTERNATIVE'
                          'hypothesis'))
-    per_sub_stats['p-value'].attrs.update(dict(title='one-tail p-value',
+    per_sub_stats['p-value'].attrs.update(dict(title='one-tailed',
                                           description='one-tail p-value'))
     per_sub_stats['q-value'].attrs.update(
         dict(title='Benjamini–Hochberg', description='FDR corrections using'

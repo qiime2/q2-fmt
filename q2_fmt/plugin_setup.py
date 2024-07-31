@@ -63,11 +63,11 @@ filter_missing_references = ('Filter out references contained within the'
 drop_incomplete_subjects = ('Filter out subjects that do not have a sample at'
                             ' every timepoint. Default behavior is to raise an'
                             ' error if any subject is missing a timepoint.')
-drop_incomplete_timepoint = ('Filter out a `problematic` timepoint that is'
-                             ' causing subject to be dropped. Default behavior'
+drop_incomplete_timepoint = ('Filter out specified timepoint. This is useful for removing frequently missing timepoints which cause'
+                             ' many subjects to be dropped. Default behavior'
                              ' is to raise an error if any subject is missing'
                              ' a timepoint.')
-level_delimiter = 'delimiter to split taxonomic string on'
+level_delimiter = 'delimiter to split taxonomic label on'
 control_column = ('The column within `metadata` that contains any relevant'
                   ' control group IDs. Actual treatment samples should not'
                   ' contain any value within this column.')
@@ -83,9 +83,9 @@ per_subject_stats = ('Table describing significance of PEDS scores compared to'
                      ' basis.')
 global_stats = ('Table describing significance of PEDS scores across all'
                 ' subjects.')
-peds_table = 'A feature table to calculate PEDS on.'
+peds_table = 'The feature table to calculate PEDS on.'
 peds_dists = ('The distributions for the PEDS measure, grouped by the selected'
-              ' `time_column`. also contains the Numerator and Denominator for'
+              ' `time_column`. Also contains the numerator and denominator for'
               ' PEDS calulations. May also contain subject IDs, if'
               ' `subject_column` is  provided in `metadata`.')
 
@@ -359,7 +359,7 @@ plugin.methods.register_function(
                 ' between donors and recipients, to test whether the PEDS'
                 ' score between a recipient and their actual donor is'
                 ' significantly higher than PEDS scores between other'
-                ' recipients and a random donor. This is intended to only work'
+                ' recipients paired with random donors. This is intended to only work'
                 ' in studies where there are distinct donors, and will yield'
                 ' insignificant results if there are too few donors.'
                 ' This method attempts to quantify the extent to which'
