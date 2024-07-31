@@ -1402,13 +1402,33 @@ class TestSim(TestBase):
         exp_r_mask = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         np.testing.assert_array_equal(recip_mask, exp_r_mask)
 
+    def test_mask_recipient_donor_one(self):
+        donor_mask = np.array([[0, 1, 0], [0, 1, 0], [0, 1, 0]])
+        recip_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
+        recip_mask = _mask_recipient(donor_mask, recip_df)
+        exp_r_mask = [[0, 0, 0], [0, 1, 0], [0, 0, 0]]
+        np.testing.assert_array_equal(recip_mask, exp_r_mask)
+
     def test_simulate_uniform_distro(self):
         mismatch_peds = [0, 0, 0, 0, 0, 0]
 
         iterations = 999
 
         mismatchpairs_df = _simulate_uniform_distro(mismatch_peds,
-                                                    999)
+                                                    iterations)
+        self.assertEquals(mismatchpairs_df.size, iterations)
+
+    def test_one_iter_simulate_uniform_distro(self):
+        mismatch_peds = [0, 0, 0, 0, 0, 0]
+
+        iterations = 1
+
+        mismatchpairs_df = _simulate_uniform_distro(mismatch_peds,
+                                                    iterations)
         self.assertEquals(mismatchpairs_df.size, iterations)
 
     def test_create_sim_masking(self):
@@ -1438,6 +1458,30 @@ class TestSim(TestBase):
                                          reference_column='Ref')
         np.testing.assert_array_equal(donor_mask, exp_mask)
 
+    def test_create_one_donor_sim_masking(self):
+
+        mismatched_df = pd.DataFrame({'id': ["sample1",
+                                             "sample2",
+                                             "sample3"],
+                                      "Ref": ["donor2",
+                                              "donor2",
+                                              "donor2"]}
+                                     ).set_index('id')
+
+        donor_df = pd.DataFrame({
+            'id': ['donor2'],
+            'Feature1': [1],
+            'Feature2': [0],
+            'Feature3': [0]}).set_index('id')
+
+        exp_mask = [[1, 0, 0],
+                    [1, 0, 0],
+                    [1, 0, 0]]
+
+        donor_mask = _create_sim_masking(mismatched_df, donor_df,
+                                         reference_column='Ref')
+        np.testing.assert_array_equal(donor_mask, exp_mask)
+
     def test_create_duplicated_table(self):
         recip_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3'],
@@ -1462,6 +1506,33 @@ class TestSim(TestBase):
             'Feature1': [1, 1, 0, 0, 0, 0],
             'Feature2': [0, 0, 1, 1, 0, 0],
             'Feature3': [0, 0, 0, 0, 1, 1]}).set_index('id')
+
+        pd.testing.assert_frame_equal(duplicated_recip_table,
+                                      exp_d_r_table)
+
+    def test_create_no_duplicated_table(self):
+        recip_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
+
+        mismatched_df = pd.DataFrame({'id': ["sample1",
+                                             "sample2",
+                                             "sample3"],
+                                      "Ref": ["donor2",
+                                              "donor2",
+                                              "donor2"]}
+                                     ).set_index('id')
+
+        duplicated_recip_table = _create_duplicated_recip_table(mismatched_df,
+                                                                recip_df)
+
+        exp_d_r_table = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3'],
+            'Feature1': [1, 0, 0],
+            'Feature2': [0, 1, 0],
+            'Feature3': [0, 0, 1]}).set_index('id')
 
         pd.testing.assert_frame_equal(duplicated_recip_table,
                                       exp_d_r_table)
