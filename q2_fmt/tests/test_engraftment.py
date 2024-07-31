@@ -1403,12 +1403,6 @@ class TestSim(TestBase):
         np.testing.assert_array_equal(recip_mask, exp_r_mask)
 
     def test_simulate_uniform_distro(self):
-        recip_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3'],
-            'Feature1': [1, 0, 0],
-            'Feature2': [0, 1, 0],
-            'Feature3': [0, 0, 1]}).set_index('id')
-
         mismatch_peds = [0, 0, 0, 0, 0, 0]
 
         iterations = 999
