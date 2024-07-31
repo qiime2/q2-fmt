@@ -542,7 +542,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     duplicated_recip_table = _create_duplicated_recip_table(mismatched_df,
                                                             recip_df)
     donor_mask = _create_sim_masking(mismatched_df, donor_df, reference_column)
-    recip_mask = _mask_recipient(donor_mask, recip_df)
+    recip_mask = _mask_recipient(donor_mask, duplicated_recip_table)
     # Numerator for PEDS Calc. (Number of Donor features in the Recipient)
     num_sum = np.sum(recip_mask.values, axis=1)
     # Denominator for PEDS Calc. (Number of unique features in the Donor)

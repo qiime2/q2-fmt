@@ -1379,9 +1379,9 @@ class TestSim(TestBase):
                                     index=['sample1', 'sample2', 'sample3'],
                                     name='Ref')
         used_references.index.name = "id"
-        _, mismatched_df = _create_mismatched_pairs(recip_df, metadata_df,
-                                                    used_references,
-                                                    reference_column='Ref')
+        mismatched_df = _create_mismatched_pairs(recip_df, metadata_df,
+                                                 used_references,
+                                                 reference_column='Ref')
         exp_mismatched_df = pd.DataFrame({'id': ["sample1", "sample1",
                                                  "sample2", "sample2",
                                                  "sample3", "sample3"],
@@ -1413,10 +1413,9 @@ class TestSim(TestBase):
 
         iterations = 999
 
-        mismatchpairs_df = _simulate_uniform_distro(recip_df, mismatch_peds,
+        mismatchpairs_df = _simulate_uniform_distro(mismatch_peds,
                                                     999)
-        self.assertEquals(mismatchpairs_df.size,
-                          (recip_df.index.size * iterations))
+        self.assertEquals(mismatchpairs_df.size, iterations)
 
     def test_create_sim_masking(self):
 
