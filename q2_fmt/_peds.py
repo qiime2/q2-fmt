@@ -777,7 +777,7 @@ def _simulate_uniform_distro(mismatched_peds, k):
     return peds_iters
 
 
-def peds_sim_stats(value, peds_iters, num_iterations):
+def _peds_sim_stats(value, peds_iters, num_iterations):
     """Calculates test statistics, and p-value.
 
     Calculates tests statistics (`count_gte` and ` count_less`) and p-value
@@ -799,23 +799,25 @@ def peds_sim_stats(value, peds_iters, num_iterations):
     count_gte: int
         Count of mismatched PEDS values that were greater than the actual PEDS
         value
-    count_less
+    count_less: int
         Count of mismatched PEDS values that were less than the actual PEDS
         value. This is calculated by ``num_interations - count_gte``
-    per_subject_p
+    per_subject_p: float
         The p-value associated with the above test stats.
 
     Examples
     --------
-    >>> pd.Series([data = [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
-    >>> num_iterations = 10
     >>> value = 1
+    >>> peds_iters = pd.Series([data = [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                                index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
+    >>> num_iterations = 10
 
-    >>> _simulate_uniform_distro(mismatched_peds, num_iterations)
+    >>> _peds_sim_stats()
 
-    pd.Series([data = [0, 0, 0, 0, 0, 0, 0, 0, 0],
-               index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
+    count_gte = 0
+    count_less = 10
+    per_subject_p = (1/11) (Note: the 10 iterations is not enough to get a 
+                            significant p-value)
     """
     gte_series = peds_iters >= value
     count_gte = gte_series.sum()
@@ -881,8 +883,8 @@ def _per_subject_stats(mismatched_peds, actual_peds,
     for value in actual_peds:
         peds_iters = _simulate_uniform_distro(mismatched_peds, num_iterations)
         peds_iters_means.append(peds_iters.mean())
-        _, count_less, per_subject_p = peds_sim_stats(value, peds_iters,
-                                                      num_iterations)
+        _, count_less, per_subject_p = _peds_sim_stats(value, peds_iters,
+                                                       num_iterations)
         count_less_list.append(count_less)
         per_subject_p_list.append(per_subject_p)
 
