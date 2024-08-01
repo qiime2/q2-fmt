@@ -1527,15 +1527,8 @@ class TestSim(TestBase):
 
         duplicated_recip_table = _create_duplicated_recip_table(mismatched_df,
                                                                 recip_df)
-
-        exp_d_r_table = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3'],
-            'Feature1': [1, 0, 0],
-            'Feature2': [0, 1, 0],
-            'Feature3': [0, 0, 1]}).set_index('id')
-
         pd.testing.assert_frame_equal(duplicated_recip_table,
-                                      exp_d_r_table)
+                                      recip_df)
 
     def test_per_subject_stats_labels(self):
         mismatched_peds = [0, 0, 0, 0]

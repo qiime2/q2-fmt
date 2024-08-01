@@ -63,10 +63,11 @@ filter_missing_references = ('Filter out references contained within the'
 drop_incomplete_subjects = ('Filter out subjects that do not have a sample at'
                             ' every timepoint. Default behavior is to raise an'
                             ' error if any subject is missing a timepoint.')
-drop_incomplete_timepoint = ('Filter out specified timepoint. This is useful for removing frequently missing timepoints which cause'
-                             ' many subjects to be dropped. Default behavior'
-                             ' is to raise an error if any subject is missing'
-                             ' a timepoint.')
+drop_incomplete_timepoint = ('Filter out specified timepoints. This is useful'
+                             ' for removing frequently missing timepoints'
+                             ' which cause many subjects to be dropped.'
+                             ' Default behavior is to raise an error if any'
+                             ' subject is missing a timepoint.')
 level_delimiter = 'delimiter to split taxonomic label on'
 control_column = ('The column within `metadata` that contains any relevant'
                   ' control group IDs. Actual treatment samples should not'
@@ -336,7 +337,7 @@ plugin.methods.register_function(
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str],
-                'iterations': Int % Range(99, None)},
+                'num_iterations': Int % Range(99, None)},
     outputs=[('per_subject_stats', StatsTable[Pairwise]),
              ('global_stats', StatsTable[Pairwise])],
     parameter_descriptions={
@@ -347,8 +348,8 @@ plugin.methods.register_function(
         'filter_missing_references': filter_missing_references,
         'drop_incomplete_subjects': drop_incomplete_subjects,
         'drop_incomplete_timepoint': drop_incomplete_timepoint,
-        'iterations': 'The number of iterations to run the Monte Carlo'
-                      ' simulation on'
+        'num_iterations': 'The number of iterations to run the Monte Carlo'
+                          ' simulation on'
     },
     output_descriptions={
         'per_subject_stats': per_subject_stats,
@@ -359,14 +360,14 @@ plugin.methods.register_function(
                 ' between donors and recipients, to test whether the PEDS'
                 ' score between a recipient and their actual donor is'
                 ' significantly higher than PEDS scores between other'
-                ' recipients paired with random donors. This is intended to only work'
-                ' in studies where there are distinct donors, and will yield'
-                ' insignificant results if there are too few donors.'
-                ' This method attempts to quantify the extent to which'
-                ' indicator features that are unique to a given donor are'
-                ' transferred to their recipients, as opposed to features that'
-                ' are not indicative of any specific donor.',
-    citations=[citations['aggarwala_precise_2021']],
+                ' recipients paired with random donors. This is intended to'
+                ' only work in studies where there are distinct donors,'
+                ' and will yield insignificant results if there are too'
+                ' few donors. This method attempts to quantify the extent to'
+                ' which indicator features that are unique to a given donor'
+                ' are transferred to their recipients, as opposed to features'
+                ' that are not indicative of any specific donor.',
+    citations=[citations['aggarwala_precise_2021', 'stouffer_1949_american']],
     examples={
         'peds_methods': ex.simulation_peds_method
     }
