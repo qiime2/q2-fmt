@@ -1415,7 +1415,7 @@ class TestSim(TestBase):
 
     def test_simulate_uniform_distro(self):
         # Note: This tests has a VERY small chance to have intermit failures
-        # if by random chance 1, 2, or 3 are not selected by random.choice. 
+        # if by random chance 1, 2, or 3 are not selected by random.choice.
         mismatch_peds = [1, 2, 3]
 
         iterations = 999
