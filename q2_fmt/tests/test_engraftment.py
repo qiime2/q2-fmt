@@ -23,7 +23,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           peds_simulation, _create_mismatched_pairs,
                           _simulate_uniform_distro, _create_sim_masking,
                           _mask_recipient, _create_duplicated_recip_table,
-                          _per_subject_stats, _global_stats)
+                          _per_subject_stats, _global_stats, )
 
 
 class TestBase(TestPluginBase):

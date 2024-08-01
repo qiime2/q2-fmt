@@ -367,7 +367,9 @@ plugin.methods.register_function(
                 ' which indicator features that are unique to a given donor'
                 ' are transferred to their recipients, as opposed to features'
                 ' that are not indicative of any specific donor.',
-    citations=[citations['aggarwala_precise_2021', 'stouffer_1949_american']],
+    citations=[citations['aggarwala_precise_2021'],
+               citations['stouffer_1949_american'],
+               citations['Benjamini_fdr_1995']],
     examples={
         'peds_methods': ex.simulation_peds_method
     }
