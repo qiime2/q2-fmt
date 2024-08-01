@@ -23,7 +23,7 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           peds_simulation, _create_mismatched_pairs,
                           _simulate_uniform_distro, _create_sim_masking,
                           _mask_recipient, _create_duplicated_recip_table,
-                          _per_subject_stats, _global_stats, )
+                          _per_subject_stats, _global_stats, _peds_sim_stats)
 
 
 class TestBase(TestPluginBase):
@@ -1290,7 +1290,7 @@ class TestSim(TestBase):
                                    time_column="group",
                                    reference_column="Ref",
                                    subject_column="subject",
-                                   iterations=999)
+                                   num_iterations=999)
         real_median = np.median(stats["A:measure"].values)
         fake_median = np.median(stats["B:measure"].values)
         self.assertGreater(real_median, fake_median)
@@ -1322,7 +1322,7 @@ class TestSim(TestBase):
                                    time_column="group",
                                    reference_column="Ref",
                                    subject_column="subject",
-                                   iterations=999)
+                                   num_iterations=999)
 
         real_median = np.median(stats["A:measure"].values)
         fake_median = np.median(stats["B:measure"].values)
@@ -1353,7 +1353,7 @@ class TestSim(TestBase):
                             time_column="group",
                             reference_column="Ref",
                             subject_column="subject",
-                            iterations=999)
+                            num_iterations=999)
 
     def test_create_mismatched_pairs(self):
         metadata_df = pd.DataFrame({
@@ -1414,12 +1414,17 @@ class TestSim(TestBase):
         np.testing.assert_array_equal(recip_mask, exp_r_mask)
 
     def test_simulate_uniform_distro(self):
-        mismatch_peds = [0, 0, 0, 0, 0, 0]
+        # Note: This tests has a VERY small chance to have intermit failures
+        # if by random chance 1, 2, or 3 are not selected by random.choice. 
+        mismatch_peds = [1, 2, 3]
 
         iterations = 999
 
         mismatchpairs_df = _simulate_uniform_distro(mismatch_peds,
                                                     iterations)
+        self.assertIn(1, mismatchpairs_df)
+        self.assertIn(2, mismatchpairs_df)
+        self.assertIn(3, mismatchpairs_df)
         self.assertEquals(mismatchpairs_df.size, iterations)
 
     def test_one_iter_simulate_uniform_distro(self):
@@ -1536,11 +1541,9 @@ class TestSim(TestBase):
                                 index=["sample1", "sample2", "sample3",
                                        "sample4"])
         iterations = 10
-        mismatched_pairs_n = 4
 
         p_s_stats = _per_subject_stats(mismatched_peds,
-                                       actual_temp, iterations,
-                                       mismatched_pairs_n)
+                                       actual_temp, iterations)
 
         exp_column_names = ["A:group", "A:n", "A:measure",
                             "B:group", "B:n", "B:measure", "n",
@@ -1554,11 +1557,9 @@ class TestSim(TestBase):
                                 index=["sample1", "sample2", "sample3",
                                        "sample4"])
         iterations = 10
-        mismatched_pairs_n = 4
 
         p_s_stats = _per_subject_stats(mismatched_peds,
-                                       actual_temp, iterations,
-                                       mismatched_pairs_n)
+                                       actual_temp, iterations)
 
         exp_test_stats = pd.Series([10, 10, 10, 10])
 
@@ -1580,3 +1581,112 @@ class TestSim(TestBase):
         p = _global_stats(p_series)
 
         np.testing.assert_array_equal(p["n"].values, [4])
+
+    def test_peds_sim_stats_good_match(self):
+        value = 1
+        peds_iters = pd.Series(data=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                               index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        num_iterations = 10
+
+        count_gte, count_less, per_subject_p = _peds_sim_stats(value,
+                                                               peds_iters,
+                                                               num_iterations)
+        exp_count_gte = 0
+        exp_count_less = 10
+        exp_per_subject_p = (1/11)
+
+        self.assertEqual(count_gte, exp_count_gte)
+        self.assertEqual(count_less, exp_count_less)
+        self.assertEqual(per_subject_p, exp_per_subject_p)
+
+    def test_peds_sim_stats_bad_match(self):
+        value = 0
+        peds_iters = pd.Series(data=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                               index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        num_iterations = 10
+
+        count_gte, count_less, per_subject_p = _peds_sim_stats(value,
+                                                               peds_iters,
+                                                               num_iterations)
+        exp_count_gte = 10
+        exp_count_less = 0
+        exp_per_subject_p = (11/11)
+
+        self.assertEqual(count_gte, exp_count_gte)
+        self.assertEqual(count_less, exp_count_less)
+        self.assertEqual(per_subject_p, exp_per_subject_p)
+
+    def test_peds_sim_stats_equal_match(self):
+        value = .5
+        peds_iters = pd.Series(data=[.5, .5, .5, .5, .5, .5, .5, .5, .5, .5],
+                               index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        num_iterations = 10
+
+        count_gte, count_less, per_subject_p = _peds_sim_stats(value,
+                                                               peds_iters,
+                                                               num_iterations)
+        exp_count_gte = 10
+        exp_count_less = 0
+        exp_per_subject_p = (11/11)
+
+        self.assertEqual(count_gte, exp_count_gte)
+        self.assertEqual(count_less, exp_count_less)
+        self.assertEqual(per_subject_p, exp_per_subject_p)
+
+    def test_peds_sim_stats_50_percent_bad_match(self):
+        value = .5
+        peds_iters = pd.Series(data=[.5, 1, .5, 1, .5, 1, .5, 1, .5, 1],
+                               index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        num_iterations = 10
+
+        count_gte, count_less, per_subject_p = _peds_sim_stats(value,
+                                                               peds_iters,
+                                                               num_iterations)
+        exp_count_gte = 10
+        exp_count_less = 0
+        exp_per_subject_p = (11/11)
+
+        self.assertEqual(count_gte, exp_count_gte)
+        self.assertEqual(count_less, exp_count_less)
+        self.assertEqual(per_subject_p, exp_per_subject_p)
+
+    def test_peds_sim_stats_50_good_match(self):
+        value = .5
+        peds_iters = pd.Series(data=[.5, 0, .5, 0, .5, 0, .5, 0, .5, 0],
+                               index=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        num_iterations = 10
+
+        count_gte, count_less, per_subject_p = _peds_sim_stats(value,
+                                                               peds_iters,
+                                                               num_iterations)
+        exp_count_gte = 5
+        exp_count_less = 5
+        exp_per_subject_p = (6/11)
+
+        self.assertEqual(count_gte, exp_count_gte)
+        self.assertEqual(count_less, exp_count_less)
+        self.assertEqual(per_subject_p, exp_per_subject_p)
+
+    def test_peds_sim_stats_99_iters(self):
+        value = .5
+        peds_iters = pd.Series(data=[0, .5, 0, .5, 0, .5, 0, .5, 0, .5,
+                                     0, .5, 0, .5, 0, .5, 0, .5, 0, .5, 0, .5,
+                                     0, .5, 0, .5, 0, .5, 0, .5, 0, .5, 0, .5,
+                                     0, .5, 0, .5, 0, .5, 0, .5, 0, .5, 0, .5,
+                                     0, .5, 0, .5, 0, .5, 0, .5, 0, .5, 0, .5,
+                                     0, .5, 0, .5, 0, .5, 0, .5, 0, .5, 0, .5,
+                                     0, .5, 0, .5, 0, .5, 0, .5, 0, .5, 0, .5,
+                                     0, .5, 0, .5, 0, .5, 0, .5, 0, .5, 0, .5,
+                                     0, .5, 0, .5, 0], index=list(range(99)))
+        num_iterations = 99
+
+        count_gte, count_less, per_subject_p = _peds_sim_stats(value,
+                                                               peds_iters,
+                                                               num_iterations)
+        exp_count_gte = 49
+        exp_count_less = 50
+        exp_per_subject_p = (50/100)
+
+        self.assertEqual(count_gte, exp_count_gte)
+        self.assertEqual(count_less, exp_count_less)
+        self.assertEqual(per_subject_p, exp_per_subject_p)

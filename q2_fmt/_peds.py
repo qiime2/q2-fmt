@@ -749,8 +749,8 @@ def _simulate_uniform_distro(mismatched_peds, k):
 
     Parameters
     ----------
-    mismatched_peds: pd.DataFrame
-        A Dataframe that contains all mismatched PEDS values.
+    mismatched_peds: list
+        A list that contains all mismatched PEDS values.
     k: int
         Number of iterations(`k`) to run simulations (Number of times to
         randomly sample mismatched_peds)
@@ -768,8 +768,8 @@ def _simulate_uniform_distro(mismatched_peds, k):
 
     >>> _simulate_uniform_distro(mismatched_peds, num_iterations)
 
-    pd.Series([data = [0, 0, 0, 0, 0, 0, 0, 0, 0],
-               index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
+    pd.Series(data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     """
     peds_iters = random.choices(mismatched_peds, k=k)
     # Tranforming to series for easy series math in _per_subject_stats()
@@ -808,15 +808,15 @@ def _peds_sim_stats(value, peds_iters, num_iterations):
     Examples
     --------
     >>> value = 1
-    >>> peds_iters = pd.Series([data = [0, 0, 0, 0, 0, 0, 0, 0, 0],
-                                index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]])
+    >>> peds_iters = pd.Series(data = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                               index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
     >>> num_iterations = 10
 
     >>> _peds_sim_stats()
 
     count_gte = 0
     count_less = 10
-    per_subject_p = (1/11) (Note: the 10 iterations is not enough to get a 
+    per_subject_p = (1/11) (Note: the 10 iterations is not enough to get a
                             significant p-value)
     """
     gte_series = peds_iters >= value
@@ -838,8 +838,8 @@ def _per_subject_stats(mismatched_peds, actual_peds,
 
     Parameters
     ----------
-    mismatched_peds: pd.DataFrame
-        A Dataframe that contains all mismatched PEDS values.
+    mismatched_peds: list
+        A list that contains all mismatched PEDS values.
     actual_peds: pd.Series
         A Series containing Sample IDs as the index and actual PEDS values for
         the sample as the value.
@@ -893,7 +893,7 @@ def _per_subject_stats(mismatched_peds, actual_peds,
                                  'A:n': 1,
                                   'A:measure': actual_peds.values,
                                   'B:group': "shuffled recipients",
-                                  'B:n': mismatched_peds.shape[0],
+                                  'B:n': len(mismatched_peds),
                                   'B:measure': peds_iters_means,
                                   'n': num_iterations,
                                   'test-statistic': count_less_list,
