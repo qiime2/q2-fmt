@@ -129,7 +129,7 @@ plugin.pipelines.register_function(
                           ' (either Mann-Whitney U or Wilcoxon SRT) from the'
                           ' grouped diversity data and selected comparison.',
     },
-    name='cc Pipeline for FMT Diversity Community'
+    name='Pipeline for FMT Diversity Community'
          ' Coalescence Analysis',
     description='Applies group timepoints to Fecal Microbiota Transplant data'
          ' and then applies statistical tests (Wilcoxon signed rank test or'
