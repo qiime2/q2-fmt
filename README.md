@@ -35,7 +35,7 @@ described below. This will create a directory structure to match the examples
 
 ```bash
 qiime fmt --example-data fmt-examples/
-cd fmt-examples/engraftment/engraftment-baseline/
+cd fmt-examples/cc/cc-baseline/
 ```
 
 **Plot Engraftment**
@@ -43,7 +43,7 @@ cd fmt-examples/engraftment/engraftment-baseline/
 This pipeline will execute the below actions in order to produce engraftment
 plots in a single step. To learn more, see the examples below this.
 ```bash
-qiime fmt engraftment \
+qiime fmt cc \
   --i-diversity-measure div-measure.qza \
   --m-metadata-file md.tsv \
   --p-compare baseline \
