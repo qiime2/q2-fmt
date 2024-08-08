@@ -119,12 +119,12 @@ def group_timepoints_beta(use):
 
 
 # Engraftment example using faith PD, baseline0 comparison
-def engraftment_baseline(use):
+def cc_baseline(use):
     md = use.init_metadata('md', faithpd_md_factory)
     div_measure = use.init_artifact('div_measure', faithpd_div_factory)
 
     stats_table, raincloud = use.action(
-        use.UsageAction('fmt', 'engraftment'),
+        use.UsageAction('fmt', 'cc'),
         use.UsageInputs(
             diversity_measure=div_measure,
             metadata=md,

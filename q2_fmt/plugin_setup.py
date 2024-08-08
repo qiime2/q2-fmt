@@ -92,7 +92,7 @@ peds_dists = ('The distributions for the PEDS measure, grouped by the selected'
 
 
 plugin.pipelines.register_function(
-    function=q2_fmt.engraftment,
+    function=q2_fmt.cc,
     inputs={'diversity_measure': DistanceMatrix | SampleData[AlphaDiversity]},
     parameters={'metadata': Metadata,
                 'compare': T_compare,
@@ -158,14 +158,14 @@ plugin.pipelines.register_function(
                           ' (either Mann-Whitney U or Wilcoxon SRT) from the'
                           ' grouped diversity data and selected comparison.',
     },
-    name='Engraftment Pipeline for FMT Diversity Community'
+    name='Pipeline for FMT Diversity Community'
          ' Coalescence Analysis',
     description='Applies group timepoints to Fecal Microbiota Transplant data'
          ' and then applies statistical tests (Wilcoxon signed rank test or'
          ' Mann–Whitney U test) on alpha or beta diversity metrics to assess'
-         ' Community Coalescense of the FMT.',
+         ' Community Coalescense (CC) of the FMT.',
     examples={
-        'engraftment_baseline': ex.engraftment_baseline
+        'cc_baseline': ex.cc_baseline
     }
 )
 
@@ -198,6 +198,7 @@ plugin.methods.register_function(
         'filter_missing_references': filter_missing_references,
         'where': where,
         'baseline_timepoint': baseline_timepoint,
+
     },
     output_descriptions={
         'timepoint_dists': 'The distributions for the `diversity_measure`,'
