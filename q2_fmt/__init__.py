@@ -18,4 +18,3 @@ del get_versions
 
 __all__ = ['cc', 'sample_peds', 'feature_peds',
            'peds', 'peds_heatmap', 'group_timepoints', 'peds_simulation']
-
