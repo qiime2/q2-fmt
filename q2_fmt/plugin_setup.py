@@ -371,7 +371,7 @@ plugin.methods.register_function(
                 ' PEDS Monte Carlo simulation may have dependency issues'
                 ' between samples and comparisons that can make the test'
                 ' overly conservative. This can be fixed by filtering down to'
-                ' a single timepoint before running this methods. Additionally'
+                ' a single timepoint before running this method. Additionally'
                 ' if there are many baseline timepoints, the global test may'
                 ' be too conservative and this can be addressed by filtering'
                 ' out baseline samples prior to running this method.',
