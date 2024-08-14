@@ -7,11 +7,14 @@
 # ----------------------------------------------------------------------------
 
 from ._version import get_versions
+
 from ._engraftment import cc, group_timepoints
-from ._peds import sample_peds, feature_peds, peds, peds_heatmap
+from ._peds import (sample_peds, feature_peds, peds, peds_heatmap,
+                    peds_simulation)
 
 __version__ = get_versions()['version']
 del get_versions
 
+
 __all__ = ['cc', 'sample_peds', 'feature_peds',
-           'peds', 'peds_heatmap', 'group_timepoints']
+           'peds', 'peds_heatmap', 'group_timepoints', 'peds_simulation']
