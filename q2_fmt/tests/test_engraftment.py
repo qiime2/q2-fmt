@@ -736,7 +736,6 @@ class TestGroupTimepoints(TestBase):
                              subject_column='subject',
                              baseline_timepoint=7)
 
-
     def test_examples(self):
         self.execute_examples()
 
