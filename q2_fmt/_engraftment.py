@@ -8,6 +8,7 @@
 
 import pandas as pd
 import itertools
+import numpy as np
 
 import qiime2
 
@@ -239,6 +240,11 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         baseline_ref_df = pd.DataFrame()
         # All valid FMT samples have to have a time column
         metadata = metadata.to_dataframe()[~time_col.isna()]
+        if float(baseline_timepoint) not in metadata[time_column].values:
+            raise AssertionError("The provided baseline timepoint"
+                                 f" {baseline_timepoint} was not"
+                                 f" found in `metadata` "
+                                 f" column {time_column}.")
         for sub, samples in metadata.groupby([subject_column]):
             reference = \
                 samples[samples[
@@ -253,10 +259,17 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                 # This will either drop with filter-missing-references or
                 # or error and say that they need to pass
                 # filter-missing-references
-                reference = ["NaN"]
+                reference = [np.nan]
             temp_baseline_ref = temp_baseline_ref + samples.index.to_list()
             reference_list = \
                 reference_list + (reference * len(samples.index.to_list()))
+        # I dont see any way that this hits because of my above assertion but
+        # I think its a good check so I am leavig it in.
+        if len(reference_list) == 0:
+            raise AssertionError("No baseline samples",
+                                 " were found in the metadata.",
+                                 " Please confirm that a valid",
+                                 " baseline timepoint was given.")
         baseline_ref_df["sample_name"] = temp_baseline_ref
         baseline_ref_df["relevant_baseline"] = reference_list
         baseline_ref_df = \
