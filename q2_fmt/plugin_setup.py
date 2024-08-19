@@ -63,11 +63,11 @@ filter_missing_references = ('Filter out references contained within the'
 drop_incomplete_subjects = ('Filter out subjects that do not have a sample at'
                             ' every timepoint. Default behavior is to raise an'
                             ' error if any subject is missing a timepoint.')
-drop_incomplete_timepoint = ('Filter out specified timepoints. This is useful'
-                             ' for removing frequently missing timepoints'
-                             ' which cause many subjects to be dropped.'
-                             ' Default behavior is to raise an error if any'
-                             ' subject is missing a timepoint.')
+drop_incomplete_timepoints = ('Filter out multiple specified timepoints.'
+                              ' This is useful for removing frequently missing'
+                              ' timepoints which cause many subjects to be'
+                              ' dropped. Default behavior is to raise an error'
+                              ' if any subject is missing a timepoint.')
 level_delimiter = 'delimiter to split taxonomic label on'
 control_column = ('The column within `metadata` that contains any relevant'
                   ' control group IDs. Actual treatment samples should not'
@@ -233,7 +233,7 @@ plugin.pipelines.register_function(
                 'subject_column': Str,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoint': List[Str],
+                'drop_incomplete_timepoints': List[Str],
                 'level_delimiter': Str},
     outputs=[('peds_heatmap', Visualization)],
     input_descriptions={'table': peds_table},
@@ -245,7 +245,7 @@ plugin.pipelines.register_function(
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
         'drop_incomplete_subjects': drop_incomplete_subjects,
-        'drop_incomplete_timepoint': drop_incomplete_timepoint,
+        'drop_incomplete_timepoints': drop_incomplete_timepoints,
         'level_delimiter': level_delimiter},
     output_descriptions={'peds_heatmap': 'PEDS heatmap visualization'},
     name='PEDS pipeline to calculate feature or sample PEDS',
@@ -276,7 +276,7 @@ plugin.methods.register_function(
                 'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoint': List[Str]},
+                'drop_incomplete_timepoints': List[Str]},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
@@ -286,7 +286,7 @@ plugin.methods.register_function(
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
         'drop_incomplete_subjects': drop_incomplete_subjects,
-        'drop_incomplete_timepoint': drop_incomplete_timepoint
+        'drop_incomplete_timepoints': drop_incomplete_timepoints
     },
     output_descriptions={
         'peds_dists': peds_dists
@@ -337,7 +337,7 @@ plugin.methods.register_function(
                 'subject_column': T_subject,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoint': List[Str],
+                'drop_incomplete_timepoints': List[Str],
                 'num_iterations': Int % Range(99, None)},
     outputs=[('per_subject_stats', StatsTable[Pairwise]),
              ('global_stats', StatsTable[Pairwise])],
@@ -348,7 +348,7 @@ plugin.methods.register_function(
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
         'drop_incomplete_subjects': drop_incomplete_subjects,
-        'drop_incomplete_timepoint': drop_incomplete_timepoint,
+        'drop_incomplete_timepoints': drop_incomplete_timepoints,
         'num_iterations': 'The number of iterations to run the Monte Carlo'
                           ' simulation on'
     },
