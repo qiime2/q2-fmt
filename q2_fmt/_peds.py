@@ -888,7 +888,7 @@ def _per_subject_stats(mismatched_peds, actual_peds,
         count_less_list.append(count_less)
         per_subject_p_list.append(per_subject_p)
 
-    per_subject_q = false_discovery_control(ps=per_subject_p, method='bh')
+    per_subject_q = false_discovery_control(ps=per_subject_p_list, method='bh')
     per_sub_stats = pd.DataFrame({'A:group': actual_peds.index,
                                  'A:n': 1,
                                   'A:measure': actual_peds.values,
