@@ -9,6 +9,7 @@
 import pandas as pd
 import numpy as np
 from skbio.stats.distance import DistanceMatrix
+from scipy.stats import false_discovery_control
 
 from qiime2.plugin.testing import TestPluginBase
 from qiime2 import Metadata
@@ -1565,6 +1566,23 @@ class TestSim(TestBase):
 
         np.testing.assert_array_equal(p_s_stats["test-statistic"].values,
                                       exp_test_stats.values)
+
+    def test_per_subject_stats_q(self):
+        mismatched_peds = [0, 0, 0, 0]
+        actual_temp = pd.Series(data=[1, 0, 1, 0],
+                                index=["sample1", "sample2", "sample3",
+                                       "sample4"])
+        iterations = 10
+
+        p_s_stats = _per_subject_stats(mismatched_peds,
+                                       actual_temp, iterations)
+
+        exp_p = ([1/11, 11/11, 1/11, 11/11])
+
+        exp_q = false_discovery_control(ps=exp_p, method='bh')
+
+        np.testing.assert_array_equal(p_s_stats["q-value"].values,
+                                      exp_q)
 
     def test_global_stats_label(self):
         p_series = pd.Series(data=[0.001, 0.001, 0.001, 0.001])
