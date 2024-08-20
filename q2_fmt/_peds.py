@@ -65,9 +65,11 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
                  per_subject_stats: pd.DataFrame = None,
                  global_stats: pd.DataFrame = None):
     _rename_features(data=data, level_delimiter=level_delimiter)
+    gstats = None
+    table1 = None
+    psstats = None
     if global_stats is not None:
         gstats = global_stats.to_html(index=False)
-        # table2, gstats = _make_stats(global_stats)
     if per_subject_stats is not None:
         table1, psstats = _make_stats(per_subject_stats)
     J_ENV = jinja2.Environment(
@@ -105,11 +107,6 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
                              measure_name=measure_name, order=order,
                              n_label=n_label, data_denom=data_denom)
 
-    if global_stats is None:
-        gstats = None
-    if per_subject_stats is None:
-        table1 = None
-        psstats = None
     with open(os.path.join(output_dir, 'index.html'), 'w') as fh:
         spec_string = json.dumps(full_spec)
         fh.write(index.render(spec=spec_string,
@@ -364,7 +361,6 @@ def _check_reference_column(metadata, reference_column):
 def _filter_associated_reference(reference_series, metadata, time_column,
                                  filter_missing_references, reference_column):
     used_references = reference_series[~metadata[time_column].isna()]
-    print(used_references)
     if used_references.isna().any():
         if filter_missing_references:
             metadata = metadata.dropna(subset=[reference_column])

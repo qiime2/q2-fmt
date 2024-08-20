@@ -782,9 +782,9 @@ class TestPeds(TestBase):
                    'donor1', 'donor2'],
             'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
                     np.nan],
-            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
                         np.nan],
-            'group': [1, 2, 3, 2, np.nan,
+            'group': [1, 2, 2, 3, np.nan,
                       np.nan]}).set_index('id')
         metadata = Metadata(metadata_df)
         table_df = pd.DataFrame({
@@ -797,16 +797,16 @@ class TestPeds(TestBase):
                                      time_column="group",
                                      reference_column="Ref",
                                      subject_column="subject",
-                                     drop_incomplete_subjects=True)
+                                     drop_incomplete_timepoints=[1, 3])
 
         exp_peds_df = pd.DataFrame({
-            'id': ['sample1', 'sample2', 'sample3'],
-            'measure': [0.666667, 0.333333, 1],
-            'transfered_donor_features': [2, 1, 3],
-            'total_donor_features': [3, 3, 3],
-            'donor': ["donor1", "donor1", "donor1"],
-            'subject': ["sub1", "sub1", "sub1"],
-            'group': [1.0, 2.0, 3.0]
+            'id': ['sample2', 'sample3'],
+            'measure': [0.333333, 1],
+            'transfered_donor_features': [1, 3],
+            'total_donor_features': [3, 3],
+            'donor': ["donor1", "donor1"],
+            'subject': ["sub1", "sub2"],
+            'group': [2.0, 2.0]
             })
         pd.testing.assert_frame_equal(sample_peds_df, exp_peds_df)
 
