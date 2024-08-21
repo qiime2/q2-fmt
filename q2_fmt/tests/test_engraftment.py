@@ -622,9 +622,120 @@ class TestGroupTimepoints(TestBase):
                                     " was found per subject.*"):
             group_timepoints(diversity_measure=self.alpha,
                              metadata=self.md_alpha, distance_to='baseline',
-                             baseline_timepoint="1",
+                             baseline_timepoint="7",
                              time_column='days_post_transplant',
                              subject_column='subject')
+
+    def test_d2_baseline_alpha_missing_reference(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'sample4'],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2'],
+            'group': [1, 2, 2, 3]}).set_index('id')
+        md_baseline = Metadata(metadata_df)
+
+        obs_feature = pd.Series(data=[1, 0, 1, 0],
+                                index=['sample1', 'sample2',
+                                       'sample3', 'sample4'])
+        with self.assertRaisesRegex(KeyError,
+                                    'Missing references for the associated'
+                                    ' sample data'):
+            group_timepoints(diversity_measure=obs_feature,
+                             metadata=md_baseline,
+                             distance_to='baseline',
+                             time_column='group',
+                             subject_column='subject',
+                             baseline_timepoint=1)
+
+    def test_d2_baseline_alpha_filt_missing_reference(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'sample4'],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2'],
+            'group': [1, 2, 2, 3]}).set_index('id')
+        md_baseline = Metadata(metadata_df)
+
+        obs_feature = pd.Series(data=[1, 0, 1, 0],
+                                index=['sample1', 'sample2',
+                                       'sample3', 'sample4'])
+
+        exp_time_df = pd.DataFrame({
+            'id': ['sample2'],
+            'measure': [0],
+            'group': [2.0],
+            'subject': ['sub1',]
+        })
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['sample1'],
+            'measure': [1],
+            'group': ['reference']
+        })
+        time_df, ref_df = group_timepoints(diversity_measure=obs_feature,
+                                           metadata=md_baseline,
+                                           distance_to='baseline',
+                                           time_column='group',
+                                           subject_column='subject',
+                                           baseline_timepoint=1,
+                                           filter_missing_references=True)
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    def test_d2_baseline_alpha_drop_na_tp(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'sample4'],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2'],
+            'group': [1, 2, np.nan, np.nan]}).set_index('id')
+        md_baseline = Metadata(metadata_df)
+
+        obs_feature = pd.Series(data=[1, 0, 1, 0],
+                                index=['sample1', 'sample2',
+                                       'sample3', 'sample4'])
+
+        exp_time_df = pd.DataFrame({
+            'id': ['sample2'],
+            'measure': [0],
+            'group': [2.0],
+            'subject': ['sub1',]
+        })
+
+        exp_ref_df = pd.DataFrame({
+            'id': ['sample1'],
+            'measure': [1],
+            'group': ['reference']
+        })
+        time_df, ref_df = group_timepoints(diversity_measure=obs_feature,
+                                           metadata=md_baseline,
+                                           distance_to='baseline',
+                                           time_column='group',
+                                           subject_column='subject',
+                                           baseline_timepoint=1,
+                                           filter_missing_references=True)
+
+        pd.testing.assert_frame_equal(time_df, exp_time_df)
+        pd.testing.assert_frame_equal(ref_df, exp_ref_df)
+
+    def test_d2_baseline_alpha_invalid_tp(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'sample4'],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2'],
+            'group': [1, 2, 2, 3]}).set_index('id')
+        md_baseline = Metadata(metadata_df)
+
+        obs_feature = pd.Series(data=[1, 0, 1, 0],
+                                index=['sample1', 'sample2',
+                                       'sample3', 'sample4'])
+        with self.assertRaisesRegex(AssertionError,
+                                    'The provided .* group.'):
+            group_timepoints(diversity_measure=obs_feature,
+                             metadata=md_baseline,
+                             distance_to='baseline',
+                             time_column='group',
+                             subject_column='subject',
+                             baseline_timepoint=7)
 
     def test_examples(self):
         self.execute_examples()
