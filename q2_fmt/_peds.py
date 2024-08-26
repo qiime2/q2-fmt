@@ -25,7 +25,7 @@ from q2_stats._visualizer import _make_stats
 
 def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
          subject_column, filter_missing_references=False,
-         drop_incomplete_subjects=False, drop_incomplete_timepoint=None,
+         drop_incomplete_subjects=False, drop_incomplete_timepoints=None,
          level_delimiter=None):
 
     peds_heatmap = ctx.get_action('fmt', 'peds_heatmap')
@@ -38,14 +38,14 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
             table=table, metadata=metadata, time_column=time_column,
             subject_column=subject_column, reference_column=reference_column,
             drop_incomplete_subjects=drop_incomplete_subjects,
-            drop_incomplete_timepoint=drop_incomplete_timepoint,
+            drop_incomplete_timepoints=drop_incomplete_timepoints,
             filter_missing_references=filter_missing_references)
 
     else:
-        if drop_incomplete_subjects or drop_incomplete_timepoint:
+        if drop_incomplete_subjects or drop_incomplete_timepoints:
             warnings.warn('Feature PEDS was selected as the PEDS metric, which'
                           ' does not accept `drop_incomplete_subjects` or'
-                          ' `drop_incomplete_timepoint` as parameters. One'
+                          ' `drop_incomplete_timepoints` as parameters. One'
                           ' (or both) of these parameters were detected in'
                           ' your input, and will be ignored.')
 
@@ -65,9 +65,11 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
                  per_subject_stats: pd.DataFrame = None,
                  global_stats: pd.DataFrame = None):
     _rename_features(data=data, level_delimiter=level_delimiter)
+    gstats = None
+    table1 = None
+    psstats = None
     if global_stats is not None:
         gstats = global_stats.to_html(index=False)
-        # table2, gstats = _make_stats(global_stats)
     if per_subject_stats is not None:
         table1, psstats = _make_stats(per_subject_stats)
     J_ENV = jinja2.Environment(
@@ -117,12 +119,17 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                 time_column: str, reference_column: str, subject_column: str,
                 filter_missing_references: bool = False,
                 drop_incomplete_subjects: bool = False,
-                drop_incomplete_timepoint: list = None) -> (pd.DataFrame):
+                drop_incomplete_timepoints: list = None) -> (pd.DataFrame):
+
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
-    # TODO: Make incomplete samples possible move this to heatmap
     metadata = metadata.to_dataframe()
+    if drop_incomplete_timepoints is not None:
+        metadata = _drop_incomplete_timepoints(metadata, time_column,
+                                               drop_incomplete_timepoints)
+        table.filter(items=metadata.index)
+    # TODO: Make incomplete samples possible move this to heatmap
     num_timepoints = _check_for_time_column(metadata, time_column)
     _check_column_type(column_properties, "time",
                        time_column, "numeric")
@@ -139,10 +146,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                        subject_column, "categorical")
     _check_duplicate_subject_timepoint(subject_series, metadata,
                                        subject_column, time_column)
-    if drop_incomplete_timepoint is not None:
-        metadata = _drop_incomplete_timepoints(metadata, time_column,
-                                               drop_incomplete_timepoint)
-        table.filter(items=metadata.index)
+
     # return things that should be removed
     metadata, used_references = \
         _check_subjects_in_all_timepoints(subject_series, num_timepoints,
@@ -357,7 +361,6 @@ def _check_reference_column(metadata, reference_column):
 def _filter_associated_reference(reference_series, metadata, time_column,
                                  filter_missing_references, reference_column):
     used_references = reference_series[~metadata[time_column].isna()]
-
     if used_references.isna().any():
         if filter_missing_references:
             metadata = metadata.dropna(subset=[reference_column])
@@ -393,8 +396,8 @@ def _check_duplicate_subject_timepoint(subject_series, metadata,
 
 
 def _drop_incomplete_timepoints(metadata, time_column,
-                                drop_incomplete_timepoint):
-    for time in drop_incomplete_timepoint:
+                                drop_incomplete_timepoints):
+    for time in drop_incomplete_timepoints:
         try:
             assert (float(time)
                     in metadata[time_column].unique())
@@ -492,7 +495,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                     subject_column: str,
                     filter_missing_references: bool = False,
                     drop_incomplete_subjects: bool = False,
-                    drop_incomplete_timepoint: list = None,
+                    drop_incomplete_timepoints: list = None,
                     num_iterations: int = 999) -> (pd.DataFrame, pd.DataFrame):
 
     metadata_df = metadata.to_dataframe()
@@ -527,7 +530,8 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
            subject_column=subject_column,
            filter_missing_references=filter_missing_references,
            drop_incomplete_subjects=drop_incomplete_subjects,
-           drop_incomplete_timepoint=drop_incomplete_timepoint).set_index("id")
+           drop_incomplete_timepoints=drop_incomplete_timepoints
+           ).set_index("id")
     actual_peds = peds["measure"]
 
     # Mismatch simulation:
