@@ -8,8 +8,9 @@
 
 ## Installation
 
-Please note that this software is now an alpha release. Initial conda packages are available, but have not been tested in integration against our other plugins yet. For now, create a fresh conda environment for q2-fmt using the following command:
+Please note that this software is now an alpha release. Initial conda packages are available, but have not been tested in integration against our other plugins yet. For now, create a fresh conda environment for q2-fmt using the following command: 
 
+Note: This is a `Development` install of q2-fmt
 Mac OS instructions 
 ```bash
 CONDA_SUBDIR=osx-64 conda env create \
