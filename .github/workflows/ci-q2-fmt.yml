@@ -11,6 +11,7 @@ jobs:
       github-repo: q2-fmt
       env-file-name: 2024.10-q2-fmt-environment.yml
   lint:
+    runs-on: ubuntu-latest
     steps:
     - name: install dependencies
       run: |
