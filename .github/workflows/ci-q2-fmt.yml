@@ -1,0 +1,12 @@
+name: ci-q2-fmt
+on:
+  pull_request:
+    branches: ["dev"]
+  push:
+    branches: ["dev"]
+jobs:
+  ci:
+    uses: qiime2/distributions/.github/workflows/lib-community-ci.yaml@dev
+    with:
+      github-repo: q2-fmt
+      env-file-name: 2024.10-q2-fmt-environment.yml
