@@ -22,7 +22,7 @@ jobs:
     - name: Lint plugin
       shell: bash -l {0}
       run: |
-        cd q2-hello-world
+        cd q2-fmt
         flake8
         q2lint
 
