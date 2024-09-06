@@ -27,7 +27,7 @@ conda env create \
 
 Then activate your new environment as usual.
 ```bash
-conda activate q2-fmt
+conda activate q2-fmt-2024.10
 ```
 
 ## Examples
