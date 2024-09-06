@@ -8,25 +8,27 @@
 
 ## Installation
 
-Please note that this software is now an alpha release. Initial conda packages are available, but have not been tested in integration against our other plugins yet. For now, create a fresh conda environment for q2-fmt using the following command:
+Please note that this software is now an alpha release. Initial conda packages are available, but have not been tested in integration against our other plugins yet. For now, create a fresh conda environment for q2-fmt using the following command: 
 
+Note: This is a `Development` install of q2-fmt
 Mac OS instructions 
 ```bash
-wget https://data.qiime2.org/distro/fmt/qiime2-fmt-2023.9-py38-osx-conda.yml
-CONDA_SUBDIR=osx-64 conda env create -n qiime2-fmt-2023.9 --file qiime2-fmt-2023.9-py38-osx-conda.yml
-conda activate qiime2-fmt-2023.9
-conda config --env --set subdir osx-64
+CONDA_SUBDIR=osx-64 conda env create \
+ -n q2-fmt-2024.10 \
+ -f https://raw.githubusercontent.com/qiime2/q2-fmt.git/dev/environment-files/2024.10-q2-fmt-environment.yml
 ```
+
 Linux instructions
 ```bash
-wget https://data.qiime2.org/distro/fmt/qiime2-fmt-2023.9-py38-linux-conda.yml
-conda env create -n qiime2-fmt-2023.9 --file qiime2-fmt-2023.9-py38-linux-conda.yml
+conda env create \
+ -n q2-fmt-2024.10 \
+ -f https://raw.githubusercontent.com/qiime2/q2-fmt.git/dev/environment-files/2024.10-q2-fmt-environment.yml
 ```
+
 Then activate your new environment as usual.
 ```bash
-conda activate q2-fmt-2023.9
+conda activate q2-fmt-2024.10
 ```
-Please be aware that `q2-fmt` and `q2-stats` will be the only visible plugins in this environment.
 
 ## Examples
 Example data can be generated using the `--example-data` flag on each action
