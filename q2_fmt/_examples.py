@@ -119,12 +119,12 @@ def group_timepoints_beta(use):
 
 
 # Engraftment example using faith PD, baseline0 comparison
-def engraftment_baseline(use):
+def cc_baseline(use):
     md = use.init_metadata('md', faithpd_md_factory)
     div_measure = use.init_artifact('div_measure', faithpd_div_factory)
 
     stats_table, raincloud = use.action(
-        use.UsageAction('fmt', 'engraftment'),
+        use.UsageAction('fmt', 'cc'),
         use.UsageInputs(
             diversity_measure=div_measure,
             metadata=md,
@@ -234,3 +234,27 @@ def peds_heatmap(use):
     )
 
     peds_heatmap.assert_output_type('Visualization')
+
+
+def simulation_peds_method(use):
+    md = use.init_metadata('md', peds_md_factory)
+    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+
+    peds_stats, global_stats = use.action(
+        use.UsageAction('fmt', 'peds_simulation'),
+        use.UsageInputs(
+            table=peds_table,
+            metadata=md,
+            time_column='time_point',
+            reference_column='Donor',
+            subject_column='SubjectID'
+        ),
+        use.UsageOutputNames(
+            per_subject_stats='per_subject_stats',
+            global_stats='global_stats'
+        )
+
+    )
+
+    peds_stats.assert_output_type("StatsTable[Pairwise]")
+    global_stats.assert_output_type("StatsTable[Pairwise]")

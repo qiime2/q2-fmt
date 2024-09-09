@@ -1,0 +1,11 @@
+name: cron-q2-fmt
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: 0 0 * * SUN
+jobs:
+  ci:
+    uses: qiime2/distributions/.github/workflows/lib-community-ci.yaml@dev
+    with:
+      github-repo: q2-fmt
+      env-file-name: development-q2-fmt-environment.yml
