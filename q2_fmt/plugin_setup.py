@@ -15,7 +15,6 @@ from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
-import q2_fmt._peds
 from q2_types.feature_table import (
     FeatureTable, Frequency, RelativeFrequency, PresenceAbsence)
 from q2_stats._type import (Dist1D, Matched, Independent, Ordered,
@@ -330,7 +329,7 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
-    function=q2_fmt._peds.sample_pprs,
+    function=q2_fmt.sample_pprs,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
