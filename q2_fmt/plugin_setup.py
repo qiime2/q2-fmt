@@ -336,7 +336,7 @@ plugin.methods.register_function(
                 'baseline_timepoint': Str, 'subject_column': Str,
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoint': List[Str]},
+                'drop_incomplete_timepoints': List[Str]},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
     input_descriptions={
         'table': peds_table},
