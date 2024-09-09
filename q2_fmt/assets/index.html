@@ -13,36 +13,112 @@
       width: 100%;
       box-sizing: border-box;
       margin: 0px;
-      padding: 10px;
-      /* padding: 50px 212px 0px 50px; */
+      padding: 50px 212px 0px 50px;
     }
     #viz {
-      margin: 100px auto;
+      margin: 0 auto;
+      display: block;
+      width: 100%;
       position: relative;
     }
     .vega-bindings {
-      top: 25px;
-      left: 25px;
-      display: flex;
+      top: 90px;
+      right: 50px;
+      width: 200px;
       position: fixed;
       font-family: monospace;
     }
     .vega-bind {
-    margin-right: 50px;
-    vertical-align: middle  
+      margin-right: 15px;
+    }
+    .vega-bind-name {
+      margin-right: 5px;
+    }
+    .vega-embed summary {
+      position: fixed !important;
+      top: 50px !important;
+      right: 222px !important;
+    }
+    .vega-embed .vega-actions {
+      position: fixed !important;
+      right: 212px !important;
+      top: 85px !important;
+    }
+    #persubjectstats table {
+      margin-top: 50px;
+      width: 100%;
+      text-align: right;
+      border-collapse: collapse;
+      border: 0px;
+      font-family: monospace;
     }
 
-    .vega-bind span {
-    display: flex;
+    #persubjectstats thead tr {
+      border: none;
     }
 
+    #persubjectstats tr th {
+      border: none;
+      padding-right: 10px;
+    }
 
+    #persubjectstats td {
+      border: none;
+      padding-right: 10px;
+    }
+
+    #persubjectstats tr {
+      border-top: 1px solid;
+    }
+    #globalstats table {
+      margin-top: 50px;
+      width: 100%;
+      text-align: right;
+      border-collapse: collapse;
+      border: 0px;
+      font-family: monospace;
+    }
+
+    #globalstats thead tr {
+      border: none;
+    }
+
+    #globalstats tr th {
+      border: none;
+      padding-right: 10px;
+    }
+
+    #globalstats td {
+      border: none;
+      padding-right: 10px;
+    }
+
+    #globalstats tr {
+      border-top: 1px solid;
+    }
+
+  
   </style>
 </head>
 <body>
 
 <div id="viz"></div>
 <p><strong>sampleSize:</strong> If clicked, the sampleSize box scales your heatmap boxes based on the denominator of the PEDS proportion </p>
+
+
+{% if persubjectstats %}
+<div id='persubjectstats'>
+{{ persubjectstats }}
+</div>
+<p><strong>Table 1.</strong> {{ table1 }}</p>
+{% endif %}
+
+{% if globalstats %}
+<div id='globalstats'>
+{{ globalstats }}
+</div>
+{% endif %}
+
 
 <script type="text/javascript">
   var spec = JSON.parse(document.getElementById('spec').innerHTML);

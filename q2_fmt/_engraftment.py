@@ -8,11 +8,12 @@
 
 import pandas as pd
 import itertools
+import numpy as np
 
 import qiime2
 
 
-def engraftment(
+def cc(
     ctx, diversity_measure, metadata, compare, distance_to, time_column,
     subject_column, reference_column=None, control_column=None,
     filter_missing_references=False, baseline_timepoint=None, where=None,
@@ -23,7 +24,6 @@ def engraftment(
     group_timepoints = ctx.get_action('fmt', 'group_timepoints')
 
     results = []
-
     time_dist, ref_dist = group_timepoints(
                           diversity_measure=diversity_measure,
                           metadata=metadata, distance_to=distance_to,
@@ -70,10 +70,15 @@ def group_timepoints(
 
     (is_beta, used_references, time_col, subject_col, group_col,
      used_controls) = \
-        _data_filtering(diversity_measure, metadata, distance_to, time_column,
-                        reference_column, group_column, subject_column,
-                        control_column, filter_missing_references,
-                        baseline_timepoint, where)
+        _data_filtering(diversity_measure=diversity_measure,
+                        metadata=metadata, distance_to=distance_to,
+                        time_column=time_column,
+                        reference_column=reference_column,
+                        group_column=group_column,
+                        subject_column=subject_column,
+                        control_column=control_column,
+                        filter_missing_references=filter_missing_references,
+                        baseline_timepoint=baseline_timepoint, where=where)
 
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
@@ -233,18 +238,38 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         temp_baseline_ref = []
         reference_list = []
         baseline_ref_df = pd.DataFrame()
-        for sub, samples in metadata.to_dataframe().groupby([subject_column]):
+        # All valid FMT samples have to have a time column
+        metadata = metadata.to_dataframe()[~time_col.isna()]
+        if float(baseline_timepoint) not in metadata[time_column].values:
+            raise AssertionError("The provided baseline timepoint"
+                                 f" {baseline_timepoint} was not"
+                                 f" found in `metadata` "
+                                 f" column {time_column}.")
+        for sub, samples in metadata.groupby([subject_column]):
             reference = \
                 samples[samples[
                     time_column] == float(baseline_timepoint)].index.to_list()
-            if len(reference) != 1:
+            if len(reference) > 1:
                 raise ValueError("More than one baseline sample was found per"
                                  " subject. Only one baseline sample can be"
                                  " used as a reference. Please group baseline"
                                  " replicates.")
+            elif len(reference) == 0:
+                # If there is no baseline for a subject,
+                # This will either drop with filter-missing-references or
+                # or error and say that they need to pass
+                # filter-missing-references
+                reference = [np.nan]
             temp_baseline_ref = temp_baseline_ref + samples.index.to_list()
             reference_list = \
                 reference_list + (reference * len(samples.index.to_list()))
+        # I dont see any way that this hits because of my above assertion but
+        # I think its a good check so I am leavig it in.
+        if len(reference_list) == 0:
+            raise AssertionError("No baseline samples",
+                                 " were found in the metadata.",
+                                 " Please confirm that a valid",
+                                 " baseline timepoint was given.")
         baseline_ref_df["sample_name"] = temp_baseline_ref
         baseline_ref_df["relevant_baseline"] = reference_list
         baseline_ref_df = \
@@ -257,7 +282,7 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         # this is so the variables for distance to donor and distance to
         # baseline have the same variable name
         used_references = reference_col
-
+        metadata = qiime2.Metadata(metadata)
     if used_references.isna().any():
         if filter_missing_references:
             used_references = used_references.dropna()
