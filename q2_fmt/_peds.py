@@ -494,7 +494,7 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
                 time_column: str, baseline_timepoint: str, subject_column: str,
                 filter_missing_references: bool = False,
                 drop_incomplete_subjects: bool = False,
-                drop_incomplete_timepoint: list = None) -> (pd.DataFrame):
+                drop_incomplete_timepoints: list = None) -> (pd.DataFrame):
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
