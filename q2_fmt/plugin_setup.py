@@ -15,6 +15,7 @@ from q2_types.sample_data import SampleData, AlphaDiversity
 from q2_types.distance_matrix import DistanceMatrix
 
 import q2_fmt
+import q2_fmt._peds
 from q2_types.feature_table import (
     FeatureTable, Frequency, RelativeFrequency, PresenceAbsence)
 from q2_stats._type import (Dist1D, Matched, Independent, Ordered,
@@ -329,7 +330,7 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
-    function=q2_fmt.sample_pprs,
+    function=q2_fmt._peds.sample_pprs,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
@@ -338,33 +339,19 @@ plugin.methods.register_function(
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoint': List[Str]},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
+    input_descriptions={
+        'table': peds_table},
     parameter_descriptions={
-        'metadata': 'The sample metadata.',
-        'time_column': 'The column within the `metadata` that the'
-                       ' `table` should be grouped by. This column'
-                       ' should contain simple integer values.',
-        'baseline_timepoint': ' The timepoint to use as baseline reference.',
-        'subject_column': 'The column within the `metadata` that contains the'
-                          ' subject ID to be tracked against timepoints.',
-        'filter_missing_references': 'Filter out references contained within'
-                                     ' the metadata that are not present'
-                                     ' in the table.'
-                                     ' Default behavior is to raise an error.',
-        'drop_incomplete_subjects': 'Filter out subjects that do not have'
-                                    ' a sample at every timepoint.'
-                                    ' Default behavior is to raise an error.',
-        'drop_incomplete_timepoint': 'Filter out a list of provided timepoint.'
-                                     ' This will be preformed before'
-                                     ' drop_incomplete_subjects if the'
-                                     ' drop_incomplete_subjects parameter is'
-                                     ' passed.'
+        'metadata': metadata,
+        'time_column': time_column,
+        'baseline_timepoint': baseline_timepoint,
+        'subject_column': subject_column,
+        'filter_missing_references': filter_missing_references,
+        'drop_incomplete_subjects': drop_incomplete_subjects,
+        'drop_incomplete_timepoints': drop_incomplete_timepoints
     },
     output_descriptions={
-        'peds_dists': 'The distributions for the PEDS measure,'
-                      ' grouped by the selected `time_column`.'
-                      ' also contains the Numerator and Denominator for'
-                      ' PEDS calulations. May also contain subject IDs,'
-                      ' if `subject_column` is provided in the `metadata`.'
+        'peds_dists': peds_dists
     },
     name='',
     description='',

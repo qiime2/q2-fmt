@@ -509,7 +509,7 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
     # _check_column_type(column_properties, "reference",
     #                   reference_column, "categorical")
     # return things that should be removed
-    # not helpful because there cant be missing baseline. 
+    # not helpful because there cant be missing baseline.
     # metadata, used_references = \
     #    _filter_associated_reference(reference_series, metadata, time_column,
     #                                filter_missing_references,
