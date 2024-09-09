@@ -202,28 +202,6 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
                          " provided. Please provide a `baseline_timepoint`"
                          " if you are investigating distance to baseline")
 
-    def _get_series_from_col(md, col_name, param_name, expected_type=None,
-                             drop_missing_values=False):
-        try:
-            column = md.get_column(col_name)
-        except ValueError as e:
-            raise ValueError("There was an issue with the argument for %r. %s"
-                             % (param_name, e)) from e
-
-        if expected_type is not None and not isinstance(column, expected_type):
-            if type(expected_type) is tuple:
-                exp = tuple(e.type for e in expected_type)
-            else:
-                exp = expected_type.type
-
-            raise ValueError("Provided column for %r is %r, not %r."
-                             % (param_name, column.type, exp))
-
-        if drop_missing_values:
-            column = column.drop_missing_values()
-
-        return column.to_series()
-
     time_col = _get_series_from_col(
         md=metadata, col_name=time_column,
         param_name='time_column',
@@ -290,6 +268,30 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
 
     return (is_beta, used_references, time_col, subject_col,
             group_col, used_controls)
+
+
+# HELPER FUNCTION FOR DATA Filtering
+def _get_series_from_col(md, col_name, param_name, expected_type=None,
+                         drop_missing_values=False):
+    try:
+        column = md.get_column(col_name)
+    except ValueError as e:
+        raise ValueError("There was an issue with the argument for %r. %s"
+                         % (param_name, e)) from e
+
+    if expected_type is not None and not isinstance(column, expected_type):
+        if type(expected_type) is tuple:
+            exp = tuple(e.type for e in expected_type)
+        else:
+            exp = expected_type.type
+
+        raise ValueError("Provided column for %r is %r, not %r."
+                         % (param_name, column.type, exp))
+
+    if drop_missing_values:
+        column = column.drop_missing_values()
+
+    return column.to_series()
 
 
 # HELPER FUNCTION FOR sorting a multi-index (for dist matrix and metadata)
@@ -463,7 +465,7 @@ def get_to_baseline_ref(time_col, baseline_timepoint, time_column,
     baseline_ref_df = \
         baseline_ref_df[~baseline_ref_df['sample_name'].isin(
             reference_list)].set_index("sample_name")
-    reference_col = _data_filtering._get_series_from_col(
+    reference_col = _get_series_from_col(
         md=qiime2.Metadata(baseline_ref_df), col_name="relevant_baseline",
         param_name='reference_column',
         expected_type=qiime2.CategoricalMetadataColumn)

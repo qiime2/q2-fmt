@@ -519,9 +519,9 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
                        subject_column, "categorical")
     _check_duplicate_subject_timepoint(subject_series, metadata,
                                        subject_column, time_column)
-    if drop_incomplete_timepoint is not None:
+    if drop_incomplete_timepoints is not None:
         metadata = _drop_incomplete_timepoints(metadata, time_column,
-                                               drop_incomplete_timepoint)
+                                               drop_incomplete_timepoints)
         table.filter(items=metadata.index)
     # return things that should be removed
     metadata, used_references = \
