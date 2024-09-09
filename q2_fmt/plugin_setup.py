@@ -256,7 +256,7 @@ plugin.pipelines.register_function(
 plugin.visualizers.register_function(
     function=q2_fmt.peds_heatmap,
     inputs={'data': Dist1D[Ordered, Matched] % Properties("peds") |
-            Dist1D[Ordered, Matched] % Properties("pprs")},
+            Dist1D[Ordered, Matched] % Properties("pprs"),
             'per_subject_stats': StatsTable[Pairwise],
             'global_stats': StatsTable[Pairwise]},
     input_descriptions={'data': 'PEDS output to plot',
@@ -370,7 +370,8 @@ plugin.methods.register_function(
     description='',
     citations=[citations['aggarwala_precise_2021']],
     examples={
-        'peds_methods': ex.peds_method
+        'peds_methods': ex.peds_method}
+)
 
 plugin.methods.register_function(
     function=q2_fmt.peds_simulation,
