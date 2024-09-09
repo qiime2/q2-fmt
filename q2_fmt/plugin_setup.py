@@ -337,7 +337,7 @@ plugin.methods.register_function(
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoints': List[Str]},
-    outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
+    outputs=[('pprs_dists', Dist1D[Ordered, Matched] % Properties("pprs"))],
     input_descriptions={
         'table': peds_table},
     parameter_descriptions={
@@ -350,13 +350,14 @@ plugin.methods.register_function(
         'drop_incomplete_timepoints': drop_incomplete_timepoints
     },
     output_descriptions={
-        'peds_dists': peds_dists
+        'pprs_dists': 'The distributions for the PPRS measure, grouped by'
+                      ' the selected `time_column`. Also contains the'
+                      ' numerator and denominator for PPRS calulations.'
     },
     name='',
     description='',
     citations=[citations['aggarwala_precise_2021']],
-    examples={
-        'peds_methods': ex.peds_method}
+    examples={}
 )
 
 plugin.methods.register_function(

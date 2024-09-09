@@ -214,10 +214,10 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         used_references = reference_col[~time_col.isna()]
     elif distance_to == 'baseline':
         used_references = \
-            get_to_baseline_ref(time_col=time_col, time_column=time_column,
-                                baseline_timepoint=baseline_timepoint,
-                                subject_column=subject_column,
-                                metadata=metadata)
+            _get_to_baseline_ref(time_col=time_col, time_column=time_column,
+                                 baseline_timepoint=baseline_timepoint,
+                                 subject_column=subject_column,
+                                 metadata=metadata)
     if used_references.isna().any():
         if filter_missing_references:
             used_references = used_references.dropna()
@@ -422,8 +422,8 @@ def _independent_dists(diversity_measure, metadata,
 
 
 # Helper Function For to-baseline datafiltering
-def get_to_baseline_ref(time_col, baseline_timepoint, time_column,
-                        subject_column, metadata):
+def _get_to_baseline_ref(time_col, baseline_timepoint, time_column,
+                         subject_column, metadata):
 
     temp_baseline_ref = []
     reference_list = []
@@ -456,10 +456,16 @@ def get_to_baseline_ref(time_col, baseline_timepoint, time_column,
     # I dont see any way that this hits because of my above assertion but
     # I think its a good check so I am leavig it in.
     if len(reference_list) == 0:
-        raise AssertionError("No baseline samples",
-                             " were found in the metadata.",
-                             " Please confirm that a valid",
+        raise AssertionError("No baseline samples"
+                             " were found in the metadata."
+                             " Please confirm that a valid"
                              " baseline timepoint was given.")
+    if pd.Series(reference_list).isnull().all():
+        raise AssertionError("No baseline samples"
+                             " were connected via subject."
+                             " Please confirm that all valid"
+                             " baseline timepoint where all baseline samples"
+                             " have a corresponding subject")
     baseline_ref_df["sample_name"] = temp_baseline_ref
     baseline_ref_df["relevant_baseline"] = reference_list
     baseline_ref_df = \

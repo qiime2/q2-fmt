@@ -14,7 +14,7 @@ from scipy.stats import false_discovery_control
 from qiime2.plugin.testing import TestPluginBase
 from qiime2 import Metadata
 
-from q2_fmt._engraftment import group_timepoints
+from q2_fmt._engraftment import group_timepoints, _get_to_baseline_ref
 from q2_fmt._peds import (_compute_peds, sample_peds,
                           _filter_associated_reference,
                           _check_reference_column, _check_for_time_column,
@@ -24,7 +24,8 @@ from q2_fmt._peds import (_compute_peds, sample_peds,
                           peds_simulation, _create_mismatched_pairs,
                           _simulate_uniform_distro, _create_sim_masking,
                           _mask_recipient, _create_duplicated_recip_table,
-                          _per_subject_stats, _global_stats, _peds_sim_stats)
+                          _per_subject_stats, _global_stats, _peds_sim_stats,
+                          sample_pprs)
 
 
 class TestBase(TestPluginBase):
@@ -740,6 +741,29 @@ class TestGroupTimepoints(TestBase):
     def test_examples(self):
         self.execute_examples()
 
+    def test_baseline_reference(self):
+        time_col = pd.Series([1, 2, 3, 1, 2, 3], index=['sample1', 'sample2',
+                                                        'sample3', 'sample4',
+                                                        'sample5', 'sample6'])
+        baseline_timepoint = "1"
+        time_column = "group"
+        subject_column = "subject"
+        metadata = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'sample5', 'sample6'],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', 'sub2', 'sub2'],
+            'group': [1, 2, 3, 1, 2, 3]}).set_index('id')
+        ref = _get_to_baseline_ref(time_col, baseline_timepoint, time_column,
+                                   subject_column, Metadata(metadata))
+
+        exp_ref = pd.Series(['sample1', 'sample1', 'sample4', 'sample4'],
+                            index=['sample2', 'sample3', 'sample5',
+                                   'sample6'])
+        exp_ref.index.name = 'sample_name'
+        exp_ref.name = 'relevant_baseline'
+
+        pd.testing.assert_series_equal(ref, exp_ref)
+
 
 class TestPeds(TestBase):
     def test_get_donor(self):
@@ -1372,6 +1396,89 @@ class TestPeds(TestBase):
                                                  'subject']
         self.assertEqual("1", Fs1)
         self.assertEqual("2", Fs2)
+
+    def test_pprs(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'sample5', 'sample6'],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', 'sub2', 'sub2'],
+            'group': [1, 2, 3, 1, 2, 3]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'sample5', 'sample6'],
+            'Feature1': [1, 0, 1, 0, 0, 0],
+            'Feature2': [0, 0, 1, 1, 0, 1]}).set_index('id')
+        sample_pprs_df = sample_pprs(table=table_df, metadata=metadata,
+                                     time_column="group",
+                                     subject_column="subject",
+                                     baseline_timepoint="1")
+
+        exp_pprs_df = pd.DataFrame({
+            'id': ['sample2', 'sample3',  'sample5', 'sample6'],
+            'measure': [0.0, 1.0, 0.0, 1.0],
+            'transfered_baseline_features': [0, 1, 0, 1],
+            'total_baseline_features': [1, 1, 1, 1],
+            'baseline': ["sample1", "sample1", "sample4", "sample4"],
+            'subject': ["sub1", "sub1", "sub2", "sub2"],
+            'group': [2.0, 3.0, 2.0, 3.0]
+            })
+        pd.testing.assert_frame_equal(sample_pprs_df, exp_pprs_df)
+
+    def test_pprs_incomplete_timepoints_with_flag(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'pre1', 'pre2'],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', 'sub1',
+                        'sub2'],
+            'group': [1, 2, 2, 3, 0,
+                      0]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'pre1', 'pre2'],
+            'Feature1': [1, 0, 1, 1, 1, 1],
+            'Feature2': [1, 1, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
+        sample_pprs_df = sample_pprs(table=table_df, metadata=metadata,
+                                     time_column="group",
+                                     baseline_timepoint="0",
+                                     subject_column="subject",
+                                     drop_incomplete_timepoints=[1, 3])
+
+        exp_pprs_df = pd.DataFrame({
+            'id': ['sample2', 'sample3'],
+            'measure': [0.333333, 1],
+            'transfered_baseline_features': [1, 3],
+            'total_baseline_features': [3, 3],
+            'baseline': ["pre1", "pre2"],
+            'subject': ["sub1", "sub2"],
+            'group': [2.0, 2.0]
+            })
+        pd.testing.assert_frame_equal(sample_pprs_df, exp_pprs_df)
+
+    def test_pprs_baseline_sub_incomplete_timepoints_with_flag(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'pre1', 'pre2'],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 2, 3, 0,
+                      0]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'pre1', 'pre2'],
+            'Feature1': [1, 0, 1, 1, 1, 1],
+            'Feature2': [1, 1, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
+        with self.assertRaisesRegex(AssertionError, "No baseline samples"
+                                    " were connected via subject. .*"):
+            sample_pprs(table=table_df, metadata=metadata,
+                        time_column="group",
+                        baseline_timepoint="0",
+                        subject_column="subject",
+                        drop_incomplete_timepoints=[1, 3])
 
 
 class TestSim(TestBase):

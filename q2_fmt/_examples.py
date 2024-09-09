@@ -258,3 +258,26 @@ def simulation_peds_method(use):
 
     peds_stats.assert_output_type("StatsTable[Pairwise]")
     global_stats.assert_output_type("StatsTable[Pairwise]")
+
+
+def pprs_method(use):
+    md = use.init_metadata('md', peds_md_factory)
+    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+
+    pprs_group_dists, = use.action(
+        use.UsageAction('fmt', 'sample_pprs'),
+        use.UsageInputs(
+            table=peds_table,
+            metadata=md,
+            time_column='time_point',
+            baseline_timepoint="1",
+            subject_column='SubjectID'
+        ),
+        use.UsageOutputNames(
+            pprs_dists='pprs_dist'
+        )
+
+    )
+
+    pprs_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
+                                        " Properties('pprs')")
