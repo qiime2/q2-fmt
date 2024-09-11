@@ -130,9 +130,10 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                                                drop_incomplete_timepoints)
         table.filter(items=metadata.index)
     # TODO: Make incomplete samples possible move this to heatmap
-    num_timepoints = _check_for_time_column(metadata, time_column)
+    num_timepoints, time_col = _check_for_time_column(metadata, time_column)
     _check_column_type(column_properties, "time",
                        time_column, "numeric")
+    metadata = metadata.filter(items=time_col.index, axis=0)
     reference_series = _check_reference_column(metadata, reference_column)
     _check_column_type(column_properties, "reference",
                        reference_column, "categorical")
@@ -174,7 +175,7 @@ def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     column_properties = metadata.columns
     metadata = metadata.to_dataframe()
 
-    _ = _check_for_time_column(metadata, time_column)
+    _, _ = _check_for_time_column(metadata, time_column)
     _check_column_type(column_properties, "time",
                        time_column, "numeric")
     reference_series = _check_reference_column(metadata, reference_column)
@@ -344,10 +345,11 @@ def _rename_features(level_delimiter, data: pd.DataFrame):
 # Filtering methods
 def _check_for_time_column(metadata, time_column):
     try:
-        num_timepoints = metadata[time_column].dropna().unique().size
+        time_col = metadata[time_column].dropna()
+        num_timepoints = time_col.unique().size
     except Exception as e:
         _check_column_missing(metadata, time_column, "time", e)
-    return num_timepoints
+    return num_timepoints, time_col
 
 
 def _check_reference_column(metadata, reference_column):
