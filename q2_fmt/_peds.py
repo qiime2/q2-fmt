@@ -141,7 +141,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     metadata, used_references = \
         _filter_associated_reference(reference_series, metadata, time_column,
                                      filter_missing_references,
-                                     reference_column)
+                                     reference_column, ids_with_data)
     subject_series = _check_subject_column(metadata, subject_column)
     _check_column_type(column_properties, "subject",
                        subject_column, "categorical")
@@ -184,7 +184,7 @@ def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     metadata, used_references = \
         _filter_associated_reference(reference_series, metadata, time_column,
                                      filter_missing_references,
-                                     reference_column)
+                                     reference_column, ids_with_data)
     _ = _check_subject_column(metadata, subject_column)
     _check_column_type(column_properties, "subject",
                        subject_column, "categorical")
@@ -361,11 +361,11 @@ def _check_reference_column(metadata, reference_column):
 
 
 def _filter_associated_reference(reference_series, metadata, time_column,
-                                 filter_missing_references, reference_column):
+                                 filter_missing_references, reference_column,
+                                 ids_with_data):
     used_references = reference_series[~metadata[time_column].isna()]
     if used_references.isna().any():
         if filter_missing_references:
-            metadata = metadata.dropna(subset=[reference_column])
             used_references = used_references.dropna()
         else:
             nan_references = used_references.index[used_references.isna()]
@@ -374,6 +374,21 @@ def _filter_associated_reference(reference_series, metadata, time_column,
                            ' timepoint value have an associated reference.'
                            ' IDs where missing references were found:'
                            ' %s' % (tuple(nan_references),))
+    available_references = (used_references.isin(ids_with_data))
+    if not available_references.all():
+        if filter_missing_references:
+            used_references = used_references[available_references]
+        else:
+            raise KeyError('References included in the metadata are missing'
+                           ' from the feature table. Please make sure all'
+                           ' references included in the metadata are also'
+                           ' present in the table.'
+                           ' Missing references: %s'
+                           % list(used_references[~available_references]
+                                  .unique()))
+
+    used_references = used_references[available_references]
+    metadata = metadata.filter(items=used_references.index, axis=0)
     return metadata, used_references
 
 
