@@ -73,7 +73,7 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
         raise AssertionError("The input data provided was created with"
                              " `fmt sample_pprs`. This is not compatible with"
                              " statistics created from `fmt peds-simulation`"
-                             " because there are created from seperate"
+                             " because they are created from separate"
                              " references (i.e. baseline and donor)") from e
 
     _rename_features(data=data, level_delimiter=level_delimiter)

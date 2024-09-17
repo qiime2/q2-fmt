@@ -270,7 +270,7 @@ def pprs_method(use):
             table=peds_table,
             metadata=md,
             time_column='time_point',
-            baseline_timepoint="1",
+            baseline_timepoint='1',
             subject_column='SubjectID'
         ),
         use.UsageOutputNames(
