@@ -526,8 +526,8 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
                                                drop_incomplete_timepoints)
         table.filter(items=metadata.index)
     num_timepoints = _check_for_time_column(metadata, time_column)
-    _check_column_type(column_properties, "time",
-                       time_column, "numeric")
+    _check_column_type(column_properties, 'time',
+                       time_column, 'numeric')
 
     used_references =\
         _get_to_baseline_ref(time_col=metadata[time_column],
@@ -537,8 +537,8 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
                              metadata=Metadata(metadata))
 
     subject_series = _check_subject_column(metadata, subject_column)
-    _check_column_type(column_properties, "subject",
-                       subject_column, "categorical")
+    _check_column_type(column_properties, 'subject',
+                       subject_column, 'categorical')
     _check_duplicate_subject_timepoint(subject_series, metadata,
                                        subject_column, time_column)
     # return things that should be removed
@@ -552,7 +552,7 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
                                     'total_baseline_features', 'baseline',
                                     'subject', 'group'])
     baseline_metadata = metadata.join(used_references)
-    peds_df = _compute_peds(peds_df=peds_df, peds_type="PPRS",
+    peds_df = _compute_peds(peds_df=peds_df, peds_type='PPRS',
                             peds_time=np.nan, reference_series=used_references,
                             table=table, metadata=baseline_metadata,
                             time_column=time_column,
