@@ -515,6 +515,9 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                     drop_incomplete_timepoints: list = None,
                     num_iterations: int = 999) -> (pd.DataFrame, pd.DataFrame):
 
+    ids_with_data = table.index
+    metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
+
     metadata_df = metadata.to_dataframe()
     reference_series = _check_reference_column(metadata_df,
                                                reference_column)
@@ -523,7 +526,8 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
      used_references) = _filter_associated_reference(reference_series,
                                                      metadata_df, time_column,
                                                      filter_missing_references,
-                                                     reference_column)
+                                                     reference_column,
+                                                     ids_with_data)
 
     if len(used_references.unique()) == 1:
         raise AssertionError("There is only one donated microbiome in your"
