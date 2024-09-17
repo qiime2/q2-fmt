@@ -463,9 +463,8 @@ def _get_to_baseline_ref(time_col, baseline_timepoint, time_column,
     if pd.Series(reference_list).isnull().all():
         raise AssertionError('No baseline samples'
                              ' were connected via subject.'
-                             ' Please confirm that all valid'
-                             ' baseline timepoint where all baseline samples'
-                             ' have a corresponding subject')
+                             ' Confirm that all subjects have a'
+                             ' baseline timepoint')
     baseline_ref_df['sample_name'] = temp_baseline_ref
     baseline_ref_df['relevant_baseline'] = reference_list
     baseline_ref_df = \

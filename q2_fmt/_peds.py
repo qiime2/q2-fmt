@@ -275,11 +275,11 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             'description': 'Subject IDs linking samples across time'
         })
         peds_df[transfered].attrs.update({
-            'title': "Transfered reference Features",
+            'title': "Transfered Reference Features",
             'description': '...'
         })
         peds_df[total].attrs.update({
-            'title': "Total reference features",
+            'title': "Total Reference features",
             'description': '...'
         })
         peds_df[ref].attrs.update({
@@ -521,7 +521,7 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
     column_properties = metadata.columns
     # TODO: Make incomplete samples possible move this to heatmap
     metadata = metadata.to_dataframe()
-    if drop_incomplete_timepoints is not None:
+    if drop_incomplete_timepoints:
         metadata = _drop_incomplete_timepoints(metadata, time_column,
                                                drop_incomplete_timepoints)
         table.filter(items=metadata.index)
