@@ -356,8 +356,8 @@ plugin.methods.register_function(
     },
     name='Proportional Persistence of Recipient Strains (Features) in each'
          ' recipient sample',
-    description='Calculates percentage of microbes that where found in the '
-                ' in the baseline recipient and presist following FMT'
+    description='Calculates percentage of microbes that were found in the'
+                ' baseline recipient and persist following FMT'
                 ' intervention.',
     citations=[citations['aggarwala_precise_2021']],
     examples={'pprs_methods': ex.pprs_method}

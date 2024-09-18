@@ -284,7 +284,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             'description': '...'
         })
         peds_df[total].attrs.update({
-            'title': "Total Reference features",
+            'title': "Total Reference Features",
             'description': '...'
         })
         peds_df[ref].attrs.update({
