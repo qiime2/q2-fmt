@@ -354,12 +354,13 @@ plugin.methods.register_function(
                       ' the selected `time_column`. Also contains the'
                       ' numerator and denominator for PPRS calulations.'
     },
-    name='Proportional Persistence of Recipient Strains',
+    name='Proportional Persistence of Recipient Strains (Features) in each'
+         ' recipient sample',
     description='Calculates percentage of microbes that where found in the '
                 ' in the baseline recipient and presist following FMT'
                 ' intervention.',
     citations=[citations['aggarwala_precise_2021']],
-    examples={'peds_methods': ex.pprs_method}
+    examples={'pprs_methods': ex.pprs_method}
 )
 
 plugin.methods.register_function(

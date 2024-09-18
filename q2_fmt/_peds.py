@@ -93,8 +93,10 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
     gradient = "measure"
     if "all possible recipients with feature" in data.columns:
         n_label = "all possible recipients with feature"
-    else:
+    elif "total_donor_features" in data.columns:
         n_label = "total_donor_features"
+    elif "total_baseline_features" in data.columns:
+        n_label = "total_baseline_features"
     data_denom = "datum['%s']" % n_label
 
     x_label_name = data[x_label].attrs['title']
@@ -253,18 +255,21 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             transfered = "transfered_baseline_features"
             total = 'total_baseline_features'
             ref = 'baseline'
+            measure_description = ('Proportional Persistence of Recipient'
+                                   ' Strains')
         elif peds_type == "Sample":
             transfered = "transfered_donor_features"
             total = 'total_donor_features'
             ref = 'donor'
+            measure_description = 'Proportional Engraftment of Donor Strains'
 
         peds_df['id'].attrs.update({
             'title': reference_series.index.name,
             'description': 'Sample IDs'
         })
         peds_df['measure'].attrs.update({
-            'title': "PEDS",
-            'description': 'Proportional Engraftment of Donor Strains'
+            'title': peds_type,
+            'description': measure_description
         })
         peds_df['group'].attrs.update({
             'title': time_column,
