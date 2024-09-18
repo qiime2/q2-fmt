@@ -30,7 +30,7 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
          drop_incomplete_subjects=False, drop_incomplete_timepoints=None,
          level_delimiter=None):
 
-    peds_heatmap = ctx.get_action('fmt', 'peds_heatmap')
+    heatmap = ctx.get_action('fmt', 'heatmap')
 
     results = []
 
@@ -56,16 +56,16 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
             table=table, metadata=metadata, time_column=time_column,
             subject_column=subject_column, reference_column=reference_column,
             filter_missing_references=filter_missing_references)
-    results += peds_heatmap(data=peds_dist[0],
-                            level_delimiter=level_delimiter)
+    results += heatmap(data=peds_dist[0],
+                       level_delimiter=level_delimiter)
 
     return tuple(results)
 
 
-def peds_heatmap(output_dir: str, data: pd.DataFrame,
-                 level_delimiter: str = None,
-                 per_subject_stats: pd.DataFrame = None,
-                 global_stats: pd.DataFrame = None):
+def heatmap(output_dir: str, data: pd.DataFrame,
+            level_delimiter: str = None,
+            per_subject_stats: pd.DataFrame = None,
+            global_stats: pd.DataFrame = None):
     try:
         assert "baseline" not in data.columns or (global_stats is None and
                                                   per_subject_stats is None)

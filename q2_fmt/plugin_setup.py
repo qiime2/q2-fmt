@@ -235,7 +235,7 @@ plugin.pipelines.register_function(
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoints': List[Str],
                 'level_delimiter': Str},
-    outputs=[('peds_heatmap', Visualization)],
+    outputs=[('heatmap', Visualization)],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
         'metadata': metadata,
@@ -247,14 +247,14 @@ plugin.pipelines.register_function(
         'drop_incomplete_subjects': drop_incomplete_subjects,
         'drop_incomplete_timepoints': drop_incomplete_timepoints,
         'level_delimiter': level_delimiter},
-    output_descriptions={'peds_heatmap': 'PEDS heatmap visualization'},
+    output_descriptions={'heatmap': 'PEDS heatmap visualization'},
     name='PEDS pipeline to calculate feature or sample PEDS',
     description='Runs a pipeline to calculate sample or feature PEDS,'
                 '  and generate the relevant heatmap'
 )
 
 plugin.visualizers.register_function(
-    function=q2_fmt.peds_heatmap,
+    function=q2_fmt.heatmap,
     inputs={'data': Dist1D[Ordered, Matched] % Properties("peds") |
             Dist1D[Ordered, Matched] % Properties("pprs"),
             'per_subject_stats': StatsTable[Pairwise],
@@ -263,10 +263,9 @@ plugin.visualizers.register_function(
                         'per_subject_stats': per_subject_stats,
                         'global_stats': global_stats},
     parameters={'level_delimiter': Str},
-    parameter_descriptions={
-                            'level_delimiter': level_delimiter},
-    name='PEDS Heatmap',
-    description='Plot heatmap for PEDS value over time'
+    parameter_descriptions={'level_delimiter': level_delimiter},
+    name=' Proportional Features Heatmap',
+    description='Plot heatmap for PEDS or PPRS value over time'
 )
 
 plugin.methods.register_function(
