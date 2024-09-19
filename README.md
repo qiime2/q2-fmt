@@ -15,14 +15,14 @@ Mac OS instructions
 ```bash
 CONDA_SUBDIR=osx-64 conda env create \
  -n q2-fmt-2024.10 \
- -f https://raw.githubusercontent.com/qiime2/q2-fmt.git/dev/environment-files/2024.10-q2-fmt-environment.yml
+ -f https://raw.githubusercontent.com/qiime2/q2-fmt/dev/environment-files/2024.10-q2-fmt-environment.yml
 ```
 
 Linux instructions
 ```bash
 conda env create \
  -n q2-fmt-2024.10 \
- -f https://raw.githubusercontent.com/qiime2/q2-fmt.git/dev/environment-files/2024.10-q2-fmt-environment.yml
+ -f https://raw.githubusercontent.com/qiime2/q2-fmt/dev/environment-files/2024.10-q2-fmt-environment.yml
 ```
 
 Then activate your new environment as usual.
