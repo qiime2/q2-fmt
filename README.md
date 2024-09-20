@@ -1,5 +1,5 @@
 # q2-fmt (fecal microbiota transplant)
-Note: This plugin is in **Alpha** release and interfaces are subject to change
+Note: This software is in **Alpha release** and interfaces are subject to change.
 ![](https://github.com/qiime2/q2-fmt/actions/workflows/ci-dev.yaml/badge.svg)
 
 ## Demo
