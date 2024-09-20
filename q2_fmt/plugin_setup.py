@@ -81,9 +81,11 @@ where = ('Additional filtering for the associated `metadata` file. This can be'
 
 per_subject_stats = ('Table describing significance of PEDS scores compared to'
                      ' mismatched donor-recipient pairs on a per-subject'
-                     ' basis.')
+                     ' basis. Note: This method will error if'
+                     ' per_subject_stats is provided with PPRS data.')
 global_stats = ('Table describing significance of PEDS scores across all'
-                ' subjects.')
+                ' subjects. Note: This method will error if'
+                ' global_stats is provided with PPRS data.')
 peds_table = 'The `table` to calculate PEDS on.'
 peds_dists = ('The distributions for the PEDS measure, grouped by the selected'
               ' `time_column`. Also contains the numerator and denominator for'
