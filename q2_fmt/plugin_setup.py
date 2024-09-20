@@ -84,7 +84,7 @@ per_subject_stats = ('Table describing significance of PEDS scores compared to'
                      ' basis.')
 global_stats = ('Table describing significance of PEDS scores across all'
                 ' subjects.')
-peds_table = 'The feature table to calculate PEDS on.'
+peds_table = 'The `table` to calculate PEDS on.'
 peds_dists = ('The distributions for the PEDS measure, grouped by the selected'
               ' `time_column`. Also contains the numerator and denominator for'
               ' PEDS calulations. May also contain subject IDs, if'
@@ -235,7 +235,7 @@ plugin.pipelines.register_function(
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoints': List[Str],
                 'level_delimiter': Str},
-    outputs=[('peds_heatmap', Visualization)],
+    outputs=[('heatmap', Visualization)],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
         'metadata': metadata,
@@ -247,25 +247,25 @@ plugin.pipelines.register_function(
         'drop_incomplete_subjects': drop_incomplete_subjects,
         'drop_incomplete_timepoints': drop_incomplete_timepoints,
         'level_delimiter': level_delimiter},
-    output_descriptions={'peds_heatmap': 'PEDS heatmap visualization'},
+    output_descriptions={'heatmap': 'PEDS heatmap visualization'},
     name='PEDS pipeline to calculate feature or sample PEDS',
     description='Runs a pipeline to calculate sample or feature PEDS,'
                 '  and generate the relevant heatmap'
 )
 
 plugin.visualizers.register_function(
-    function=q2_fmt.peds_heatmap,
-    inputs={'data': Dist1D[Ordered, Matched] % Properties("peds"),
+    function=q2_fmt.heatmap,
+    inputs={'data': Dist1D[Ordered, Matched] % Properties("peds") |
+            Dist1D[Ordered, Matched] % Properties("pprs"),
             'per_subject_stats': StatsTable[Pairwise],
             'global_stats': StatsTable[Pairwise]},
-    input_descriptions={'data': 'PEDS output to plot',
+    input_descriptions={'data': 'PEDS or PPRS output to plot',
                         'per_subject_stats': per_subject_stats,
                         'global_stats': global_stats},
     parameters={'level_delimiter': Str},
-    parameter_descriptions={
-                            'level_delimiter': level_delimiter},
-    name='PEDS Heatmap',
-    description='Plot heatmap for PEDS value over time'
+    parameter_descriptions={'level_delimiter': level_delimiter},
+    name=' Proportional Features Heatmap',
+    description='Plot heatmap for PEDS or PPRS value over time'
 )
 
 plugin.methods.register_function(
@@ -325,6 +325,41 @@ plugin.methods.register_function(
     examples={
         'peds_methods': ex.feature_peds_method
     }
+)
+
+plugin.methods.register_function(
+    function=q2_fmt.sample_pprs,
+    inputs={'table': FeatureTable[Frequency | RelativeFrequency |
+                                  PresenceAbsence]},
+    parameters={'metadata': Metadata, 'time_column': Str,
+                'baseline_timepoint': Str, 'subject_column': Str,
+                'filter_missing_references': Bool,
+                'drop_incomplete_subjects': Bool,
+                'drop_incomplete_timepoints': List[Str]},
+    outputs=[('pprs_dists', Dist1D[Ordered, Matched] % Properties("pprs"))],
+    input_descriptions={
+        'table': 'The `table` to calculate PPRS on.'},
+    parameter_descriptions={
+        'metadata': metadata,
+        'time_column': time_column,
+        'baseline_timepoint': baseline_timepoint,
+        'subject_column': subject_column,
+        'filter_missing_references': filter_missing_references,
+        'drop_incomplete_subjects': drop_incomplete_subjects,
+        'drop_incomplete_timepoints': drop_incomplete_timepoints
+    },
+    output_descriptions={
+        'pprs_dists': 'The distributions for the PPRS measure, grouped by'
+                      ' the selected `time_column`. Also contains the'
+                      ' numerator and denominator for PPRS calulations.'
+    },
+    name='Proportional Persistence of Recipient Strains (Features) in each'
+         ' recipient sample',
+    description='Calculates percentage of microbes that were found in the'
+                ' baseline recipient and persist following FMT'
+                ' intervention.',
+    citations=[citations['aggarwala_precise_2021']],
+    examples={'pprs_methods': ex.pprs_method}
 )
 
 plugin.methods.register_function(
