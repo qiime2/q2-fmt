@@ -84,7 +84,7 @@ per_subject_stats = ('Table describing significance of PEDS scores compared to'
                      ' basis.')
 global_stats = ('Table describing significance of PEDS scores across all'
                 ' subjects.')
-peds_table = 'The feature table to calculate PEDS on.'
+peds_table = 'The `table` to calculate PEDS on.'
 peds_dists = ('The distributions for the PEDS measure, grouped by the selected'
               ' `time_column`. Also contains the numerator and denominator for'
               ' PEDS calulations. May also contain subject IDs, if'
@@ -338,7 +338,7 @@ plugin.methods.register_function(
                 'drop_incomplete_timepoints': List[Str]},
     outputs=[('pprs_dists', Dist1D[Ordered, Matched] % Properties("pprs"))],
     input_descriptions={
-        'table': 'The feature table to calculate PPRS on.'},
+        'table': 'The `table` to calculate PPRS on.'},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
