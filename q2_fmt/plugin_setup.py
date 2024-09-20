@@ -338,7 +338,7 @@ plugin.methods.register_function(
                 'drop_incomplete_timepoints': List[Str]},
     outputs=[('pprs_dists', Dist1D[Ordered, Matched] % Properties("pprs"))],
     input_descriptions={
-        'table': peds_table},
+        'table': 'The feature table to calculate PPRS on.'},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
