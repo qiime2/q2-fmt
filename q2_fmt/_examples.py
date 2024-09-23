@@ -49,7 +49,7 @@ def faithpd_div_factory():
     )
 
 
-def peds_feature_table_factory():
+def feature_table_factory():
     return qiime2.Artifact.import_data(
         'FeatureTable[Frequency]', _get_data_from_tests('feature-table.biom')
     )
@@ -150,12 +150,12 @@ def cc_baseline(use):
 
 def peds_method(use):
     md = use.init_metadata('md', peds_md_factory)
-    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+    table = use.init_artifact('table', feature_table_factory)
 
     peds_group_dists, = use.action(
         use.UsageAction('fmt', 'sample_peds'),
         use.UsageInputs(
-            table=peds_table,
+            table=table,
             metadata=md,
             time_column='time_point',
             reference_column='Donor',
@@ -173,12 +173,12 @@ def peds_method(use):
 
 def feature_peds_method(use):
     md = use.init_metadata('md', peds_md_factory)
-    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+    table = use.init_artifact('table', feature_table_factory)
 
     peds_group_dists, = use.action(
         use.UsageAction('fmt', 'feature_peds'),
         use.UsageInputs(
-            table=peds_table,
+            table=table,
             metadata=md,
             time_column='time_point',
             reference_column='Donor',
@@ -197,12 +197,12 @@ def feature_peds_method(use):
 # PEDS pipeline
 def peds_pipeline_sample(use):
     md = use.init_metadata('md', peds_md_factory)
-    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+    table = use.init_artifact('table', feature_table_factory)
 
     peds_heatmap, = use.action(
         use.UsageAction('fmt', 'peds'),
         use.UsageInputs(
-            table=peds_table,
+            table=table,
             metadata=md,
             peds_metric='sample',
             time_column='time_point',
@@ -238,12 +238,12 @@ def peds_heatmap(use):
 
 def simulation_peds_method(use):
     md = use.init_metadata('md', peds_md_factory)
-    peds_table = use.init_artifact('peds_table', peds_feature_table_factory)
+    table = use.init_artifact('table', feature_table_factory)
 
     peds_stats, global_stats = use.action(
         use.UsageAction('fmt', 'peds_simulation'),
         use.UsageInputs(
-            table=peds_table,
+            table=table,
             metadata=md,
             time_column='time_point',
             reference_column='Donor',
@@ -258,3 +258,26 @@ def simulation_peds_method(use):
 
     peds_stats.assert_output_type("StatsTable[Pairwise]")
     global_stats.assert_output_type("StatsTable[Pairwise]")
+
+
+def pprs_method(use):
+    md = use.init_metadata('md', peds_md_factory)
+    table = use.init_artifact('table', feature_table_factory)
+
+    pprs_group_dists, = use.action(
+        use.UsageAction('fmt', 'sample_pprs'),
+        use.UsageInputs(
+            table=table,
+            metadata=md,
+            time_column='time_point',
+            baseline_timepoint='1',
+            subject_column='SubjectID'
+        ),
+        use.UsageOutputNames(
+            pprs_dists='pprs_dist'
+        )
+
+    )
+
+    pprs_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
+                                        " Properties('pprs')")

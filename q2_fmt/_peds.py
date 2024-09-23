@@ -19,6 +19,8 @@ import pkg_resources
 import jinja2
 import json
 
+from qiime2 import Metadata
+from q2_fmt._engraftment import _get_to_baseline_ref
 from q2_fmt._util import json_replace
 from q2_stats._visualizer import _make_stats
 
@@ -28,7 +30,7 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
          drop_incomplete_subjects=False, drop_incomplete_timepoints=None,
          level_delimiter=None):
 
-    peds_heatmap = ctx.get_action('fmt', 'peds_heatmap')
+    heatmap = ctx.get_action('fmt', 'heatmap')
 
     results = []
 
@@ -54,16 +56,26 @@ def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
             table=table, metadata=metadata, time_column=time_column,
             subject_column=subject_column, reference_column=reference_column,
             filter_missing_references=filter_missing_references)
-    results += peds_heatmap(data=peds_dist[0],
-                            level_delimiter=level_delimiter)
+    results += heatmap(data=peds_dist[0],
+                       level_delimiter=level_delimiter)
 
     return tuple(results)
 
 
-def peds_heatmap(output_dir: str, data: pd.DataFrame,
-                 level_delimiter: str = None,
-                 per_subject_stats: pd.DataFrame = None,
-                 global_stats: pd.DataFrame = None):
+def heatmap(output_dir: str, data: pd.DataFrame,
+            level_delimiter: str = None,
+            per_subject_stats: pd.DataFrame = None,
+            global_stats: pd.DataFrame = None):
+    try:
+        assert "baseline" not in data.columns or (global_stats is None and
+                                                  per_subject_stats is None)
+    except AssertionError as e:
+        raise AssertionError("The input data provided was created with"
+                             " `fmt sample_pprs`. This is not compatible with"
+                             " statistics created from `fmt peds-simulation`"
+                             " because they are created from separate"
+                             " references (i.e. baseline and donor)") from e
+
     _rename_features(data=data, level_delimiter=level_delimiter)
     gstats = None
     table1 = None
@@ -81,8 +93,10 @@ def peds_heatmap(output_dir: str, data: pd.DataFrame,
     gradient = "measure"
     if "all possible recipients with feature" in data.columns:
         n_label = "all possible recipients with feature"
-    else:
+    elif "total_donor_features" in data.columns:
         n_label = "total_donor_features"
+    elif "total_baseline_features" in data.columns:
+        n_label = "total_baseline_features"
     data_denom = "datum['%s']" % n_label
 
     x_label_name = data[x_label].attrs['title']
@@ -206,7 +220,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
                   reference_series: pd.Series, table: pd.Series,
                   metadata: qiime2.Metadata, time_column: str,
                   subject_column: str,
-                  reference_column: str) -> (pd.DataFrame):
+                  reference_column: str = None) -> (pd.DataFrame):
     table = table > 0
     reference_overlap = reference_series.isin(table.index)
     try:
@@ -224,7 +238,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
                                 recip_df=recip_df,
                                 reference_column=reference_column)
     maskedrecip = donormask & recip_df
-    if peds_type == "Sample":
+    if peds_type == "Sample" or peds_type == "PPRS":
         num_sum = np.sum(maskedrecip, axis=1)
         donor_sum = np.sum(donormask, axis=1)
         for count, sample in enumerate(recip_df.index):
@@ -238,13 +252,25 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
                                          sample_row[reference_column],
                                          sample_row[subject_column],
                                          sample_row[time_column]]
+        if peds_type == "PPRS":
+            transfered = "transfered_baseline_features"
+            total = 'total_baseline_features'
+            ref = 'baseline'
+            measure_description = ('Proportional Persistence of Recipient'
+                                   ' Strains')
+        elif peds_type == "Sample":
+            transfered = "transfered_donor_features"
+            total = 'total_donor_features'
+            ref = 'donor'
+            measure_description = 'Proportional Engraftment of Donor Strains'
+
         peds_df['id'].attrs.update({
             'title': reference_series.index.name,
             'description': 'Sample IDs'
         })
         peds_df['measure'].attrs.update({
-            'title': "PEDS",
-            'description': 'Proportional Engraftment of Donor Strains'
+            'title': peds_type,
+            'description': measure_description
         })
         peds_df['group'].attrs.update({
             'title': time_column,
@@ -254,15 +280,15 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             'title': subject_column,
             'description': 'Subject IDs linking samples across time'
         })
-        peds_df["transfered_donor_features"].attrs.update({
-            'title': "Transfered Donor Features",
+        peds_df[transfered].attrs.update({
+            'title': "Transfered Reference Features",
             'description': '...'
         })
-        peds_df['total_donor_features'].attrs.update({
-            'title': "Total Donor Features",
+        peds_df[total].attrs.update({
+            'title': "Total Reference Features",
             'description': '...'
         })
-        peds_df['donor'].attrs.update({
+        peds_df[ref].attrs.update({
             'title': reference_column,
             'description': 'Donor'
         })
@@ -503,8 +529,58 @@ def _create_masking(time_metadata, donor_df, recip_df, reference_column):
 
 
 def _mask_recipient(donor_mask, recip_df):
-    recip_mask = donor_mask & recip_df
-    return recip_mask
+    maskedrecip = donor_mask & recip_df
+    return maskedrecip
+
+
+def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
+                time_column: str, baseline_timepoint: str, subject_column: str,
+                filter_missing_references: bool = False,
+                drop_incomplete_subjects: bool = False,
+                drop_incomplete_timepoints: list = None) -> (pd.DataFrame):
+    ids_with_data = table.index
+    metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
+    column_properties = metadata.columns
+    # TODO: Make incomplete samples possible move this to heatmap
+    metadata = metadata.to_dataframe()
+    if drop_incomplete_timepoints:
+        metadata = _drop_incomplete_timepoints(metadata, time_column,
+                                               drop_incomplete_timepoints)
+        table.filter(items=metadata.index)
+    num_timepoints = _check_for_time_column(metadata, time_column)
+    _check_column_type(column_properties, 'time',
+                       time_column, 'numeric')
+
+    used_references =\
+        _get_to_baseline_ref(time_col=metadata[time_column],
+                             baseline_timepoint=baseline_timepoint,
+                             time_column=time_column,
+                             subject_column=subject_column,
+                             metadata=Metadata(metadata))
+
+    subject_series = _check_subject_column(metadata, subject_column)
+    _check_column_type(column_properties, 'subject',
+                       subject_column, 'categorical')
+    _check_duplicate_subject_timepoint(subject_series, metadata,
+                                       subject_column, time_column)
+    # return things that should be removed
+    metadata, used_references = \
+        _check_subjects_in_all_timepoints(subject_series, num_timepoints,
+                                          drop_incomplete_subjects, metadata,
+                                          subject_column, used_references)
+
+    peds_df = pd.DataFrame(columns=['id', 'measure',
+                                    'transfered_baseline_features',
+                                    'total_baseline_features', 'baseline',
+                                    'subject', 'group'])
+    baseline_metadata = metadata.join(used_references)
+    peds_df = _compute_peds(peds_df=peds_df, peds_type='PPRS',
+                            peds_time=np.nan, reference_series=used_references,
+                            table=table, metadata=baseline_metadata,
+                            time_column=time_column,
+                            subject_column=subject_column,
+                            reference_column=used_references.name)
+    return peds_df
 
 
 def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
