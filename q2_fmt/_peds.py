@@ -547,9 +547,10 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
         metadata = _drop_incomplete_timepoints(metadata, time_column,
                                                drop_incomplete_timepoints)
         table.filter(items=metadata.index)
-    num_timepoints = _check_for_time_column(metadata, time_column)
+    num_timepoints, time_col = _check_for_time_column(metadata, time_column)
     _check_column_type(column_properties, 'time',
                        time_column, 'numeric')
+    metadata = metadata.filter(items=time_col.index, axis=0)
 
     used_references =\
         _get_to_baseline_ref(time_col=metadata[time_column],

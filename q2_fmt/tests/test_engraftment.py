@@ -880,7 +880,8 @@ class TestPeds(TestBase):
                                          metadata=metadata_df,
                                          time_column="group",
                                          filter_missing_references=False,
-                                         reference_column="Ref")
+                                         reference_column="Ref",
+                                         ids_with_data=None)
 
     def test_incomplete_timepoints(self):
         metadata_df = pd.DataFrame({
