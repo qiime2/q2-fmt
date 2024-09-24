@@ -138,34 +138,36 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
-    metadata = metadata.to_dataframe()
+    metadata_df = metadata.to_dataframe()
     if drop_incomplete_timepoints is not None:
-        metadata = _drop_incomplete_timepoints(metadata, time_column,
-                                               drop_incomplete_timepoints)
-        table.filter(items=metadata.index)
+        metadata_df = _drop_incomplete_timepoints(metadata_df, time_column,
+                                                  drop_incomplete_timepoints)
+        table.filter(items=metadata_df.index)
     # TODO: Make incomplete samples possible move this to heatmap
-    num_timepoints, time_col = _check_for_time_column(metadata, time_column)
+    num_timepoints, time_col = _check_for_time_column(metadata_df, time_column)
     _check_column_type(column_properties, "time",
                        time_column, "numeric")
-    metadata = metadata.filter(items=time_col.index, axis=0)
-    reference_series = _check_reference_column(metadata, reference_column)
+    metadata_df = metadata_df.filter(items=time_col.index, axis=0)
+    reference_series = _check_reference_column(metadata_df, reference_column)
     _check_column_type(column_properties, "reference",
                        reference_column, "categorical")
     # return things that should be removed
-    metadata, used_references = \
-        _filter_associated_reference(reference_series, metadata, time_column,
+    metadata_df, used_references = \
+        _filter_associated_reference(reference_series, metadata_df,
+                                     time_column,
                                      filter_missing_references,
                                      reference_column, ids_with_data)
-    subject_series = _check_subject_column(metadata, subject_column)
+    subject_series = _check_subject_column(metadata_df, subject_column)
     _check_column_type(column_properties, "subject",
                        subject_column, "categorical")
-    _check_duplicate_subject_timepoint(subject_series, metadata,
+    _check_duplicate_subject_timepoint(subject_series, metadata_df,
                                        subject_column, time_column)
 
     # return things that should be removed
-    metadata, used_references = \
+    metadata_df, used_references = \
         _check_subjects_in_all_timepoints(subject_series, num_timepoints,
-                                          drop_incomplete_subjects, metadata,
+                                          drop_incomplete_subjects,
+                                          metadata_df,
                                           subject_column, used_references)
 
     peds_df = pd.DataFrame(columns=['id', 'measure',
@@ -174,7 +176,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                                     'group'])
     peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
                             peds_time=np.nan, reference_series=used_references,
-                            table=table, metadata=metadata,
+                            table=table, metadata=metadata_df,
                             time_column=time_column,
                             subject_column=subject_column,
                             reference_column=reference_column)
@@ -187,25 +189,26 @@ def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
-    metadata = metadata.to_dataframe()
+    metadata_df = metadata.to_dataframe()
 
-    _, _ = _check_for_time_column(metadata, time_column)
+    _check_for_time_column(metadata_df, time_column)
     _check_column_type(column_properties, "time",
                        time_column, "numeric")
-    reference_series = _check_reference_column(metadata, reference_column)
+    reference_series = _check_reference_column(metadata_df, reference_column)
     _check_column_type(column_properties, "reference",
                        reference_column, "categorical")
-    metadata, used_references = \
-        _filter_associated_reference(reference_series, metadata, time_column,
+    metadata_df, used_references = \
+        _filter_associated_reference(reference_series, metadata_df,
+                                     time_column,
                                      filter_missing_references,
                                      reference_column, ids_with_data)
-    _ = _check_subject_column(metadata, subject_column)
+    _check_subject_column(metadata_df, subject_column)
     _check_column_type(column_properties, "subject",
                        subject_column, "categorical")
     peds_df = pd.DataFrame(columns=['id', 'measure', 'recipients with feature',
                                     'all possible recipients with feature',
                                     'group', 'subject'])
-    for time, time_metadata in metadata.groupby(time_column):
+    for time, time_metadata in metadata_df.groupby(time_column):
         peds_df = _compute_peds(peds_df=peds_df, peds_type="Feature",
                                 peds_time=time,
                                 reference_series=used_references, table=table,
@@ -386,10 +389,10 @@ def _check_reference_column(metadata, reference_column):
     return reference_series
 
 
-def _filter_associated_reference(reference_series, metadata, time_column,
+def _filter_associated_reference(reference_series, metadata_df, time_column,
                                  filter_missing_references, reference_column,
                                  ids_with_data):
-    used_references = reference_series[~metadata[time_column].isna()]
+    used_references = reference_series[~metadata_df[time_column].isna()]
     if used_references.isna().any():
         if filter_missing_references:
             used_references = used_references.dropna()
@@ -414,8 +417,8 @@ def _filter_associated_reference(reference_series, metadata, time_column,
                                   .unique()))
 
     used_references = used_references[available_references]
-    metadata = metadata.filter(items=used_references.index, axis=0)
-    return metadata, used_references
+    metadata_df = metadata_df.filter(items=used_references.index, axis=0)
+    return metadata_df, used_references
 
 
 def _check_subject_column(metadata, subject_column):
@@ -542,39 +545,40 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
     # TODO: Make incomplete samples possible move this to heatmap
-    metadata = metadata.to_dataframe()
+    metadata_df = metadata.to_dataframe()
     if drop_incomplete_timepoints:
-        metadata = _drop_incomplete_timepoints(metadata, time_column,
-                                               drop_incomplete_timepoints)
-        table.filter(items=metadata.index)
-    num_timepoints, time_col = _check_for_time_column(metadata, time_column)
+        metadata_df = _drop_incomplete_timepoints(metadata_df, time_column,
+                                                  drop_incomplete_timepoints)
+        table.filter(items=metadata_df.index)
+    num_timepoints, time_col = _check_for_time_column(metadata_df, time_column)
     _check_column_type(column_properties, 'time',
                        time_column, 'numeric')
-    metadata = metadata.filter(items=time_col.index, axis=0)
+    metadata_df = metadata_df.filter(items=time_col.index, axis=0)
 
     used_references =\
-        _get_to_baseline_ref(time_col=metadata[time_column],
+        _get_to_baseline_ref(time_col=metadata_df[time_column],
                              baseline_timepoint=baseline_timepoint,
                              time_column=time_column,
                              subject_column=subject_column,
-                             metadata=Metadata(metadata))
+                             metadata=Metadata(metadata_df))
 
-    subject_series = _check_subject_column(metadata, subject_column)
+    subject_series = _check_subject_column(metadata_df, subject_column)
     _check_column_type(column_properties, 'subject',
                        subject_column, 'categorical')
-    _check_duplicate_subject_timepoint(subject_series, metadata,
+    _check_duplicate_subject_timepoint(subject_series, metadata_df,
                                        subject_column, time_column)
     # return things that should be removed
-    metadata, used_references = \
+    metadata_df, used_references = \
         _check_subjects_in_all_timepoints(subject_series, num_timepoints,
-                                          drop_incomplete_subjects, metadata,
+                                          drop_incomplete_subjects,
+                                          metadata_df,
                                           subject_column, used_references)
 
     peds_df = pd.DataFrame(columns=['id', 'measure',
                                     'transfered_baseline_features',
                                     'total_baseline_features', 'baseline',
                                     'subject', 'group'])
-    baseline_metadata = metadata.join(used_references)
+    baseline_metadata = metadata_df.join(used_references)
     peds_df = _compute_peds(peds_df=peds_df, peds_type='PPRS',
                             peds_time=np.nan, reference_series=used_references,
                             table=table, metadata=baseline_metadata,
