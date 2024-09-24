@@ -135,6 +135,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                 drop_incomplete_subjects: bool = False,
                 drop_incomplete_timepoints: list = None) -> (pd.DataFrame):
 
+    # making sure that samples exist in the table
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
@@ -186,6 +187,7 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
 def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
                  time_column: str, reference_column: str, subject_column: str,
                  filter_missing_references: bool = False) -> (pd.DataFrame):
+    # making sure that samples exist in the table
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
@@ -541,6 +543,7 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
                 filter_missing_references: bool = False,
                 drop_incomplete_subjects: bool = False,
                 drop_incomplete_timepoints: list = None) -> (pd.DataFrame):
+    # making sure that samples exist in the table
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
     column_properties = metadata.columns
