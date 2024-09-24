@@ -5,6 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+# Add helper methods
 
 def json_replace(json_obj, **values):
     """
