@@ -877,10 +877,11 @@ class TestPeds(TestBase):
                                     ' IDs where missing references were found'
                                     ':.*'):
             _filter_associated_reference(reference_series=reference_series,
-                                         metadata=metadata_df,
+                                         metadata_df=metadata_df,
                                          time_column="group",
                                          filter_missing_references=False,
-                                         reference_column="Ref")
+                                         reference_column="Ref",
+                                         ids_with_data=None)
 
     def test_incomplete_timepoints(self):
         metadata_df = pd.DataFrame({
@@ -1396,6 +1397,85 @@ class TestPeds(TestBase):
                                                  'subject']
         self.assertEqual("1", Fs1)
         self.assertEqual("2", Fs2)
+
+    def test_peds_nan_tp(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, np.nan, 2, np.nan,
+                      np.nan]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Feature1': [0, 0, 1, 1, 1, 1],
+            'Feature2': [0, 1, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
+        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
+                                     time_column="group",
+                                     reference_column="Ref",
+                                     subject_column="subject",
+                                     drop_incomplete_subjects=True)
+        obs_samples = sample_peds_df['id'].to_list()
+        exp_sample = ['sample1', 'sample2']
+        self.assertEqual(obs_samples, exp_sample)
+
+    def test_peds_no_donor_in_table(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor2', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1'],
+            'Feature1': [0, 0, 1, 1, 1],
+            'Feature2': [0, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1]}).set_index('id')
+        with self.assertRaisesRegex(KeyError, "References included in the"
+                                    " metadata are missing from the feature"
+                                    " table.*"):
+            sample_peds(table=table_df, metadata=metadata,
+                        time_column="group",
+                        reference_column="Ref",
+                        subject_column="subject",
+                        drop_incomplete_subjects=True)
+
+    def test_peds_no_donor_in_table_flag(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor2', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1'],
+            'Feature1': [0, 0, 1, 1, 1],
+            'Feature2': [0, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1]}).set_index('id')
+        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
+                                     time_column="group",
+                                     reference_column="Ref",
+                                     subject_column="subject",
+                                     drop_incomplete_subjects=True, 
+                                     filter_missing_references=True)
+        obs_samples = sample_peds_df['id'].to_list()
+        exp_sample = ['sample1', 'sample2']
+        self.assertEqual(obs_samples, exp_sample)
 
     def test_pprs(self):
         metadata_df = pd.DataFrame({
