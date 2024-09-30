@@ -270,7 +270,7 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
             measure_description = 'Proportional Engraftment of Donor Strains'
 
         peds_df['id'].attrs.update({
-            'title': reference_series.index.name,
+            'title': metadata.index.name,
             'description': 'Sample IDs'
         })
         peds_df['measure'].attrs.update({
