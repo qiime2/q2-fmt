@@ -14,17 +14,19 @@ from scipy.stats import false_discovery_control
 from qiime2.plugin.testing import TestPluginBase
 from qiime2 import Metadata
 
-from q2_fmt._engraftment import group_timepoints, _get_to_baseline_ref
-from q2_fmt._peds import (_compute_peds, sample_peds,
-                          _filter_associated_reference,
+from q2_fmt._util import (_rename_features, _check_column_missing,
                           _check_reference_column, _check_for_time_column,
-                          _check_subject_column, _check_column_type,
+                          _filter_associated_reference, _check_subject_column,
+                          _simulate_uniform_distro, _peds_sim_stats,
+                          _get_to_baseline_ref)
+from q2_fmt._engraftment import group_timepoints
+from q2_fmt._peds import (_compute_peds, sample_peds,
+                          _check_column_type,
                           _drop_incomplete_timepoints, feature_peds,
-                          _check_column_missing, _rename_features,
                           peds_simulation, _create_mismatched_pairs,
-                          _simulate_uniform_distro, _create_sim_masking,
+                          _create_sim_masking,
                           _mask_recipient, _create_duplicated_recip_table,
-                          _per_subject_stats, _global_stats, _peds_sim_stats,
+                          _per_subject_stats, _global_stats,
                           sample_pprs)
 
 
@@ -878,9 +880,8 @@ class TestPeds(TestBase):
                                     ':.*'):
             _filter_associated_reference(reference_series=reference_series,
                                          metadata_df=metadata_df,
-                                         time_column="group",
+                                         time_column_name="group",
                                          filter_missing_references=False,
-                                         reference_column="Ref",
                                          ids_with_data=None)
 
     def test_incomplete_timepoints(self):
@@ -1471,7 +1472,7 @@ class TestPeds(TestBase):
                                      time_column="group",
                                      reference_column="Ref",
                                      subject_column="subject",
-                                     drop_incomplete_subjects=True, 
+                                     drop_incomplete_subjects=True,
                                      filter_missing_references=True)
         obs_samples = sample_peds_df['id'].to_list()
         exp_sample = ['sample1', 'sample2']

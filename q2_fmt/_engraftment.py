@@ -8,9 +8,12 @@
 
 import pandas as pd
 import itertools
-import numpy as np
 
 import qiime2
+
+from q2_fmt._util import (_get_to_baseline_ref, _get_series_from_col,
+                          _sort_multi_index, _ordered_dists,
+                          _independent_dists)
 
 
 def cc(
@@ -83,11 +86,9 @@ def group_timepoints(
     original_measure_name = diversity_measure.name
     diversity_measure.name = 'measure'
     diversity_measure.index.name = 'id'
-
     ordered_df = _ordered_dists(diversity_measure, is_beta, used_references,
                                 time_col, subject_col=subject_col,
                                 group_col=group_col)
-
     id_annotation = {
         'title': used_references.index.name,
         'description': '...'
@@ -214,9 +215,10 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
         used_references = reference_col[~time_col.isna()]
     elif distance_to == 'baseline':
         used_references = \
-            _get_to_baseline_ref(time_col=time_col, time_column=time_column,
+            _get_to_baseline_ref(time_col=time_col,
+                                 time_column_name=time_column,
                                  baseline_timepoint=baseline_timepoint,
-                                 subject_column=subject_column,
+                                 subject_column_name=subject_column,
                                  metadata=metadata)
     if used_references.isna().any():
         if filter_missing_references:
@@ -268,213 +270,3 @@ def _data_filtering(diversity_measure: pd.Series, metadata: qiime2.Metadata,
 
     return (is_beta, used_references, time_col, subject_col,
             group_col, used_controls)
-
-
-# HELPER FUNCTION FOR DATA Filtering
-def _get_series_from_col(md, col_name, param_name, expected_type=None,
-                         drop_missing_values=False):
-    try:
-        column = md.get_column(col_name)
-    except ValueError as e:
-        raise ValueError("There was an issue with the argument for %r. %s"
-                         % (param_name, e)) from e
-
-    if expected_type is not None and not isinstance(column, expected_type):
-        if type(expected_type) is tuple:
-            exp = tuple(e.type for e in expected_type)
-        else:
-            exp = expected_type.type
-
-        raise ValueError("Provided column for %r is %r, not %r."
-                         % (param_name, column.type, exp))
-
-    if drop_missing_values:
-        column = column.drop_missing_values()
-
-    return column.to_series()
-
-
-# HELPER FUNCTION FOR sorting a multi-index (for dist matrix and metadata)
-def _sort_multi_index(index):
-    sorted_levels = list(map(sorted, index))
-    sorted_multi = pd.MultiIndex.from_tuples(sorted_levels)
-    return sorted_multi
-
-
-# HELPER FUNCTION FOR Dists1D[Ordered | NestedOrdered, Matched | Independent]
-def _ordered_dists(diversity_measure: pd.Series, is_beta,
-                   used_references, time_col, subject_col, group_col):
-    if is_beta:
-        idx = pd.MultiIndex.from_frame(
-            used_references.to_frame().reset_index())
-        idx = _sort_multi_index(idx)
-        idx.names = ['id', 'reference']
-        diversity_measure.index.names = ['id', 'reference']
-    else:
-        idx = used_references.index
-        idx.name = 'id'
-
-    try:
-        sliced_df = (diversity_measure[idx]
-                     .to_frame()
-                     .reset_index()
-                     .set_index('id')
-                     )
-    except KeyError:
-        raise KeyError('Pairwise comparisons were unsuccessful. Please double'
-                       ' check that your chosen reference column contains'
-                       ' values that are also present in the ID column for'
-                       ' the associated metadata.')
-
-    if is_beta:
-        sliced_df.index = used_references.index
-        sliced_df.index.name = 'id'
-
-    ordinal_df = sliced_df[['measure']]
-    ordinal_df['group'] = time_col
-
-    if subject_col is not None:
-        ordinal_df['subject'] = subject_col
-
-    if group_col is not None:
-        ordinal_df['class'] = group_col.name
-        ordinal_df['level'] = group_col
-
-    return ordinal_df.reset_index()
-
-
-# HELPER FUNCTION FOR GroupDists[Unordered, Independent]
-def _independent_dists(diversity_measure, metadata,
-                       used_references, is_beta, used_controls):
-    unique_references = sorted(used_references.unique())
-
-    if is_beta:
-        if len(unique_references) > 1:
-            ref_idx = pd.MultiIndex.from_tuples(
-                itertools.combinations(unique_references, 2))
-            ref_idx.names = ['A', 'B']
-
-        else:
-            ref_idx = pd.MultiIndex(levels=[[], []],
-                                    codes=[[], []],
-                                    names=['A', 'B'])
-
-        diversity_measure.index.names = ['A', 'B']
-
-        if used_controls is not None:
-            grouped_md = (metadata
-                          .to_dataframe()
-                          .loc[used_controls.index]
-                          .groupby(used_controls)
-                          )
-            ctrl_list = list()
-            for group_id, grouped_ctrls in grouped_md:
-                if len(grouped_ctrls.index) < 2:
-                    continue
-                ctrl_combos = list(
-                    itertools.combinations(
-                        grouped_ctrls.index, 2)
-                )
-                ctrl_idx = pd.MultiIndex.from_tuples(ctrl_combos)
-                ctrl_series = pd.Series(group_id, index=ctrl_idx)
-                ctrl_list.append(ctrl_series)
-
-            if len(ctrl_list) >= 1:
-                ctrl_series = pd.concat(ctrl_list)
-                ctrl_series.index.names = ['A', 'B']
-
-            else:
-                ctrl_series = pd.Series()
-
-            ctrl_series.name = 'group'
-
-    else:
-        ref_idx = list(unique_references)
-        if used_controls is not None:
-            ctrl_series = used_controls
-            ctrl_series.index.name = 'id'
-
-    try:
-        nominal_df = diversity_measure[ref_idx].to_frame().reset_index()
-    except KeyError:
-        raise KeyError('Pairwise comparisons were unsuccessful. Please double'
-                       ' check that your chosen reference column contains'
-                       ' values that are also present in the ID column for'
-                       ' the associated metadata.')
-
-    nominal_df['group'] = 'reference'
-
-    if used_controls is not None:
-        ctrl_group = diversity_measure[ctrl_series.index].to_frame()
-        ctrl_group['group'] = ctrl_series
-        ctrl_group = ctrl_group.reset_index()
-        nominal_df = pd.concat([nominal_df, ctrl_group])
-        nominal_df = nominal_df.reset_index(drop=True)
-
-    if 'A' in nominal_df.columns:
-        if not nominal_df.empty:
-            nominal_df['id'] = nominal_df[['A', 'B']].agg('..'.join, axis=1)
-        else:
-            nominal_df['id'] = []
-        nominal_df = nominal_df[['id', 'measure', 'group', 'A', 'B']]
-
-    return nominal_df
-
-
-# Helper Function For to-baseline datafiltering
-def _get_to_baseline_ref(time_col, baseline_timepoint, time_column,
-                         subject_column, metadata):
-
-    temp_baseline_ref = []
-    reference_list = []
-    baseline_ref_df = pd.DataFrame()
-    # All valid FMT samples have to have a time column
-    metadata = metadata.to_dataframe()[~time_col.isna()]
-    if float(baseline_timepoint) not in metadata[time_column].values:
-        raise AssertionError('The provided baseline timepoint'
-                             f' {baseline_timepoint} was not'
-                             f' found in `metadata` '
-                             f' column {time_column}.')
-    for sub, samples in metadata.groupby([subject_column]):
-        reference = \
-            samples[samples[
-                time_column] == float(baseline_timepoint)].index.to_list()
-        if len(reference) > 1:
-            raise ValueError('More than one baseline sample was found per'
-                             ' subject. Only one baseline sample can be'
-                             ' used as a reference. Please group baseline'
-                             ' replicates.')
-        elif len(reference) == 0:
-            # If there is no baseline for a subject,
-            # This will either drop with filter-missing-references or
-            # or error and say that they need to pass
-            # filter-missing-references
-            reference = [np.nan]
-        temp_baseline_ref = temp_baseline_ref + samples.index.to_list()
-        reference_list = \
-            reference_list + (reference * len(samples.index.to_list()))
-    # I dont see any way that this hits because of my above assertion but
-    # I think its a good check so I am leavig it in.
-    if len(reference_list) == 0:
-        raise AssertionError('No baseline samples'
-                             ' were found in the metadata.'
-                             ' Please confirm that a valid'
-                             ' baseline timepoint was given.')
-    if pd.Series(reference_list).isnull().all():
-        raise AssertionError('No baseline samples'
-                             ' were connected via subject.'
-                             ' Confirm that all subjects have a'
-                             ' baseline timepoint')
-    baseline_ref_df['sample_name'] = temp_baseline_ref
-    baseline_ref_df['relevant_baseline'] = reference_list
-    baseline_ref_df = \
-        baseline_ref_df[~baseline_ref_df['sample_name'].isin(
-            reference_list)].set_index('sample_name')
-    reference_col = _get_series_from_col(
-        md=qiime2.Metadata(baseline_ref_df), col_name='relevant_baseline',
-        param_name='reference_column',
-        expected_type=qiime2.CategoricalMetadataColumn)
-    # this is so the variables for distance to donor and distance to
-    # baseline have the same variable name
-    used_references = reference_col
-    return used_references
