@@ -250,7 +250,8 @@ plugin.pipelines.register_function(
     output_descriptions={'heatmap': 'PEDS heatmap visualization'},
     name='PEDS pipeline to calculate feature or sample PEDS',
     description='Runs a pipeline to calculate sample or feature PEDS,'
-                '  and generate the relevant heatmap'
+                '  and generate the relevant heatmap',
+    examples={'heatmap': ex.peds_pipeline_sample}
 )
 
 plugin.visualizers.register_function(

@@ -210,7 +210,7 @@ def peds_pipeline_sample(use):
             subject_column='SubjectID'
         ),
         use.UsageOutputNames(
-            visualization='heatmap',
+            heatmap='heatmap',
 
         )
     )
