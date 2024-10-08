@@ -218,12 +218,11 @@ def peds_pipeline_sample(use):
     peds_heatmap.assert_output_type('Visualization')
 
 
-# Heatmap pipeline
-def peds_heatmap(use):
+def heatmap(use):
     peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
 
     peds_heatmap, = use.action(
-        use.UsageAction('fmt', 'peds_heatmap'),
+        use.UsageAction('fmt', 'heatmap'),
         use.UsageInputs(
             data=peds_dist,
         ),

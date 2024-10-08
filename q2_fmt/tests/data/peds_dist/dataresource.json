@@ -14,15 +14,15 @@
         "type": "number"
       },
       {
-        "title": "Transfered Donor Features",
+        "title": "transfered donor features",
         "description": "...",
-        "name": "Transfered_Donor_Features",
+        "name": "transfered_donor_features",
         "type": "integer"
       },
       {
-        "title": "Total Donor Features",
+        "title": "total donor features",
         "description": "...",
-        "name": "Total_Donor_Features",
+        "name": "total_donor_features",
         "type": "integer"
       },
       {
