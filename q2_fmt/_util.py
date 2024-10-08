@@ -17,9 +17,6 @@ import numpy as np
 import qiime2
 
 
-# Add helper methods
-
-
 # PEDS/PPRS Data Prep Helper Methods
 def _check_column_missing(metadata, column_name, param_name, e):
     """Checks if column is in the metdata
@@ -116,8 +113,7 @@ def _check_for_time_column(metadata, time_column_name):
     """Checks if time column exists and returns it as a series if it exists.
 
     Checks if time column exists and returns it as a series if it exists.
-    Errors using helper method `_check_column_missing`. Addtionally this counts
-    the numbers of timepoints TODO: check after refactor
+    Errors using helper method `_check_column_missing`.
 
     Parameters
     ----------
@@ -146,8 +142,6 @@ def _check_for_time_column(metadata, time_column_name):
 
     >>> _check_for_time_column(metadata, time_column_name)
 
-    num_timepoints = 2
-
     time_series = pd.Series(data=['1', '2'],
                          index=pd.Index(['sample1','sample2'], name='id'),
                          name='reference')
@@ -155,10 +149,9 @@ def _check_for_time_column(metadata, time_column_name):
     """
     try:
         time_series = metadata[time_column_name].dropna()
-        num_timepoints = time_series.unique().size
     except Exception as e:
         _check_column_missing(metadata, time_column_name, 'time', e)
-    return num_timepoints, time_series
+    return time_series
 
 
 def _check_subject_column(metadata, subject_column_name):
@@ -204,8 +197,56 @@ def _check_subject_column(metadata, subject_column_name):
     return subject_series
 
 
-def _filter_associated_reference(reference_series, metadata_df,
-                                 time_column_name, filter_missing_references,
+def _create_used_references(reference_series, metadata_df, time_column_name):
+    """creates used references pd.Series.
+
+    creates a used reference pd.Series by checking which recipients have time
+    values
+
+    Parameters
+    ----------
+    reference_series: pd.series
+        Series with recipient sample id's as the index
+        and their donor or "reference" as the value of the series.
+
+    metadata_df: pd.dataframe
+        Study `Metadata`
+
+    time_column_name: str
+        time column name inside `Metadata`
+
+    Returns
+    --------
+    used_references: pd.Series
+        Filtered Series with recipient sample id's as the index and
+        their donor or "reference" as the value of the series. Filtered to
+        exclude missing references if filter_missing_references is true.
+
+    Examples
+    --------
+    >>> reference_series = pd.Series(data=['donor1', 'donor1'],
+                                    index=pd.Index(['sample1',
+                                                    'sample2'], name='id'),
+                                    name='reference')
+
+    >>> metadata_df = pd.DataFrame({'id': ['sample1', 'sample2'],
+                   'reference': ['donor1', 'donor1'],
+                   'time': [1,np.NaN]}).set_index('id')
+    >>> time_column_name = 'time'
+
+    >>>  _create_used_references(reference_series, metadata_df,
+                                 time_column_name)
+
+        pd.Series(data=['donor1'],
+                  index=pd.Index(['sample1'], name='id'),
+                  name='reference')
+    """
+    used_references = reference_series[~metadata_df[time_column_name].isna()]
+    return used_references
+
+
+def _filter_associated_reference(used_references, metadata_df,
+                                 filter_missing_references,
                                  ids_with_data):
     """Errors on/Filters references that are missing in metadata and or
     in the associated feature-table
@@ -220,9 +261,9 @@ def _filter_associated_reference(reference_series, metadata_df,
 
     Parameters
     ----------
-    reference_series: pd.series
-        Series with recipient sample id's as the index and
-        their donor or "reference" as the value of the series.
+    used_references: pd.series
+        Series with recipient sample id's (with timepoint values) as the index
+        and their donor or "reference" as the value of the series.
 
     metadata_df: pd.dataframe
         Study `Metadata`
@@ -250,25 +291,22 @@ def _filter_associated_reference(reference_series, metadata_df,
 
     Examples
     --------
-    >>> reference_series = pd.Series(data=['donor1', 'donor1'],
+    >>> used_references = pd.Series(data=['donor1', np.Nan],
                                     index=pd.Index(['sample1',
                                                     'sample2'], name='id'),
                                     name='reference')
 
-    # Note: sample2 should be filtered out because it has a timepoint but no
+    # Note: sample2 should be filtered out because it has no
     reference.
     >>> metadata_df = pd.Dataframe({'id': ['sample1', 'sample2'],
                    'reference': ['Donor1', np.Nan ],
                    'time': [1,2]}).set_index('id')
 
-    >>> time_column_name = 'time'
-
     >>> filter_missing_references = True
 
     >>> id_with_data = Index(['sample1', 'sample2', 'donor1'])
 
-    >>>  _filter_associated_reference(reference_series, metadata_df,
-                                      time_column_name,
+    >>>  _filter_associated_reference(used_references, metadata_df,
                                       filter_missing_references,
                                       ids_with_data)
     metadata_df =  pd.Dataframe({'id': ['sample1'],
@@ -279,7 +317,6 @@ def _filter_associated_reference(reference_series, metadata_df,
                                 index=pd.Index(['sample1'], name='id'),
                                 name='reference')
     """
-    used_references = reference_series[~metadata_df[time_column_name].isna()]
     if used_references.isna().any():
         if filter_missing_references:
             used_references = used_references.dropna()
@@ -417,54 +454,6 @@ def _check_column_type(column_properties, param_name, column_name,
                              ' selected: `%s`' % (column_type, param_name,
                                                   column_type,
                                                   column_name)) from e
-
-
-# TODO: refactor this so it drops timepoints in heatmap.
-def _drop_incomplete_timepoints(metadata, time_column,
-                                drop_incomplete_timepoints):
-    for time in drop_incomplete_timepoints:
-        try:
-            assert (float(time)
-                    in metadata[time_column].unique())
-        except AssertionError as e:
-            raise AssertionError('The provided incomplete timepoint `%s` was'
-                                 ' not found in the metadata. Please check'
-                                 ' that the incomplete timepoint provided is'
-                                 ' in your provided --p-time-column: `%s`'
-                                 % (time, time_column)) from e
-        metadata = metadata[metadata[time_column] !=
-                            float(time)]
-    return metadata
-
-
-# TODO: refactor this so it drops timepoints in heatmap.
-def _check_subjects_in_all_timepoints(subject_series, num_timepoints,
-                                      drop_incomplete_subjects, metadata,
-                                      subject_column, used_references):
-
-    subject_occurrence_series = (subject_series.value_counts())
-    if (subject_occurrence_series < num_timepoints).any():
-        if drop_incomplete_subjects:
-            subject_to_keep = (subject_occurrence_series[
-                                subject_occurrence_series ==
-                                num_timepoints].index)
-            metadata = metadata[metadata[subject_column].isin(subject_to_keep)]
-            used_references = used_references.filter(axis=0,
-                                                     items=metadata.index)
-        else:
-            incomplete_subjects = (subject_occurrence_series[
-                                    subject_occurrence_series
-                                    != num_timepoints].index).to_list()
-            raise ValueError('Missing timepoints for associated subjects.'
-                             ' Please make sure that all subjects have all'
-                             ' timepoints. You can drop these subjects by'
-                             ' using the drop_incomplete_subjects parameter or'
-                             ' drop any timepoints that have large numbers'
-                             ' of subjects missing by using the'
-                             ' drop_incomplete_timepoints parameter. The'
-                             ' incomplete subjects were %s'
-                             % incomplete_subjects)
-    return metadata, used_references
 
 
 # Porportion Calculations Methods (for PPRS and PEDS)
@@ -716,6 +705,131 @@ def _rename_features(level_delimiter, data: pd.DataFrame):
                                     'description': ''})
         data['measure'].attrs.update({'title': temp_measure_name,
                                       'description': ''})
+
+
+def _drop_incomplete_timepoints(data, drop_incomplete_timepoints):
+    """Filters Dist1D using a list of timepoints to drop
+
+    Takes a Dist1D (viewable as a pandas Dataframe) and a list of timepoints to
+    drop and filters the Dist1D. This should help create beautiful heatmaps!
+
+    Parameters
+    ----------
+    data: pd.Dataframe
+        The Dist1D produced by a portion method(feature, or sample PEDS or
+        PPRS) to filter.
+    drop_incomplete_timepoints: list[Str]
+        The list of timepoints to filter on.
+
+    Returns
+    -------
+    data: pd.DataFrame
+        A filtered Dist1D for the heatmap
+
+    Examples
+    --------
+    >>> data = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2'],
+            'measure': [.4, .5, 1,
+                        np.nan, np.nan],
+            'subject': ['sub1', 'sub1', 'sub2',
+                        np.nan, np.nan],
+            'group': [1, 2, 1,
+                      np.nan, np.nan],
+            'transfered_donor_features': [4, 5, 10,
+                                          np.nan, np.nan],
+            'total_donor_features': [10, 10, 10,
+                                     np.nan, np.nan]}).set_index('id')
+
+    >>> drop_incomplete_timepoints = ['2']
+
+    >>> _drop_incomplete_timepoints(data, drop_incomplete_timepoints)
+
+        pd.DataFrame({
+            'id': ['sample1', 'sample3',
+                   'donor1', 'donor2'],
+            'measure': [.4, 1,
+                        np.nan, np.nan],
+            'subject': ['sub1', 'sub2',
+                        np.nan, np.nan],
+            'group': [1, 1,
+                      np.nan, np.nan],
+            'transfered_donor_features': [4, 10,
+                                          np.nan, np.nan],
+            'total_donor_features': [10, 10,
+                                     np.nan, np.nan]}).set_index('id')
+    """
+    if drop_incomplete_timepoints:
+        for time in drop_incomplete_timepoints:
+            data = data[data['group'] != float(time)]
+    return data
+
+
+def _drop_incomplete_subjects(data, drop_incomplete_subjects):
+    """Filters Dist1D so that there are no incomplete subjects
+
+    Takes a Dist1D (viewable as a pandas Dataframe) and a bool of whether or
+    not to drop incomplete subjects and filters the Dist1D.
+    This should help create beautiful heatmaps!
+
+    Parameters
+    ----------
+    data: pd.Dataframe
+        The Dist1D produced by a portion method(feature, or sample PEDS or
+        PPRS) to filter.
+    drop_incomplete_subjects: Bool
+        Whether or not to  drop incomplete subjects.
+
+    Returns
+    -------
+    data: pd.DataFrame
+        A filtered Dist1D for the heatmap
+
+    Examples
+    --------
+    >>> data = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2'],
+            'measure': [.4, .5, 1,
+                        np.nan, np.nan],
+            'subject': ['sub1', 'sub1', 'sub2',
+                        np.nan, np.nan],
+            'group': [1, 2, 1,
+                      np.nan, np.nan],
+            'transfered_donor_features': [4, 5, 10,
+                                          np.nan, np.nan],
+            'total_donor_features': [10, 10, 10,
+                                     np.nan, np.nan]}).set_index('id')
+
+    >>> drop_incomplete_subjects = True
+
+    >>> _drop_incomplete_subjects(data, drop_incomplete_timepoints)
+        pd.DataFrame({
+            'id': ['sample1', 'sample2',
+                   'donor1', 'donor2'],
+            'measure': [.4, .5,
+                        np.nan, np.nan],
+            'subject': ['sub1', 'sub1', 'sub2',
+                        np.nan, np.nan],
+            'group': [1, 2,
+                      np.nan, np.nan],
+            'transfered_donor_features': [4, 5,
+                                          np.nan, np.nan],
+            'total_donor_features': [10, 10,
+                                     np.nan, np.nan]}).set_index('id')
+
+
+    """
+    num_timepoints = data['group'].unique().size
+    subject_occurrence_series = (data['subject'].value_counts())
+    if (subject_occurrence_series < num_timepoints).any():
+        if drop_incomplete_subjects:
+            subject_to_keep = (subject_occurrence_series[
+                                subject_occurrence_series ==
+                                num_timepoints].index)
+            data = data[data['subject'].isin(subject_to_keep)]
+    return data
 
 
 # Helper Method for Heatmap Spec

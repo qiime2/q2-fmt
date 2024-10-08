@@ -271,7 +271,8 @@ def pprs_method(use):
             metadata=md,
             time_column='time_point',
             baseline_timepoint='1',
-            subject_column='SubjectID'
+            subject_column='SubjectID',
+            filter_missing_references=False
         ),
         use.UsageOutputNames(
             pprs_dists='pprs_dist'
