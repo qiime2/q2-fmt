@@ -605,6 +605,7 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     metadata_df = metadata.to_dataframe()
     reference_series = _check_reference_column(metadata_df,
                                                reference_column)
+
     (metadata_df,
      used_references) = _filter_associated_reference(reference_series,
                                                      metadata_df, time_column,
