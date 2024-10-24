@@ -89,6 +89,13 @@ peds_dists = ('The distributions for the PEDS measure, grouped by the selected'
               ' `time_column`. Also contains the numerator and denominator for'
               ' PEDS calulations. May also contain subject IDs, if'
               ' `subject_column` is  provided in `metadata`.')
+num_resample = ('Number of iterations for rarefying. If there are'
+                ' more than one resampling the values will be'
+                ' averaged using median and the PEDS proportion will'
+                ' be calculated on the expected values. i.e. the'
+                ' median numerator and median denominator')
+sampling_depth = ('Number of observations that each sample'
+                  ' in `table` should be resampled to.')
 
 
 plugin.pipelines.register_function(
@@ -234,7 +241,9 @@ plugin.pipelines.register_function(
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoints': List[Str],
-                'level_delimiter': Str},
+                'level_delimiter': Str,
+                'num_resamples': Int % Range(0, 999),
+                'sampling_depth': Int % Range(1, None)},
     outputs=[('heatmap', Visualization)],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
@@ -246,7 +255,9 @@ plugin.pipelines.register_function(
         'filter_missing_references': filter_missing_references,
         'drop_incomplete_subjects': drop_incomplete_subjects,
         'drop_incomplete_timepoints': drop_incomplete_timepoints,
-        'level_delimiter': level_delimiter},
+        'level_delimiter': level_delimiter,
+        'num_resamples': num_resample,
+        'sampling_depth': sampling_depth},
     output_descriptions={'heatmap': 'PEDS heatmap visualization'},
     name='PEDS pipeline to calculate feature or sample PEDS',
     description='Runs a pipeline to calculate sample or feature PEDS,'
@@ -282,7 +293,9 @@ plugin.methods.register_function(
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': Str,
-                'filter_missing_references': Bool},
+                'filter_missing_references': Bool,
+                'num_resamples': Int % Range(0, 999),
+                'sampling_depth': Int % Range(1, None)},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
@@ -290,8 +303,9 @@ plugin.methods.register_function(
         'time_column': time_column,
         'reference_column': reference_column,
         'subject_column': subject_column,
-        'filter_missing_references': filter_missing_references
-    },
+        'filter_missing_references': filter_missing_references,
+        'num_resamples': num_resample,
+        'sampling_depth': sampling_depth},
     output_descriptions={
         'peds_dists': peds_dists
     },
@@ -310,7 +324,9 @@ plugin.methods.register_function(
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': Str,
-                'filter_missing_references': Bool},
+                'filter_missing_references': Bool,
+                'num_resamples': Int % Range(0, 999),
+                'sampling_depth': Int % Range(1, None)},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
@@ -319,6 +335,8 @@ plugin.methods.register_function(
         'reference_column': reference_column,
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
+        'num_resamples': num_resample,
+        'sampling_depth': sampling_depth
     },
     output_descriptions={
         'peds_dists': peds_dists

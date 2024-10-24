@@ -12,6 +12,7 @@ from scipy.stats import false_discovery_control, combine_pvalues
 
 import random
 import itertools
+import biom
 
 import numpy as np
 import qiime2
@@ -626,6 +627,125 @@ def _mask_recipient(donor_mask, recip_df):
 
     masked_recip = donor_mask & recip_df
     return masked_recip
+
+
+def _median(df):
+    """Calculates the median of rows in a dataframe.
+
+    takes a pd.DataFrame and calculates the median for each sample(row) in the
+    dataframe and returns a series with median values per sample
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        pd.DataFrame with values for each iteration of rarefaction
+
+    Returns
+    -------
+    median_series: pd.Series
+        pd.Series with median values from rarefactions
+
+    Examples
+    --------
+
+    >>> df = pd.DataFrame({
+              'id': ['s1', 's2', 's3'],
+              'transfered_donor_features': [1, 1, 1],
+              'transfered_donor_features0': [0, 1, 0.5],
+              'transfered_donor_features1': [0.75, 0.50, .5]}).set_index('id')
+
+    >>> _median(df)
+
+        pd.Series(data=[.75, 1, 0.5],
+                  index=pd.Index(['s1', 's2', 's3'], name='id'))
+    """
+    median_series = df.median(axis=1)
+    return median_series
+
+
+def _subsample(table, sampling_depth):
+    """ subsamples feature table
+
+    takes a pd.DataFrame feature table and transforms it to a biom table and
+    uses bioms subsample function and returns a rarefied feature-table
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        the study feature-table
+    sampling_depth: int
+        number of observation to subsample each sample(row)
+
+    Returns
+    -------
+    table: pd.DataFrame
+        pd.DataFrame rarified feature table
+
+    Examples
+    --------
+
+    >>> table = pd.DataFrame({
+              'id': ['s1', 's2', 's3'],
+              'feature1': [10, 10, 10],
+              'feature2': [2, 1, 5],
+              'feature3': [1, 5, 1]}).set_index('id')
+
+    sampling_depth = 7
+
+    >>> _subsample(table, sampling_depth)
+
+       pd.DataFrame({
+              'id': ['s1', 's2', 's3'],
+              'feature1': [3, 3, 1],
+              'feature2': [2, 1, 4],
+              'feature3': [1, 5, 1]}).set_index('id')
+"""
+
+    table_biom = biom.Table(table.T.values,
+                            sample_ids=table.T.columns.to_list(),
+                            observation_ids=table.T.index.to_list())
+
+    subsampled_table_biom = table_biom.subsample(sampling_depth,
+                                                 axis='sample',
+                                                 by_id=False)
+    table = subsampled_table_biom.to_dataframe(True).T
+    return table
+
+
+def _check_rarefaction_parameters(num_resamples, sampling_depth):
+    """ Checks if both rarefaction parameters have values or are None/0
+
+    Checks that if sampling depth is none, num_resamples is 0 or that both have
+    values.
+
+    Parameters
+    ----------
+    num_resamples: int
+        Number of iterations to preform rarefaction
+    sampling_depth: int
+        Number of oberservations to subsample each sample to.
+
+
+    Examples
+    --------
+    >>> num_resamples = 2
+
+    >>> sampling_depth = 100
+
+    >>> _check_rarefaction_parameters(num_resamples, sampling_depth)
+    """
+    if (num_resamples == 0) != (sampling_depth is None):
+        raise AssertionError('`num_resamples` and `sampling depth` parameters'
+                             ' must be passed in together. In order to run'
+                             ' rarefaction, a `sampling_depth`'
+                             ' (how many observations to resample to)'
+                             ' and `num_resamples` (how many iterations of'
+                             ' resampling) must be provided. To rarefy, please'
+                             ' provided `1` as the value for`num_resamples`.'
+                             ' If you would not like to rarefy or preform'
+                             ' rarefaction, please provide `0` as the value'
+                             ' for `num_resamples` and `none` as the value for'
+                             ' `sampling_depth`')
 
 
 # Heatmap Helper Methods

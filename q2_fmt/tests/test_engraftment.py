@@ -19,7 +19,9 @@ from q2_fmt._util import (_rename_features, _check_column_missing,
                           _filter_associated_reference, _check_subject_column,
                           _simulate_uniform_distro, _peds_sim_stats,
                           _get_to_baseline_ref, _drop_incomplete_subjects,
-                          _create_used_references)
+                          _create_used_references, _median,
+                          _check_rarefaction_parameters,
+                          _subsample)
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._peds import (_compute_peds, sample_peds,
                           _check_column_type,
@@ -786,7 +788,7 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id', 'measure',
+        peds_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
@@ -816,7 +818,7 @@ class TestPeds(TestBase):
                    'donor1', 'donor2'],
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature3': [1, 1, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id', 'measure',
+        peds_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject',
@@ -848,7 +850,7 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id', 'measure',
+        peds_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
@@ -955,12 +957,12 @@ class TestPeds(TestBase):
                                      subject_column="subject")
         exp_peds_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4'],
-            'measure': [0, 0.333333, 1, 1],
-            'transfered_donor_features': [0, 1, 3, 3],
-            'total_donor_features': [3, 3, 3, 3],
+            'transfered_donor_features': [0.0, 1.0, 3.0, 3.0],
+            'total_donor_features': [3.0, 3.0, 3.0, 3.0],
             'donor': ["donor1", "donor1", "donor1", "donor2"],
             'subject': ["sub1", "sub1", "sub1", "sub2"],
-            'group': [1.0, 2.0, 3.0, 2.0]
+            'group': [1.0, 2.0, 3.0, 2.0],
+            'measure': [0, 0.333333, 1, 1]
             })
         pd.testing.assert_frame_equal(sample_peds_df, exp_peds_df)
 
@@ -1080,6 +1082,31 @@ class TestPeds(TestBase):
                                                    'measure']
         self.assertEqual(TDFs1, 1/3)
         self.assertEqual(TDFs2, 2/3)
+
+    def test_feature_peds_calc_2_tp(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1'],
+            'Ref': ['donor1', 'donor1', 'donor1', np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', np.nan],
+            'group': [1, 2, 1, np.nan]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1'],
+            'Feature1': [0, 0, 1, 1],
+            'Feature2': [0, 1, 1, 1],
+            'Feature3': [0, 0, 1, 0]}).set_index('id')
+        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
+                                       time_column="group",
+                                       reference_column="Ref",
+                                       subject_column="subject")
+        TDFs1 = feature_peds_df.set_index("id").at['Feature1',
+                                                   'measure'].values
+        TDFs2 = feature_peds_df.set_index("id").at['Feature2',
+                                                   'measure'].values
+        np.testing.assert_array_equal(TDFs1, [.5, 0.])
+        np.testing.assert_array_equal(TDFs2, [.5, 1.])
 
     def test_sample_id_match(self):
         metadata_df = pd.DataFrame({
@@ -1455,6 +1482,106 @@ class TestPeds(TestBase):
                         subject_column="subject",
                         baseline_timepoint="1",
                         filter_missing_references=False)
+
+    def test_median(self):
+        df = pd.DataFrame({
+              'id': ['s1', 's2', 's3'],
+              'transfered_donor_features': [1, 1, 1],
+              'transfered_donor_features0': [0, 1, 0.5],
+              'transfered_donor_features1': [0.75, 0.50, .5]}).set_index('id')
+
+        median = _median(df)
+
+        exp_median = pd.Series(data=[.75, 1, 0.5],
+                               index=pd.Index(['s1', 's2', 's3'], name='id'))
+        pd.testing.assert_series_equal(median, exp_median)
+
+    def test_median_one_iter(self):
+        df = pd.DataFrame({
+              'id': ['s1', 's2', 's3'],
+              'transfered_donor_features': [1, 1, 1]}).set_index('id')
+
+        median = _median(df)
+
+        exp_median = pd.Series(data=[1.0, 1.0, 1.0],
+                               index=pd.Index(['s1', 's2', 's3'], name='id'))
+        pd.testing.assert_series_equal(median, exp_median)
+
+    def test_rarefaction_params_sd_none(self):
+        num_resamples = 2
+
+        sampling_depth = None
+        with self.assertRaisesRegex(AssertionError,
+                                    "`num_resamples` and `sampling depth`"
+                                    " parameters must be passed in together"
+                                    ".*"):
+            _check_rarefaction_parameters(num_resamples, sampling_depth)
+
+    def test_rarefaction_params_nr_zero(self):
+        num_resamples = 0
+
+        sampling_depth = 100
+        with self.assertRaisesRegex(AssertionError,
+                                    "`num_resamples` and `sampling depth`"
+                                    " parameters must be passed in together"
+                                    ".*"):
+            _check_rarefaction_parameters(num_resamples, sampling_depth)
+
+    def test_subsample_total(self):
+        table = pd.DataFrame({
+              'id': ['s1', 's2', 's3'],
+              'feature1': [10, 10, 10],
+              'feature2': [2, 1, 5],
+              'feature3': [1, 5, 1]}).set_index('id')
+
+        sampling_depth = 7
+
+        rarified_table = _subsample(table, sampling_depth)
+        self.assertTrue((rarified_table.sum(axis=1) == 7).all())
+
+    def test_subsample_drops_samples(self):
+        table = pd.DataFrame({
+              'id': ['s1', 's2', 's3'],
+              'feature1': [10, 10, 10],
+              'feature2': [2, 1, 5],
+              'feature3': [1, 5, 1]}).set_index('id')
+
+        sampling_depth = 16
+        rarified_table = _subsample(table, sampling_depth)
+
+        self.assertTrue('s1' not in rarified_table.index)
+
+    def test_peds_boots(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub1', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 3, 2, np.nan,
+                      np.nan]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Feature1': [0, 0, 1, 1, 1, 1],
+            'Feature2': [0, 1, 1, 1, 1, 1],
+            'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
+        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
+                                     time_column="group",
+                                     reference_column="Ref",
+                                     subject_column="subject",
+                                     num_resamples=1,
+                                     sampling_depth=3)
+
+        TDFs3 = sample_peds_df.set_index("id").at['sample3',
+                                                  'measure']
+        TDFs4 = sample_peds_df.set_index("id").at['sample4',
+                                                  'measure']
+
+        self.assertEqual(TDFs3, 1)
+        self.assertEqual(TDFs4, 1)
 
 
 class TestHeatmapHelpers(TestBase):
