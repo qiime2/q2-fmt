@@ -11,6 +11,10 @@ import pkg_resources
 
 import qiime2
 
+from qiime2.plugin.util import transform
+
+from q2_stats.types import TabularDataResourceDirFmt
+
 
 def _get_data_from_tests(path):
     return pkg_resources.resource_filename('q2_fmt.tests',
@@ -62,9 +66,13 @@ def peds_md_factory():
 
 
 def peds_dist_factory():
+    import pandas as pd
+    df = transform(_get_data_from_tests('peds_dist'),
+                   from_type=TabularDataResourceDirFmt,
+                   to_type=pd.DataFrame)
     return qiime2.Artifact.import_data(
         "Dist1D[Ordered, Matched] % Properties('peds')",
-        _get_data_from_tests('peds_dist')
+        df
     )
 
 
