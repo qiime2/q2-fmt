@@ -17,8 +17,9 @@ from q2_types.distance_matrix import DistanceMatrix
 import q2_fmt
 from q2_types.feature_table import (
     FeatureTable, Frequency, RelativeFrequency, PresenceAbsence)
-from q2_stats._type import (Dist1D, Matched, Independent, Ordered,
-                            Unordered, StatsTable, Pairwise, NestedOrdered)
+from q2_stats.types import (Dist1D, Matched, Independent, Ordered,
+                            Unordered, StatsTable, Pairwise,
+                            NestedOrdered)
 import q2_fmt._examples as ex
 
 citations = Citations.load('citations.bib', package='q2_fmt')
