@@ -90,6 +90,13 @@ peds_dists = ('The distributions for the PEDS measure, grouped by the selected'
               ' `time_column`. Also contains the numerator and denominator for'
               ' PEDS calulations. May also contain subject IDs, if'
               ' `subject_column` is  provided in `metadata`.')
+num_resample = ('Number of iterations for rarefying. If there are'
+                ' more than one resampling the values will be'
+                ' averaged using median and the PEDS proportion will'
+                ' be calculated on the expected values. i.e. the'
+                ' median numerator and median denominator')
+sampling_depth = ('Number of observations that each sample'
+                  ' in `table` should be resampled to.')
 
 
 plugin.pipelines.register_function(
@@ -235,7 +242,9 @@ plugin.pipelines.register_function(
                 'filter_missing_references': Bool,
                 'drop_incomplete_subjects': Bool,
                 'drop_incomplete_timepoints': List[Str],
-                'level_delimiter': Str},
+                'level_delimiter': Str,
+                'num_resamples': Int % Range(0, 999),
+                'sampling_depth': Int % Range(1, None)},
     outputs=[('heatmap', Visualization)],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
@@ -247,11 +256,14 @@ plugin.pipelines.register_function(
         'filter_missing_references': filter_missing_references,
         'drop_incomplete_subjects': drop_incomplete_subjects,
         'drop_incomplete_timepoints': drop_incomplete_timepoints,
-        'level_delimiter': level_delimiter},
+        'level_delimiter': level_delimiter,
+        'num_resamples': num_resample,
+        'sampling_depth': sampling_depth},
     output_descriptions={'heatmap': 'PEDS heatmap visualization'},
     name='PEDS pipeline to calculate feature or sample PEDS',
     description='Runs a pipeline to calculate sample or feature PEDS,'
-                '  and generate the relevant heatmap'
+                '  and generate the relevant heatmap',
+    examples={'peds_pipeline': ex.peds_pipeline_sample}
 )
 
 plugin.visualizers.register_function(
@@ -263,10 +275,17 @@ plugin.visualizers.register_function(
     input_descriptions={'data': 'PEDS or PPRS output to plot',
                         'per_subject_stats': per_subject_stats,
                         'global_stats': global_stats},
-    parameters={'level_delimiter': Str},
-    parameter_descriptions={'level_delimiter': level_delimiter},
+    parameters={'level_delimiter': Str,
+                'drop_incomplete_timepoints': List[Str],
+                'drop_incomplete_subjects': Bool},
+    parameter_descriptions={
+        'level_delimiter': level_delimiter,
+        'drop_incomplete_timepoints': drop_incomplete_timepoints,
+        'drop_incomplete_subjects': drop_incomplete_subjects},
     name=' Proportional Features Heatmap',
-    description='Plot heatmap for PEDS or PPRS value over time'
+    description='Plot heatmap for PEDS or PPRS value over time',
+    examples={
+        'heatmap': ex.heatmap}
 )
 
 plugin.methods.register_function(
@@ -276,8 +295,8 @@ plugin.methods.register_function(
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': Str,
                 'filter_missing_references': Bool,
-                'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoints': List[Str]},
+                'num_resamples': Int % Range(0, 999),
+                'sampling_depth': Int % Range(1, None)},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
@@ -286,9 +305,8 @@ plugin.methods.register_function(
         'reference_column': reference_column,
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
-        'drop_incomplete_subjects': drop_incomplete_subjects,
-        'drop_incomplete_timepoints': drop_incomplete_timepoints
-    },
+        'num_resamples': num_resample,
+        'sampling_depth': sampling_depth},
     output_descriptions={
         'peds_dists': peds_dists
     },
@@ -307,7 +325,9 @@ plugin.methods.register_function(
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'reference_column': Str, 'subject_column': Str,
-                'filter_missing_references': Bool},
+                'filter_missing_references': Bool,
+                'num_resamples': Int % Range(0, 999),
+                'sampling_depth': Int % Range(1, None)},
     outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
     input_descriptions={'table': peds_table},
     parameter_descriptions={
@@ -316,6 +336,8 @@ plugin.methods.register_function(
         'reference_column': reference_column,
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
+        'num_resamples': num_resample,
+        'sampling_depth': sampling_depth
     },
     output_descriptions={
         'peds_dists': peds_dists
@@ -335,8 +357,8 @@ plugin.methods.register_function(
     parameters={'metadata': Metadata, 'time_column': Str,
                 'baseline_timepoint': Str, 'subject_column': Str,
                 'filter_missing_references': Bool,
-                'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoints': List[Str]},
+                'num_resamples': Int % Range(0, 999),
+                'sampling_depth': Int % Range(1, None)},
     outputs=[('pprs_dists', Dist1D[Ordered, Matched] % Properties("pprs"))],
     input_descriptions={
         'table': 'The `table` to calculate PPRS on.'},
@@ -346,8 +368,8 @@ plugin.methods.register_function(
         'baseline_timepoint': baseline_timepoint,
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
-        'drop_incomplete_subjects': drop_incomplete_subjects,
-        'drop_incomplete_timepoints': drop_incomplete_timepoints
+        'num_resamples': num_resample,
+        'sampling_depth': sampling_depth
     },
     output_descriptions={
         'pprs_dists': 'The distributions for the PPRS measure, grouped by'
@@ -372,8 +394,6 @@ plugin.methods.register_function(
                 'reference_column': Str,
                 'subject_column': T_subject,
                 'filter_missing_references': Bool,
-                'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoints': List[Str],
                 'num_iterations': Int % Range(99, None)},
     outputs=[('per_subject_stats', StatsTable[Pairwise]),
              ('global_stats', StatsTable[Pairwise])],
@@ -383,8 +403,6 @@ plugin.methods.register_function(
         'reference_column': reference_column,
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
-        'drop_incomplete_subjects': drop_incomplete_subjects,
-        'drop_incomplete_timepoints': drop_incomplete_timepoints,
         'num_iterations': 'The number of iterations to run the Monte Carlo'
                           ' simulation on'
     },

@@ -1,50 +1,51 @@
 {
-  "schema": {
-    "fields": [
-      {
-        "title": "Sample ID",
-        "description": "Sample IDS",
-        "name": "id",
-        "type": "string"
-      },
-      {
-        "title": "PEDS",
-        "description": "Proportional Engraftment of Donor Strains ",
-        "name": "measure",
-        "type": "number"
-      },
-      {
-        "title": "Transfered Donor Features",
-        "description": "...",
-        "name": "Transfered_Donor_Features",
-        "type": "integer"
-      },
-      {
-        "title": "Total Donor Features",
-        "description": "...",
-        "name": "Total_Donor_Features",
-        "type": "integer"
-      },
-      {
-        "title": "Donor",
-        "description": "donor",
-        "name": "donor",
-        "type": "string"
-      },
-      {
-        "title": "SubjectID",
-        "description": "ID to link samples across time",
-        "name": "subject",
-        "type": "integer"
-      },
-      {
-        "title": "time_point",
-        "description": "Time",
-        "name": "group",
-        "type": "integer"
-      }
-    ]
-  },
-  "format": "ndjson",
-  "path": "data.ndjson"
+    "schema": {
+        "fields": [
+            {
+                "title": "Sample ID",
+                "description": "Sample IDs",
+                "name": "id",
+                "type": "string"
+            },
+            {
+                "title": "Sample PEDS",
+                "description": "Proportional Engraftment of Donor Strains",
+                "name": "measure",
+                "type": "number"
+            },
+            {
+                "title": "Transfered Reference Features",
+                "description": "...",
+                "name": "transfered_donor_features",
+                "type": "integer"
+            },
+            {
+                "title": "Total Reference Features",
+                "description": "...",
+                "name": "total_donor_features",
+                "type": "integer"
+            },
+            {
+                "title": "Donor",
+                "description": "Donor",
+                "name": "donor",
+                "type": "string"
+            },
+            {
+                "title": "SubjectID",
+                "description": "Subject IDs linking samples across time",
+                "name": "subject",
+                "type": "string"
+            },
+            {
+                "title": "time_point",
+                "description": "Time",
+                "name": "group",
+                "type": "integer"
+            }
+        ]
+    },
+    "format": "ndjson",
+    "path": "data.ndjson",
+    "name": "data"
 }

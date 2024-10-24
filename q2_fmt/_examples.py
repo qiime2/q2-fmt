@@ -11,6 +11,10 @@ import pkg_resources
 
 import qiime2
 
+from qiime2.plugin.util import transform
+
+from q2_stats.types import TabularDataResourceDirFmt
+
 
 def _get_data_from_tests(path):
     return pkg_resources.resource_filename('q2_fmt.tests',
@@ -62,9 +66,13 @@ def peds_md_factory():
 
 
 def peds_dist_factory():
+    import pandas as pd
+    df = transform(_get_data_from_tests('peds_dist'),
+                   from_type=TabularDataResourceDirFmt,
+                   to_type=pd.DataFrame)
     return qiime2.Artifact.import_data(
         "Dist1D[Ordered, Matched] % Properties('peds')",
-        _get_data_from_tests('peds_dist')
+        df
     )
 
 
@@ -210,7 +218,7 @@ def peds_pipeline_sample(use):
             subject_column='SubjectID'
         ),
         use.UsageOutputNames(
-            visualization='heatmap',
+            heatmap='heatmap',
 
         )
     )
@@ -218,12 +226,11 @@ def peds_pipeline_sample(use):
     peds_heatmap.assert_output_type('Visualization')
 
 
-# Heatmap pipeline
-def peds_heatmap(use):
+def heatmap(use):
     peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
 
     peds_heatmap, = use.action(
-        use.UsageAction('fmt', 'peds_heatmap'),
+        use.UsageAction('fmt', 'heatmap'),
         use.UsageInputs(
             data=peds_dist,
         ),
@@ -271,7 +278,8 @@ def pprs_method(use):
             metadata=md,
             time_column='time_point',
             baseline_timepoint='1',
-            subject_column='SubjectID'
+            subject_column='SubjectID',
+            filter_missing_references=False
         ),
         use.UsageOutputNames(
             pprs_dists='pprs_dist'
