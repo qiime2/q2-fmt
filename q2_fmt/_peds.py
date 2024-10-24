@@ -18,7 +18,8 @@ import jinja2
 import json
 
 from qiime2 import Metadata
-from q2_fmt._util import (json_replace, _rename_features,
+
+from q2_fmt._util import (_rename_features,
                           _check_reference_column, _check_for_time_column,
                           _check_subject_column, _filter_associated_reference,
                           _check_duplicate_subject_timepoint,
@@ -31,7 +32,9 @@ from q2_fmt._util import (json_replace, _rename_features,
                           _per_subject_stats, _global_stats, _mask_recipient,
                           _get_to_baseline_ref, _create_used_references,
                           _median, _subsample, _check_rarefaction_parameters)
-from q2_stats._visualizer import _make_stats
+
+from q2_stats.util import json_replace
+from q2_stats.plots.raincloud import _make_stats
 
 
 def peds(ctx, table, metadata, peds_metric, time_column, reference_column,

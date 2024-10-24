@@ -952,28 +952,6 @@ def _drop_incomplete_subjects(data, drop_incomplete_subjects):
     return data
 
 
-# Helper Method for Heatmap Spec
-# TODO: this will be imported from stats soon
-def json_replace(json_obj, **values):
-    """
-    Search for elements of `{"{{REPLACE_PARAM}}": "some_key"}` and replace
-    with the result of `values["some_key"]`.
-    """
-    if type(json_obj) is dict and list(json_obj) == ["{{REPLACE_PARAM}}"]:
-        param_name = json_obj["{{REPLACE_PARAM}}"]
-        return values[param_name]
-
-    if type(json_obj) is list:
-        return [json_replace(x, **values) for x in json_obj]
-
-    elif type(json_obj) is dict:
-        return {key: json_replace(value, **values)
-                for key, value in json_obj.items()}
-
-    else:
-        return json_obj
-
-
 # peds_simulation helper functions
 def _create_mismatched_pairs(recip_df, metadata, used_references,
                              reference_column):
