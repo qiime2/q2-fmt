@@ -21,8 +21,8 @@ import json
 
 from qiime2 import Metadata
 from q2_fmt._engraftment import _get_to_baseline_ref
-from q2_fmt._util import json_replace
-from q2_stats._visualizer import _make_stats
+from q2_stats.util import json_replace
+from q2_stats.plots.raincloud import _make_stats
 
 
 def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
@@ -605,7 +605,6 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     metadata_df = metadata.to_dataframe()
     reference_series = _check_reference_column(metadata_df,
                                                reference_column)
-
     (metadata_df,
      used_references) = _filter_associated_reference(reference_series,
                                                      metadata_df, time_column,
