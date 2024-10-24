@@ -388,7 +388,8 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
 
 def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
                 time_column: str, baseline_timepoint: str, subject_column: str,
-                filter_missing_references: bool) -> (pd.DataFrame):
+                filter_missing_references: bool, sampling_depth: int = None,
+                num_resamples: int = 0) -> (pd.DataFrame):
     # making sure that samples exist in the table
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
@@ -415,52 +416,78 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
                        subject_column, 'categorical')
     _check_duplicate_subject_timepoint(subject_series, metadata_df,
                                        subject_column, time_column)
-
-    peds_df = pd.DataFrame(columns=['id', 'measure',
-                                    'transfered_baseline_features',
-                                    'total_baseline_features', 'baseline',
-                                    'subject', 'group'])
     baseline_metadata = metadata_df.join(used_references)
-    peds_df = _compute_peds(peds_df=peds_df, peds_type='PPRS',
-                            peds_time=np.nan, reference_series=used_references,
-                            table=table, metadata=baseline_metadata,
-                            time_column=time_column,
-                            subject_column=subject_column,
-                            reference_column=used_references.name)
 
-    peds_type = 'PPRS'
-    transfered = "transfered_baseline_features"
-    total = 'total_baseline_features'
-    ref = 'baseline'
-    measure_description = ('Proportional Persistence of Recipient'
-                           ' Strains')
+    numerator_df = pd.DataFrame([], index=table.index)
+    denominator_df = pd.DataFrame([], index=table.index)
+    if num_resamples == 0:
+        # This will allow the next block of code to run one with
+        # no samping depth
+        num_resamples = 1
+    for x in range(num_resamples):
+        peds_df = pd.DataFrame(columns=['id',
+                                        'transfered_baseline_features',
+                                        'total_baseline_features',
+                                        'baseline', 'subject',
+                                        'group'])
+        if sampling_depth:
+            table = _subsample(table, sampling_depth)
+        peds_df = _compute_peds(peds_df=peds_df, peds_type='PPRS',
+                                peds_time=np.nan,
+                                reference_series=used_references,
+                                table=table, metadata=baseline_metadata,
+                                time_column=time_column,
+                                subject_column=subject_column,
+                                reference_column=used_references.name)
+        # Set the index for pd matching when concating and summing
+        peds_df = peds_df.set_index('id')
+        numerator_df = pd.concat([peds_df['transfered_baseline_features'],
+                                  numerator_df],
+                                 axis=1)
+        denominator_df = pd.concat([peds_df['total_baseline_features'],
+                                    denominator_df],
+                                   axis=1)
+
+    median_numerator_series = _median(numerator_df)
+    median_denominator_series = _median(denominator_df)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        pprs = median_numerator_series/median_denominator_series
+
+    peds_df['measure'] = pprs
+    peds_df['transfered_baseline_features'] = median_numerator_series
+    peds_df['total_baseline_features'] = median_denominator_series
+    peds_df = peds_df.reset_index()
+    print(peds_df)
+
     peds_df['id'].attrs.update({
-        'title': metadata.index.name,
+        'title': metadata_df.index.name,
         'description': 'Sample IDs'
     })
     peds_df['measure'].attrs.update({
-        'title': peds_type,
-        'description': measure_description
+        'title': 'PPRS',
+        'description': 'Proportional Persistence of Recipient Strains'
     })
     peds_df['group'].attrs.update({
         'title': time_column,
         'description': 'Time'
     })
-    peds_df["subject"].attrs.update({
+    peds_df['subject'].attrs.update({
         'title': subject_column,
         'description': 'Subject IDs linking samples across time'
     })
-    peds_df[transfered].attrs.update({
+    peds_df['transfered_baseline_features'].attrs.update({
         'title': "Transfered Reference Features",
         'description': '...'
     })
-    peds_df[total].attrs.update({
+    peds_df['total_baseline_features'].attrs.update({
         'title': "Total Reference Features",
         'description': '...'
     })
-    peds_df[ref].attrs.update({
+    peds_df['baseline'].attrs.update({
         'title': used_references.name,
-        'description': 'Donor'
+        'description': 'recipeint baseline'
     })
     return peds_df
 

@@ -355,7 +355,9 @@ plugin.methods.register_function(
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
                 'baseline_timepoint': Str, 'subject_column': Str,
-                'filter_missing_references': Bool},
+                'filter_missing_references': Bool,
+                'num_resamples': Int % Range(0, 999),
+                'sampling_depth': Int % Range(1, None)},
     outputs=[('pprs_dists', Dist1D[Ordered, Matched] % Properties("pprs"))],
     input_descriptions={
         'table': 'The `table` to calculate PPRS on.'},
@@ -365,6 +367,8 @@ plugin.methods.register_function(
         'baseline_timepoint': baseline_timepoint,
         'subject_column': subject_column,
         'filter_missing_references': filter_missing_references,
+        'num_resamples': num_resample,
+        'sampling_depth': sampling_depth
     },
     output_descriptions={
         'pprs_dists': 'The distributions for the PPRS measure, grouped by'

@@ -1411,12 +1411,12 @@ class TestPeds(TestBase):
 
         exp_pprs_df = pd.DataFrame({
             'id': ['sample2', 'sample3',  'sample5', 'sample6'],
-            'measure': [0.0, 1.0, 0.0, 1.0],
-            'transfered_baseline_features': [0, 1, 0, 1],
-            'total_baseline_features': [1, 1, 1, 1],
+            'transfered_baseline_features': [0.0, 1.0, 0.0, 1.0],
+            'total_baseline_features': [1.0, 1.0, 1.0, 1.0],
             'baseline': ["sample1", "sample1", "sample4", "sample4"],
             'subject': ["sub1", "sub1", "sub2", "sub2"],
-            'group': [2.0, 3.0, 2.0, 3.0]
+            'group': [2.0, 3.0, 2.0, 3.0],
+            'measure': [0.0, 1.0, 0.0, 1.0]
             })
         pd.testing.assert_frame_equal(sample_pprs_df, exp_pprs_df)
 
