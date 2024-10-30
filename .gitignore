@@ -73,3 +73,6 @@ target/
 
 # other
 .DS_Store
+
+# JupyterBook
+book/q2_fmt_book/_build
