@@ -1,0 +1,19 @@
+version: 2
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "mambaforge-22.9"
+  jobs:
+    pre_build:
+      # Generate the Sphinx configuration for this Jupyter Book so it builds.
+      - "jupyter-book config sphinx book/q2_fmt_book/"
+
+conda:
+  environment: environment-files/jupyter-book-build-env.yml
+
+sphinx:
+  builder: html
+
+formats:
+  - pdf

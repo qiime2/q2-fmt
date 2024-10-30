@@ -1,0 +1,8 @@
+name: q2-fmt-jupyter-book
+channels:
+- https://packages.qiime2.org/qiime2/2024.10/amplicon/passed
+- conda-forge
+- bioconda
+dependencies:
+  - qiime2-amplicon
+  - jupyter-book
