@@ -6,5 +6,7 @@ channels:
 dependencies:
   - qiime2-amplicon
   - jupyter-book
-  - pip
+  - pip:
+    - q2-fmt @ git+https://github.com/qiime2/q2-fmt.git@dev
+    - frictionless
 

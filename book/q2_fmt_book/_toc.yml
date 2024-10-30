@@ -7,6 +7,13 @@ parts:
 - caption: Tutorial
   chapters:
     - file: tutorial/tutorial
-#- caption: How-To Guides
-#- caption: Explanation
-#- caption: Reference
+- caption: How-To Guides
+  chapters: 
+    - file: how-to-guide/installation
+- caption: Explanation
+  chapters: 
+    - file: explanation/installation
+- caption: Reference
+  chapters: 
+    - file: reference/reference
+
