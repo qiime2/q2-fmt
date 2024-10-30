@@ -1,5 +1,6 @@
+# q2-fmt Tutorial
 (exploring-the-data)=
-# Exploring the data
+## Exploring the data
 
 ```{usage-scope}
 ---
@@ -14,7 +15,7 @@ default-interface: cli-usage
 ```
 
 (access-metadata)=
-## Access and summarize the study metadata
+### Access and summarize the study metadata
 
 To begin our work with QIIME 2 and the tutorial data we will
 start by downloading the metadata, generating a summary, and exploring
@@ -39,7 +40,7 @@ use.action(
 ```
 
 (access-feature-table)=
-## Access and summarize the feature table
+### Access and summarize the feature table
 
 The feature table will describe the amplicon sequence variants (ASVs) observed in each sample, and how many times each ASV was observed in each sample. The feature data in this case is the sequence that defines each ASV.
 
@@ -62,9 +63,9 @@ use.action(
     use.UsageOutputNames(visualization='autofmt_table_summ'),
 )
 ```
-# Selecting an Even Sampling Depth
+## Selecting an Even Sampling Depth
 
-## Rarefying, rarefaction, and q2-boots
+### Rarefying, rarefaction, and q2-boots
 
 A first step in analyzing our microbiome feature table is to choose an "even sampling depth", or the number of sequences that we should select at random from each of our samples to ensure that all samples are sequenced at equivalent depth or with equivalent effort.
 This processes is referred to as rarefying our feature table.
@@ -74,7 +75,7 @@ These concepts were recently discussed in {cite}`Schloss2024-aq`.
 In this tutorial, for the sake of time, we are going to focus our diversity analyses on rarefying (i.e., a single iteration of random sampling).
 To perform rarefaction-based diversity analysis with QIIME 2, refer to the [q2-boots](https://q2-boots.readthedocs.io/en/latest/) plugin {cite}`Raspet2024-om`.
 
-## Selecting an even sampling depth
+### Selecting an even sampling depth
 
 To start our diversity analyses, we first need to determine what even sampling depth (or "rarefaction depth") we want to select for computing our diversity metrics.
 Because most diversity metrics are sensitive to different sampling depths across different samples, it is common to randomly subsample the counts from each sample to a specific value.
@@ -85,7 +86,7 @@ Choose a value that is as high as possible (so you retain more sequences per sam
 
 Open up the feature table summary that you previously created with either Galaxy or in your QIIME 2 container and we'll discuss this as a group.
 
-## Alpha rarefaction plots
+### Alpha rarefaction plots
 
 After choosing an even sampling depth, it's helpful to see if your diversity metrics appear stable at that depth of coverage.
 You can do this for alpha diversity using an alpha rarefaction plot.
@@ -98,7 +99,7 @@ use.action(
     use.UsageOutputNames(visualization='obs-features-alpha-rarefaction'))
 ```
 
-# Computing diversity metrics
+## Computing diversity metrics
 
 
 
@@ -106,7 +107,7 @@ The next step that we'll work through is computing a series of common diversity 
 We'll do this using the `q2-diversity` plugin's `core-metrics` action.
 This action is a QIIME 2 `Pipeline` which combines over ten different actions in a single command.
 
-## Core diversity metrics
+### Core diversity metrics
 
 The `core-metrics` action requires your feature table and your sample metadata as input.
 It additionally requires that you provide the sampling depth that this analysis will be performed at.
@@ -135,7 +136,7 @@ core_metrics_results = use.action(
 As you can see, this command generates many outputs including both QIIME 2 artifacts and visualizations.
 We'll work together on a guided exploration of these results.
 
-## Longitudinal alpha diversity analysis
+### Longitudinal alpha diversity analysis
 
 In this section of the tutorial we'll perform several analyses using QIIME 2's `q2-longitudinal` {cite:p}`bokulich-q2long-2018` plugin.
 These will allow us to track microbiome changes across time on a per-subject basis, and specifically allow us to ask a more targeted question: *Did an FMT treatment help individuals recover alpha diversity?*

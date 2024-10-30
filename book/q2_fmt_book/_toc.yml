@@ -4,7 +4,9 @@
 format: jb-book
 root: intro
 parts:
-- Caption: Tutorial
-- Caption: How-To Guides
-- Caption: Explanation
-- Caption: Reference
+- caption: Tutorial
+  chapters:
+    - file: tutorial/tutorial
+#- caption: How-To Guides
+#- caption: Explanation
+#- caption: Reference
