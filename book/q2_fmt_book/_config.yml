@@ -35,3 +35,12 @@ repository:
 html:
   use_issues_button: true
   use_repository_button: true
+
+
+sphinx:
+  extra_extensions:
+    - q2doc.usage
+    - q2doc.external_links
+    - sphinx_exercise
+  config:
+    html_baseurl: https://q2-fmt.readthedocs.io/en/latest

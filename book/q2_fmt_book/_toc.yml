@@ -9,10 +9,10 @@ parts:
     - file: tutorial/tutorial
 - caption: How-To Guides
   chapters: 
-    - file: how-to-guide/installation
+    - file: how-to-guides/installation
 - caption: Explanation
   chapters: 
-    - file: explanation/installation
+    - file: explanation/intro
 - caption: Reference
   chapters: 
     - file: reference/reference
