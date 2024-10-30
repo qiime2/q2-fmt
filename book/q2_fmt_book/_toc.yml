@@ -12,7 +12,7 @@ parts:
     - file: how-to-guides/installation
 - caption: Explanation
   chapters: 
-    - file: explanation/intro
+    - file: explanation/placeholder
 - caption: Reference
   chapters: 
     - file: reference/reference
