@@ -143,7 +143,7 @@ This section of this Jupyter Book is still under development 🛠️. Content in
 ```
 When investigating FMTs, it is really important to understand the extent to which the recipient microbiome engrafted the donated microbiome. Without assessing engraftment extent, we can never fully understand the clinical outcomes of the study {numref}`engraftment-extent`.
 
-```{figure} _images/engraftment-extent.png
+```{figure} ../_images/engraftment-extent.png
 :name: engraftment-extent
 
 Created with BioRender.

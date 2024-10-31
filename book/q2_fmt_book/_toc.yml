@@ -16,4 +16,8 @@ parts:
 - caption: Reference
   chapters: 
     - file: reference/reference
+- caption: Back Matter
+  chapters:
+    - file: works-cited
+    
 
