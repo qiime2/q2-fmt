@@ -412,7 +412,7 @@ Currently, we do this by running ANCOMBC comparing the recipient at baseline to 
 
 However, some people investigate microbes that other papers reported as imported. We will investigate if the feature was in the donated microbiome and if the recipient recieved the feature. 
 
-(This review)[https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8436969/] reported that the class of *Clostridia* is correlated with positive health outcomes. 
+[This review](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8436969/) reported that the class of *Clostridia* is correlated with positive health outcomes. 
 
 So here we are going to use q2-longitudinal to track the relative abunadnce of *Clostridia* over time. This will help us identify if the donated microbiome had the previously reported feature and if the recipients recieve this feature.
 

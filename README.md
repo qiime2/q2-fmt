@@ -8,5 +8,3 @@ To learn more about installing and using q2-fmt, refer to the [q2-fmt documentat
 ## Demo
 [![](https://raw.githubusercontent.com/qiime2/q2-fmt/master/demo/screenshot.png)
 **Interactive Link**](https://view.qiime2.org/visualization/?type=html&src=https%3A%2F%2Fraw.githubusercontent.com%2Fqiime2%2Fq2-fmt%2Fmaster%2Fdemo%2Fraincloud-baseline0.qzv)
-
-```
