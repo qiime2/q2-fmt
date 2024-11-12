@@ -11,10 +11,6 @@ import pkg_resources
 
 import qiime2
 
-from qiime2.plugin.util import transform
-
-from q2_stats.types import TabularDataResourceDirFmt
-
 
 def _get_data_from_tests(path):
     return pkg_resources.resource_filename('q2_fmt.tests',
@@ -59,15 +55,15 @@ def feature_table_factory():
     )
 
 
-def peds_md_factory():
+def pedf_md_factory():
     return qiime2.Metadata.load(
         _get_data_from_tests('md-peds-usage.txt')
     )
 
 
-def peds_dist_factory():
+def pedf_dist_factory():
     return qiime2.Artifact.import_data(
-        "Dist1D[Ordered, Matched] % Properties('peds')",
+        "Dist1D[Ordered, Matched] % Properties('pedf')",
         _get_data_from_tests('peds_dist.table.jsonl')
     )
 
@@ -152,12 +148,12 @@ def cc_baseline(use):
     raincloud.assert_output_type('Visualization')
 
 
-def peds_method(use):
-    md = use.init_metadata('md', peds_md_factory)
+def pedf_method(use):
+    md = use.init_metadata('md', pedf_md_factory)
     table = use.init_artifact('table', feature_table_factory)
 
-    peds_group_dists, = use.action(
-        use.UsageAction('fmt', 'sample_peds'),
+    pedf_group_dists, = use.action(
+        use.UsageAction('fmt', 'pedf'),
         use.UsageInputs(
             table=table,
             metadata=md,
@@ -166,21 +162,21 @@ def peds_method(use):
             subject_column='SubjectID'
         ),
         use.UsageOutputNames(
-            peds_dists='peds_dist'
+            pedf_dists='pedf_dist'
         )
 
     )
 
-    peds_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
-                                        " Properties('peds')")
+    pedf_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
+                                        " Properties('pedf')")
 
 
-def feature_peds_method(use):
-    md = use.init_metadata('md', peds_md_factory)
+def prdf_method(use):
+    md = use.init_metadata('md', pedf_md_factory)
     table = use.init_artifact('table', feature_table_factory)
 
-    peds_group_dists, = use.action(
-        use.UsageAction('fmt', 'feature_peds'),
+    prdf_group_dists, = use.action(
+        use.UsageAction('fmt', 'prdf'),
         use.UsageInputs(
             table=table,
             metadata=md,
@@ -189,46 +185,22 @@ def feature_peds_method(use):
             subject_column='SubjectID'
         ),
         use.UsageOutputNames(
-            peds_dists='peds_dist'
+            prdf_dists='prdf_dist'
         )
 
     )
 
-    peds_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
-                                        " Properties('peds')")
-
-
-# PEDS pipeline
-def peds_pipeline_sample(use):
-    md = use.init_metadata('md', peds_md_factory)
-    table = use.init_artifact('table', feature_table_factory)
-
-    peds_heatmap, = use.action(
-        use.UsageAction('fmt', 'peds'),
-        use.UsageInputs(
-            table=table,
-            metadata=md,
-            peds_metric='sample',
-            time_column='time_point',
-            reference_column='Donor',
-            subject_column='SubjectID'
-        ),
-        use.UsageOutputNames(
-            heatmap='heatmap',
-
-        )
-    )
-
-    peds_heatmap.assert_output_type('Visualization')
+    prdf_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
+                                        " Properties('prdf')")
 
 
 def heatmap(use):
-    peds_dist = use.init_artifact('peds_dist', peds_dist_factory)
+    pedf_dist = use.init_artifact('pedf_dist', pedf_dist_factory)
 
-    peds_heatmap, = use.action(
+    pedf_heatmap, = use.action(
         use.UsageAction('fmt', 'heatmap'),
         use.UsageInputs(
-            data=peds_dist,
+            data=pedf_dist,
         ),
         use.UsageOutputNames(
             visualization='heatmap',
@@ -236,15 +208,15 @@ def heatmap(use):
         )
     )
 
-    peds_heatmap.assert_output_type('Visualization')
+    pedf_heatmap.assert_output_type('Visualization')
 
 
-def simulation_peds_method(use):
-    md = use.init_metadata('md', peds_md_factory)
+def perm_pedf_method(use):
+    md = use.init_metadata('md', pedf_md_factory)
     table = use.init_artifact('table', feature_table_factory)
 
-    actual_sample_peds, peds_stats, global_stats = use.action(
-        use.UsageAction('fmt', 'peds_simulation'),
+    actual_sample_pedf, pedf_stats, global_stats = use.action(
+        use.UsageAction('fmt', 'pedf_permutation_test'),
         use.UsageInputs(
             table=table,
             metadata=md,
@@ -255,23 +227,23 @@ def simulation_peds_method(use):
             sampling_depth=400
         ),
         use.UsageOutputNames(
-            actual_sample_peds='actual_sample_peds',
+            actual_sample_pedf='actual_sample_pedf',
             per_subject_stats='per_subject_stats',
             global_stats='global_stats'
         )
 
     )
 
-    peds_stats.assert_output_type("StatsTable[Pairwise]")
+    pedf_stats.assert_output_type("StatsTable[Pairwise]")
     global_stats.assert_output_type("StatsTable[Pairwise]")
 
 
-def pprs_method(use):
-    md = use.init_metadata('md', peds_md_factory)
+def pprf_method(use):
+    md = use.init_metadata('md', pedf_md_factory)
     table = use.init_artifact('table', feature_table_factory)
 
-    pprs_group_dists, = use.action(
-        use.UsageAction('fmt', 'sample_pprs'),
+    pprf_group_dists, = use.action(
+        use.UsageAction('fmt', 'pprf'),
         use.UsageInputs(
             table=table,
             metadata=md,
@@ -281,17 +253,17 @@ def pprs_method(use):
             filter_missing_references=False
         ),
         use.UsageOutputNames(
-            pprs_dists='pprs_dist'
+            pprf_dists='pprf_dist'
         )
 
     )
 
-    pprs_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
-                                        " Properties('pprs')")
+    pprf_group_dists.assert_output_type("Dist1D[Ordered, Matched] %"
+                                        " Properties('pprf')")
 
 
 def detect_donor_indicators_method(use):
-    md = use.init_metadata('md', peds_md_factory)
+    md = use.init_metadata('md', pedf_md_factory)
     table = use.init_artifact('table', feature_table_factory)
 
     differentials, da_barplot = use.action(

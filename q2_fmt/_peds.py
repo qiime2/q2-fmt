@@ -37,38 +37,6 @@ from q2_stats.util import json_replace
 from q2_stats.plots.raincloud import _make_stats
 
 
-def peds(ctx, table, metadata, peds_metric, time_column, reference_column,
-         subject_column, filter_missing_references=False,
-         drop_incomplete_subjects=False, drop_incomplete_timepoints=None,
-         level_delimiter=None, sampling_depth=None, num_resamples=0):
-
-    heatmap = ctx.get_action('fmt', 'heatmap')
-
-    results = []
-
-    if peds_metric == 'sample':
-        sample_peds = ctx.get_action('fmt', 'sample_peds')
-        peds_dist = sample_peds(
-            table=table, metadata=metadata, time_column=time_column,
-            subject_column=subject_column, reference_column=reference_column,
-            filter_missing_references=filter_missing_references,
-            sampling_depth=sampling_depth, num_resamples=num_resamples,)
-
-    else:
-        feature_peds = ctx.get_action('fmt', 'feature_peds')
-        peds_dist = feature_peds(
-            table=table, metadata=metadata, time_column=time_column,
-            subject_column=subject_column, reference_column=reference_column,
-            filter_missing_references=filter_missing_references,
-            sampling_depth=sampling_depth, num_resamples=num_resamples)
-    results += heatmap(data=peds_dist[0],
-                       level_delimiter=level_delimiter,
-                       drop_incomplete_subjects=drop_incomplete_subjects,
-                       drop_incomplete_timepoints=drop_incomplete_timepoints)
-
-    return tuple(results)
-
-
 def heatmap(output_dir: str, data: pd.DataFrame,
             level_delimiter: str = None,
             per_subject_stats: pd.DataFrame = None,
@@ -80,8 +48,8 @@ def heatmap(output_dir: str, data: pd.DataFrame,
                                                   per_subject_stats is None)
     except AssertionError as e:
         raise AssertionError("The input data provided was created with"
-                             " `fmt sample_pprs`. This is not compatible with"
-                             " statistics created from `fmt peds-simulation`"
+                             " `fmt pprf`. This is not compatible with"
+                             " statistics created from `fmt pedf-simulation`"
                              " because they are created from separate"
                              " references (i.e. baseline and donor)") from e
 
@@ -102,7 +70,7 @@ def heatmap(output_dir: str, data: pd.DataFrame,
     gradient = "measure"
     if "all possible recipients with feature" in data.columns:
         if drop_incomplete_subjects or drop_incomplete_timepoints:
-            warnings.warn('Feature PEDS was selected as the PEDS metric, which'
+            warnings.warn('PRDF was selected as the porportion metric, which'
                           ' does not accept `drop_incomplete_subjects` or'
                           ' `drop_incomplete_timepoints` as parameters. One'
                           ' (or both) of these parameters were detected in'
@@ -148,11 +116,11 @@ def heatmap(output_dir: str, data: pd.DataFrame,
                               table1=table1))
 
 
-def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
-                time_column: str, reference_column: str, subject_column: str,
-                filter_missing_references: bool = False,
-                sampling_depth: int = None,
-                num_resamples: int = 0) -> (pd.DataFrame):
+def pedf(table: pd.DataFrame, metadata: qiime2.Metadata,
+         time_column: str, reference_column: str, subject_column: str,
+         filter_missing_references: bool = False,
+         sampling_depth: int = None,
+         num_resamples: int = 0) -> (pd.DataFrame):
 
     # making sure that samples exist in the table
     ids_with_data = table.index
@@ -189,24 +157,24 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
         # no samping depth
         num_resamples = 1
     for x in range(num_resamples):
-        peds_df = pd.DataFrame(columns=['id',
+        pedf_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features',
                                         'donor', 'subject',
                                         'group'])
         if sampling_depth:
             table = _subsample(table, sampling_depth)
-        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
-                                peds_time=np.nan,
-                                reference_series=used_references,
-                                table=table, metadata=metadata_df,
-                                time_column=time_column,
-                                subject_column=subject_column,
-                                reference_column=reference_column)
+        pedf_df = _compute_proportion(df=pedf_df, type="Sample",
+                                      time=np.nan,
+                                      reference_series=used_references,
+                                      table=table, metadata=metadata_df,
+                                      time_column=time_column,
+                                      subject_column=subject_column,
+                                      reference_column=reference_column)
         # Set the index for pd matching when concating and summing
-        peds_df = peds_df.set_index('id')
-        num_list.append(peds_df['transfered_donor_features'])
-        denom_list.append(peds_df['total_donor_features'])
+        pedf_df = pedf_df.set_index('id')
+        num_list.append(pedf_df['transfered_donor_features'])
+        denom_list.append(pedf_df['total_donor_features'])
 
     numerator_df = pd.concat(num_list, axis=1)
     denominator_df = pd.concat(denom_list, axis=1)
@@ -216,49 +184,49 @@ def sample_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        peds = median_numerator_series/median_denominator_series
+        pedf = median_numerator_series/median_denominator_series
 
-    peds_df['measure'] = peds
-    peds_df['transfered_donor_features'] = median_numerator_series
-    peds_df['total_donor_features'] = median_denominator_series
-    peds_df = peds_df.reset_index()
+    pedf_df['measure'] = pedf
+    pedf_df['transfered_donor_features'] = median_numerator_series
+    pedf_df['total_donor_features'] = median_denominator_series
+    pedf_df = pedf_df.reset_index()
 
-    peds_df['id'].attrs.update({
+    pedf_df['id'].attrs.update({
         'title': metadata_df.index.name,
         'description': 'Sample IDs'
     })
-    peds_df['measure'].attrs.update({
-        'title': "Sample PEDS",
+    pedf_df['measure'].attrs.update({
+        'title': "Sample pedf",
         'description': 'Proportional Engraftment of Donor Strains'
     })
-    peds_df['group'].attrs.update({
+    pedf_df['group'].attrs.update({
         'title': time_column,
         'description': 'Time'
     })
-    peds_df['subject'].attrs.update({
+    pedf_df['subject'].attrs.update({
         'title': subject_column,
         'description': 'Subject IDs linking samples across time'
     })
-    peds_df['transfered_donor_features'].attrs.update({
+    pedf_df['transfered_donor_features'].attrs.update({
         'title': "Transfered Reference Features",
         'description': '...'
     })
-    peds_df['total_donor_features'].attrs.update({
+    pedf_df['total_donor_features'].attrs.update({
         'title': "Total Reference Features",
         'description': '...'
     })
-    peds_df['donor'].attrs.update({
+    pedf_df['donor'].attrs.update({
         'title': reference_column,
         'description': 'Donor'
     })
-    return peds_df
+    return pedf_df
 
 
-def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
-                 time_column: str, reference_column: str, subject_column: str,
-                 filter_missing_references: bool = False,
-                 sampling_depth: int = None,
-                 num_resamples: int = 0) -> (pd.DataFrame):
+def prdf(table: pd.DataFrame, metadata: qiime2.Metadata,
+         time_column: str, reference_column: str, subject_column: str,
+         filter_missing_references: bool = False,
+         sampling_depth: int = None,
+         num_resamples: int = 0) -> (pd.DataFrame):
     # making sure that samples exist in the table
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
@@ -289,7 +257,7 @@ def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
         # no samping depth
         num_resamples = 1
     for x in range(num_resamples):
-        peds_df =\
+        prdf_df =\
             pd.DataFrame(columns=['id', 'recipients with feature',
                                   'all possible recipients with feature',
                                   'group', 'subject'])
@@ -297,17 +265,17 @@ def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
             table = _subsample(table, sampling_depth)
 
         for time, time_metadata in metadata_df.groupby(time_column):
-            peds_df = _compute_peds(peds_df=peds_df, peds_type="Feature",
-                                    peds_time=time,
-                                    reference_series=used_references,
-                                    table=table,
-                                    metadata=time_metadata,
-                                    time_column=time_column,
-                                    subject_column=subject_column,
-                                    reference_column=reference_column)
-        peds_df = peds_df.set_index('id')
-        num_list.append(peds_df['recipients with feature'])
-        denom_list.append(peds_df['all possible recipients with feature'])
+            prdf_df = _compute_proportion(df=prdf_df, type="Feature",
+                                          time=time,
+                                          reference_series=used_references,
+                                          table=table,
+                                          metadata=time_metadata,
+                                          time_column=time_column,
+                                          subject_column=subject_column,
+                                          reference_column=reference_column)
+        prdf_df = prdf_df.set_index('id')
+        num_list.append(prdf_df['recipients with feature'])
+        denom_list.append(prdf_df['all possible recipients with feature'])
 
     numerator_df = pd.concat(num_list, axis=1)
     denominator_df = pd.concat(denom_list, axis=1)
@@ -316,38 +284,38 @@ def feature_peds(table: pd.DataFrame, metadata: qiime2.Metadata,
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        peds = median_numerator_series/median_denominator_series
+        prdf = median_numerator_series/median_denominator_series
 
-    peds_df['measure'] = peds.values
-    peds_df['recipients with feature'] = median_numerator_series.values
-    peds_df['all possible recipients with feature'] = \
+    prdf_df['measure'] = prdf.values
+    prdf_df['recipients with feature'] = median_numerator_series.values
+    prdf_df['all possible recipients with feature'] = \
         median_denominator_series.values
-    peds_df = peds_df.reset_index()
+    prdf_df = prdf_df.reset_index()
 
-    peds_df['id'].attrs.update({
+    prdf_df['id'].attrs.update({
         'title': "Feature ID",
         'description': ''
     })
-    peds_df['measure'].attrs.update({
+    prdf_df['measure'].attrs.update({
         'title': "Feature PEDS",
         'description': 'Proportional Engraftment of Donor Strains'
     })
-    peds_df['group'].attrs.update({
+    prdf_df['group'].attrs.update({
         'title': time_column,
         'description': 'Time'
     })
-    peds_df['subject'].attrs.update({
+    prdf_df['subject'].attrs.update({
         'title': "Feature ID",
         'description': ''
     })
-    return peds_df
+    return prdf_df
 
 
-def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
-                  reference_series: pd.Series, table: pd.Series,
-                  metadata: qiime2.Metadata, time_column: str,
-                  subject_column: str,
-                  reference_column: str = None) -> (pd.DataFrame):
+def _compute_proportion(df: pd.Series, type: str, time: int,
+                        reference_series: pd.Series, table: pd.Series,
+                        metadata: qiime2.Metadata, time_column: str,
+                        subject_column: str,
+                        reference_column: str = None) -> (pd.DataFrame):
     table = table > 0
     reference_overlap = reference_series.isin(table.index)
     try:
@@ -365,33 +333,33 @@ def _compute_peds(peds_df: pd.Series, peds_type: str, peds_time: int,
                                 recip_df=recip_df,
                                 reference_column=reference_column)
     maskedrecip = donormask & recip_df
-    if peds_type == "Sample" or peds_type == "PPRS":
+    if type == "Sample" or type == "PPRS":
         num_sum = np.sum(maskedrecip, axis=1)
         donor_sum = np.sum(donormask, axis=1)
         for count, sample in enumerate(recip_df.index):
             sample_row = metadata.loc[sample]
-            peds_df.loc[len(peds_df)] = [sample, num_sum[count],
-                                         donor_sum[count],
-                                         sample_row[reference_column],
-                                         sample_row[subject_column],
-                                         sample_row[time_column]]
+            df.loc[len(df)] = [sample, num_sum[count],
+                               donor_sum[count],
+                               sample_row[reference_column],
+                               sample_row[subject_column],
+                               sample_row[time_column]]
 
-    elif peds_type == "Feature":
+    elif type == "Feature":
         num_sum = np.sum(maskedrecip, axis=0)
         donor_sum = np.sum(donormask, axis=0)
         for count, feature in enumerate(recip_df.columns):
-            peds_df.loc[len(peds_df)] = [feature, num_sum[count],
-                                         donor_sum[count], peds_time, feature]
-            peds_df = peds_df.dropna()
+            df.loc[len(df)] = [feature, num_sum[count],
+                               donor_sum[count], time, feature]
+            df = df.dropna()
     else:
         raise KeyError('There was an error finding which PEDS methods to use')
-    return peds_df
+    return df
 
 
-def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
-                time_column: str, baseline_timepoint: str, subject_column: str,
-                filter_missing_references: bool, sampling_depth: int = None,
-                num_resamples: int = 0) -> (pd.DataFrame):
+def pprf(table: pd.DataFrame, metadata: qiime2.Metadata,
+         time_column: str, baseline_timepoint: str, subject_column: str,
+         filter_missing_references: bool, sampling_depth: int = None,
+         num_resamples: int = 0) -> (pd.DataFrame):
     # making sure that samples exist in the table
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
@@ -427,25 +395,25 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
         # no samping depth
         num_resamples = 1
     for x in range(num_resamples):
-        peds_df = pd.DataFrame(columns=['id',
+        pprf_df = pd.DataFrame(columns=['id',
                                         'transfered_baseline_features',
                                         'total_baseline_features',
                                         'baseline', 'subject',
                                         'group'])
         if sampling_depth:
             table = _subsample(table, sampling_depth)
-        peds_df = _compute_peds(peds_df=peds_df, peds_type='PPRS',
-                                peds_time=np.nan,
-                                reference_series=used_references,
-                                table=table, metadata=baseline_metadata,
-                                time_column=time_column,
-                                subject_column=subject_column,
-                                reference_column=used_references.name)
+        pprf_df = _compute_proportion(df=pprf_df, type='PPRS',
+                                      time=np.nan,
+                                      reference_series=used_references,
+                                      table=table, metadata=baseline_metadata,
+                                      time_column=time_column,
+                                      subject_column=subject_column,
+                                      reference_column=used_references.name)
         # Set the index for pd matching when concating and summing
-        peds_df = peds_df.set_index('id')
+        pprf_df = pprf_df.set_index('id')
 
-        num_list.append(peds_df['transfered_baseline_features'])
-        denom_list.append(peds_df['total_baseline_features'])
+        num_list.append(pprf_df['transfered_baseline_features'])
+        denom_list.append(pprf_df['total_baseline_features'])
 
     numerator_df = pd.concat(num_list, axis=1)
     denominator_df = pd.concat(denom_list, axis=1)
@@ -455,51 +423,51 @@ def sample_pprs(table: pd.DataFrame, metadata: qiime2.Metadata,
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        pprs = median_numerator_series/median_denominator_series
+        pprf = median_numerator_series/median_denominator_series
 
-    peds_df['measure'] = pprs
-    peds_df['transfered_baseline_features'] = median_numerator_series
-    peds_df['total_baseline_features'] = median_denominator_series
-    peds_df = peds_df.reset_index()
+    pprf_df['measure'] = pprf
+    pprf_df['transfered_baseline_features'] = median_numerator_series
+    pprf_df['total_baseline_features'] = median_denominator_series
+    pprf_df = pprf_df.reset_index()
 
-    peds_df['id'].attrs.update({
+    pprf_df['id'].attrs.update({
         'title': metadata_df.index.name,
         'description': 'Sample IDs'
     })
-    peds_df['measure'].attrs.update({
+    pprf_df['measure'].attrs.update({
         'title': 'PPRS',
         'description': 'Proportional Persistence of Recipient Strains'
     })
-    peds_df['group'].attrs.update({
+    pprf_df['group'].attrs.update({
         'title': time_column,
         'description': 'Time'
     })
-    peds_df['subject'].attrs.update({
+    pprf_df['subject'].attrs.update({
         'title': subject_column,
         'description': 'Subject IDs linking samples across time'
     })
-    peds_df['transfered_baseline_features'].attrs.update({
+    pprf_df['transfered_baseline_features'].attrs.update({
         'title': "Transfered Reference Features",
         'description': '...'
     })
-    peds_df['total_baseline_features'].attrs.update({
+    pprf_df['total_baseline_features'].attrs.update({
         'title': "Total Reference Features",
         'description': '...'
     })
-    peds_df['baseline'].attrs.update({
+    pprf_df['baseline'].attrs.update({
         'title': used_references.name,
         'description': 'recipeint baseline'
     })
-    return peds_df
+    return pprf_df
 
 
-def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
-                    time_column: str, reference_column: str,
-                    subject_column: str, sampling_depth: int,
-                    filter_missing_references: bool = False,
-                    peds_rarefaction: bool = True,
-                    num_resamples: int = 999,
-                    ) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+def pedf_permutation_test(table: pd.DataFrame, metadata: qiime2.Metadata,
+                          time_column: str, reference_column: str,
+                          subject_column: str, sampling_depth: int,
+                          filter_missing_references: bool = False,
+                          pedf_rarefaction: bool = True,
+                          num_resamples: int = 999,
+                          ) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
 
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
@@ -530,22 +498,21 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
                              " and needs more than one recipient"
                              " to successfully shuffle.")
 
-    if not peds_rarefaction:
-        actual_peds_num_resamples = 1
+    if not pedf_rarefaction:
+        actual_pedf_num_resamples = 1
     else:
-        actual_peds_num_resamples = num_resamples
+        actual_pedf_num_resamples = num_resamples
 
-    peds = sample_peds(
-           table=table, metadata=metadata,
-           time_column=time_column,
-           reference_column=reference_column,
-           subject_column=subject_column,
-           filter_missing_references=filter_missing_references,
-           num_resamples=actual_peds_num_resamples,
-           sampling_depth=sampling_depth
-           )
+    pedf_df = pedf(
+                   table=table, metadata=metadata,
+                   time_column=time_column,
+                   reference_column=reference_column,
+                   subject_column=subject_column,
+                   filter_missing_references=filter_missing_references,
+                   num_resamples=actual_pedf_num_resamples,
+                   sampling_depth=sampling_depth)
 
-    actual_peds = peds[['id', 'measure']].set_index('id')['measure']
+    actual_pedf = pedf_df[['id', 'measure']].set_index('id')['measure']
 
     # Mismatch simulation:
     recip_df = _create_recipient_table(used_references, metadata_df, table)
@@ -585,12 +552,12 @@ def peds_simulation(table: pd.DataFrame, metadata: qiime2.Metadata,
     # Denominator for PEDS Calc. (Number of unique features in the Donor)
     num_donor_features = np.sum(donor_mask, axis=1)
     # This ignores warnings that come from dividing by 0.
-    # mismatched_peds will be Nan if the denominator is 0 and thats reasonable.
+    # mismatched_pedf will be Nan if the denominator is 0 and thats reasonable.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        mismatched_peds = num_engrafted_donor_features/num_donor_features
-    per_sub_stats = _per_subject_stats(mismatched_peds,
-                                       actual_peds)
+        mismatched_pedf = num_engrafted_donor_features/num_donor_features
+    per_sub_stats = _per_subject_stats(mismatched_pedf,
+                                       actual_pedf)
     global_stats = _global_stats(per_sub_stats['p-value'])
 
-    return peds, per_sub_stats, global_stats
+    return pedf_df, per_sub_stats, global_stats

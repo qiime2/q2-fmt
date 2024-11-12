@@ -8,8 +8,7 @@
 import pandas as pd
 from qiime2 import Metadata
 
-# TODO: Change Import path.
-from q2_fmt._peds import _check_for_time_column, _check_reference_column
+from q2_fmt._util import _check_for_time_column, _check_reference_column
 
 
 def detect_donor_indicators(ctx, table, reference_column, time_column,

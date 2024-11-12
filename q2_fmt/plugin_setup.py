@@ -82,19 +82,19 @@ where = ('Additional filtering for the associated `metadata` file. This can be'
          ' used to filter by a subset of `metadata`, such as a specific value'
          ' in one of `metadata` columns.')
 
-per_subject_stats = ('Table describing significance of PEDS scores compared to'
+per_subject_stats = ('Table describing significance of PEDF scores compared to'
                      ' mismatched donor-recipient pairs on a per-subject'
                      ' basis.')
-global_stats = ('Table describing significance of PEDS scores across all'
+global_stats = ('Table describing significance of PEDF scores across all'
                 ' subjects.')
-peds_table = 'The `table` to calculate PEDS on.'
-peds_dists = ('The distributions for the PEDS measure, grouped by the selected'
+pedf_table = 'The `table` to calculate PEDF on.'
+pedf_dists = ('The distributions for the PEDF measure, grouped by the selected'
               ' `time_column`. Also contains the numerator and denominator for'
-              ' PEDS calulations. May also contain subject IDs, if'
+              ' PEDF calulations. May also contain subject IDs, if'
               ' `subject_column` is  provided in `metadata`.')
 num_resample = ('Number of iterations for rarefying. If there are'
                 ' more than one resampling the values will be'
-                ' averaged using median and the PEDS proportion will'
+                ' averaged using median and the PEDF proportion will'
                 ' be calculated on the expected values. i.e. the'
                 ' median numerator and median denominator')
 sampling_depth = ('Number of observations that each sample'
@@ -233,48 +233,14 @@ plugin.methods.register_function(
     }
 )
 
-plugin.pipelines.register_function(
-    function=q2_fmt.peds,
-    inputs={'table': FeatureTable[Frequency | RelativeFrequency |
-                                  PresenceAbsence]},
-    parameters={'metadata': Metadata,
-                'peds_metric': Str % Choices('feature', 'sample'),
-                'time_column': Str, 'reference_column': Str,
-                'subject_column': Str,
-                'filter_missing_references': Bool,
-                'drop_incomplete_subjects': Bool,
-                'drop_incomplete_timepoints': List[Str],
-                'level_delimiter': Str,
-                'num_resamples': Int % Range(0, 999),
-                'sampling_depth': Int % Range(1, None)},
-    outputs=[('heatmap', Visualization)],
-    input_descriptions={'table': peds_table},
-    parameter_descriptions={
-        'metadata': metadata,
-        'peds_metric': 'PEDS metric to run.',
-        'time_column': time_column,
-        'reference_column': reference_column,
-        'subject_column': subject_column,
-        'filter_missing_references': filter_missing_references,
-        'drop_incomplete_subjects': drop_incomplete_subjects,
-        'drop_incomplete_timepoints': drop_incomplete_timepoints,
-        'level_delimiter': level_delimiter,
-        'num_resamples': num_resample,
-        'sampling_depth': sampling_depth},
-    output_descriptions={'heatmap': 'PEDS heatmap visualization'},
-    name='PEDS pipeline to calculate feature or sample PEDS',
-    description='Runs a pipeline to calculate sample or feature PEDS,'
-                '  and generate the relevant heatmap',
-    examples={'peds_pipeline': ex.peds_pipeline_sample}
-)
-
 plugin.visualizers.register_function(
     function=q2_fmt.heatmap,
-    inputs={'data': Dist1D[Ordered, Matched] % Properties("peds") |
-            Dist1D[Ordered, Matched] % Properties("pprs"),
+    inputs={'data': Dist1D[Ordered, Matched] % Properties("pedf") |
+            Dist1D[Ordered, Matched] % Properties("pprf") |
+            Dist1D[Ordered, Matched] % Properties("prdf"),
             'per_subject_stats': StatsTable[Pairwise],
             'global_stats': StatsTable[Pairwise]},
-    input_descriptions={'data': 'PEDS or PPRS output to plot',
+    input_descriptions={'data': 'PEDF or PPRS output to plot',
                         'per_subject_stats': per_subject_stats,
                         'global_stats': global_stats},
     parameters={'level_delimiter': Str,
@@ -285,13 +251,13 @@ plugin.visualizers.register_function(
         'drop_incomplete_timepoints': drop_incomplete_timepoints,
         'drop_incomplete_subjects': drop_incomplete_subjects},
     name=' Proportional Features Heatmap',
-    description='Plot heatmap for PEDS or PPRS value over time',
+    description='Plot heatmap for PEDF, PRDF or PPRS value over time',
     examples={
         'heatmap': ex.heatmap}
 )
 
 plugin.methods.register_function(
-    function=q2_fmt.sample_peds,
+    function=q2_fmt.pedf,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
@@ -299,8 +265,8 @@ plugin.methods.register_function(
                 'filter_missing_references': Bool,
                 'num_resamples': Int % Range(0, 999),
                 'sampling_depth': Int % Range(1, None)},
-    outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
-    input_descriptions={'table': peds_table},
+    outputs=[('pedf_dists', Dist1D[Ordered, Matched] % Properties("pedf"))],
+    input_descriptions={'table': pedf_table},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
@@ -310,19 +276,21 @@ plugin.methods.register_function(
         'num_resamples': num_resample,
         'sampling_depth': sampling_depth},
     output_descriptions={
-        'peds_dists': peds_dists
+        'pedf_dists': pedf_dists
     },
-    name='Proportional Engraftment of Donor Strains (Features) in each'
-         ' recipient sample',
+    name='Proportional Engraftment of Donor Features in each'
+         ' recipient sample. This is adapted from aggarwala et al. 2021'
+         ' stainer manuscript, which coined the term PEDS, PEDF uses the same'
+         ' ideas but is applied to features generally.',
     description='Calculates percentage of microbes that where found in the '
     'donated material that are found in the recipient.',
     citations=[citations['aggarwala_precise_2021']],
     examples={
-        'peds_methods': ex.peds_method
+        'pedf_methods': ex.pedf_method
     }
 )
 plugin.methods.register_function(
-    function=q2_fmt.feature_peds,
+    function=q2_fmt.prdf,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
@@ -330,8 +298,8 @@ plugin.methods.register_function(
                 'filter_missing_references': Bool,
                 'num_resamples': Int % Range(0, 999),
                 'sampling_depth': Int % Range(1, None)},
-    outputs=[('peds_dists', Dist1D[Ordered, Matched] % Properties("peds"))],
-    input_descriptions={'table': peds_table},
+    outputs=[('prdf_dists', Dist1D[Ordered, Matched] % Properties("prdf"))],
+    input_descriptions={'table': pedf_table},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
@@ -342,18 +310,18 @@ plugin.methods.register_function(
         'sampling_depth': sampling_depth
     },
     output_descriptions={
-        'peds_dists': peds_dists
+        'prdf_dists': pedf_dists
     },
-    name='Porportional Engraftment of Donor Strains per feature',
+    name='Porportion of Recipient with Donor Feature',
     description='Calculates how many recipients recieved a given'
-                ' donated material feature ',
+                ' donated microbiome feature ',
     examples={
-        'peds_methods': ex.feature_peds_method
+        'prdf_methods': ex.prdf_method
     }
 )
 
 plugin.methods.register_function(
-    function=q2_fmt.sample_pprs,
+    function=q2_fmt.pprf,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata, 'time_column': Str,
@@ -361,9 +329,9 @@ plugin.methods.register_function(
                 'filter_missing_references': Bool,
                 'num_resamples': Int % Range(0, 999),
                 'sampling_depth': Int % Range(1, None)},
-    outputs=[('pprs_dists', Dist1D[Ordered, Matched] % Properties("pprs"))],
+    outputs=[('pprf_dists', Dist1D[Ordered, Matched] % Properties("pprf"))],
     input_descriptions={
-        'table': 'The `table` to calculate PPRS on.'},
+        'table': 'The `table` to calculate PPRF on.'},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
@@ -374,21 +342,23 @@ plugin.methods.register_function(
         'sampling_depth': sampling_depth
     },
     output_descriptions={
-        'pprs_dists': 'The distributions for the PPRS measure, grouped by'
+        'pprf_dists': 'The distributions for the PPRF measure, grouped by'
                       ' the selected `time_column`. Also contains the'
-                      ' numerator and denominator for PPRS calulations.'
+                      ' numerator and denominator for PPRF calulations.'
     },
-    name='Proportional Persistence of Recipient Strains (Features) in each'
-         ' recipient sample',
+    name='Proportional Persistence of Recipient Features in each'
+         ' recipient sample. This is adapted from aggarwala et al. 2021'
+         ' stainer manuscript, which coined the term PPRS, PPRF uses the same'
+         ' ideas but is applied to features generally.',
     description='Calculates percentage of microbes that were found in the'
                 ' baseline recipient and persist following FMT'
                 ' intervention.',
     citations=[citations['aggarwala_precise_2021']],
-    examples={'pprs_methods': ex.pprs_method}
+    examples={'pprf_methods': ex.pprf_method}
 )
 
 plugin.methods.register_function(
-    function=q2_fmt.peds_simulation,
+    function=q2_fmt.pedf_permutation_test,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency |
                                   PresenceAbsence]},
     parameters={'metadata': Metadata,
@@ -397,11 +367,11 @@ plugin.methods.register_function(
                 'subject_column': T_subject,
                 'filter_missing_references': Bool,
                 'num_resamples': Int % Range(99, None),
-                'peds_rarefaction': Bool,
+                'pedf_rarefaction': Bool,
                 'sampling_depth': Int % Range(1, None),
                 },
-    outputs=[('actual_sample_peds',
-              Dist1D[Ordered, Matched] % Properties("peds")),
+    outputs=[('actual_sample_pedf',
+              Dist1D[Ordered, Matched] % Properties("pedf")),
              ('per_subject_stats', StatsTable[Pairwise]),
              ('global_stats', StatsTable[Pairwise])],
     parameter_descriptions={
@@ -414,7 +384,7 @@ plugin.methods.register_function(
                          ' simulation on and the number of rarefactions to'
                          ' preform',
         'sampling_depth': sampling_depth,
-        'peds_rarefaction': 'If False, the feature-table for the actual peds'
+        'pedf_rarefaction': 'If False, the feature-table for the actual pedf'
                             ' will be rarefied intstead of using rarefaction.'
                             ' This will make it faster to run this method but'
                             ' the actual values may be slightly less'
@@ -422,15 +392,15 @@ plugin.methods.register_function(
                             ' be undergo rarefaction `num_resamples` of times',
     },
     output_descriptions={
-        'actual_sample_peds': peds_dists,
+        'actual_sample_pedf': pedf_dists,
         'per_subject_stats': per_subject_stats,
         'global_stats': global_stats
     },
-    name='PEDS Monte Carlo simulation',
-    description='A Monte Carlo simulation that randomizes the relationships'
-                ' between donors and recipients, to test whether the PEDS'
+    name='PEDF permutation Test',
+    description='A permutation Test that randomizes the relationships'
+                ' between donors and recipients, to test whether the PEDF'
                 ' score between a recipient and their actual donor is'
-                ' significantly higher than PEDS scores between other'
+                ' significantly higher than PEDF scores between other'
                 ' recipients paired with random donors. This is intended to'
                 ' only work in studies where there are distinct donors,'
                 ' and will yield insignificant results if there are too'
@@ -438,7 +408,7 @@ plugin.methods.register_function(
                 ' which indicator features that are unique to a given donor'
                 ' are transferred to their recipients, as opposed to features'
                 ' that are not indicative of any specific donor. Note: '
-                ' PEDS Monte Carlo simulation may have dependency issues'
+                ' PEDF permutation test may have dependency issues'
                 ' between samples and the simulated background'
                 ' distribution that can make the test'
                 ' overly conservative. This can be fixed by filtering down to'
@@ -450,7 +420,7 @@ plugin.methods.register_function(
                citations['stouffer_1949_american'],
                citations['Benjamini_fdr_1995']],
     examples={
-        'peds_methods': ex.simulation_peds_method
+        'pedf_methods': ex.perm_pedf_method
     }
 )
 
@@ -464,7 +434,7 @@ plugin.pipelines.register_function(
                 'baseline_timepoint': Str},
     outputs=[('differentials', FeatureData[DifferentialAbundance]),
              ('da_barplot', Visualization)],
-    input_descriptions={'table': peds_table},
+    input_descriptions={'table': pedf_table},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
