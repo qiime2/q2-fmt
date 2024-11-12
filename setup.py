@@ -18,11 +18,11 @@ setup(
         'q2_fmt': [
             'assets/*',
             'citations.bib'],
-        'q2_fmt.tests': ['data/*', 'data/peds_dist/*'],
+        'q2_fmt.tests': ['data/*'],
 
     },
-    author='Liz Gehret',
-    author_email='elizabeth.gehret@nau.edu',
+    author='Chloe Herman',
+    author_email='crh423@nau.edu',
     description='QIIME 2 Plugin used for FMT analyses.',
     license='BSD-3-Clause',
     url='https://github.com/qiime2/q2-fmt',

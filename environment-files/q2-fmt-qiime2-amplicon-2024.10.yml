@@ -7,4 +7,3 @@ dependencies:
   - pip
   - pip:
     - q2-fmt@git+https://github.com/qiime2/q2-fmt.git@dev
-    - frictionless

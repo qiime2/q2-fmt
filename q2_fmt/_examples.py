@@ -66,13 +66,9 @@ def peds_md_factory():
 
 
 def peds_dist_factory():
-    import pandas as pd
-    df = transform(_get_data_from_tests('peds_dist'),
-                   from_type=TabularDataResourceDirFmt,
-                   to_type=pd.DataFrame)
     return qiime2.Artifact.import_data(
         "Dist1D[Ordered, Matched] % Properties('peds')",
-        df
+        _get_data_from_tests('peds_dist.table.jsonl')
     )
 
 
