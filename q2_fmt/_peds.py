@@ -196,7 +196,7 @@ def pedf(table: pd.DataFrame, metadata: qiime2.Metadata,
         'description': 'Sample IDs'
     })
     pedf_df['measure'].attrs.update({
-        'title': "Sample pedf",
+        'title': "Sample PEDF",
         'description': 'Proportional Engraftment of Donor Strains'
     })
     pedf_df['group'].attrs.update({
