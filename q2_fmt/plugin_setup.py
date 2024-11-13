@@ -348,7 +348,7 @@ plugin.methods.register_function(
     },
     name='Proportional Persistence of Recipient Features in each'
          ' recipient sample. This is adapted from aggarwala et al. 2021'
-         ' stainer manuscript, which coined the term PPRS, PPRF uses the same'
+         ' stainer manuscript, which coined the term PPRS. PPRF uses the same'
          ' ideas but is applied to features generally.',
     description='Calculates percentage of microbes that were found in the'
                 ' baseline recipient and persist following FMT'
