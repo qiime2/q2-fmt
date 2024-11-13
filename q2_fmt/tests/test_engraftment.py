@@ -862,7 +862,7 @@ class TestPeds(TestBase):
                                       time_column="group",
                                       reference_column="Ref",
                                       subject_column="subject")
-        peds_df = peds_df.set_index("id")
+        pedf_df = pedf_df.set_index("id")
         tp = peds_df.at["sample3", "group"]
         self.assertEqual(tp, 1)
 
