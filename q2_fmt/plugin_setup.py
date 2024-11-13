@@ -87,8 +87,18 @@ per_subject_stats = ('Table describing significance of PEDF scores compared to'
                      ' basis.')
 global_stats = ('Table describing significance of PEDF scores across all'
                 ' subjects.')
-pedf_table = 'The `table` to calculate PEDF on.'
+pedf_table = ('The `table` to calculate PEDF on.')
+pprf_table = ('The `table` to calculate PPRF on.')
+prdf_table = ('The `table` to calculate PRDF on.')
 pedf_dists = ('The distributions for the PEDF measure, grouped by the selected'
+              ' `time_column`. Also contains the numerator and denominator for'
+              ' PEDF calulations. May also contain subject IDs, if'
+              ' `subject_column` is  provided in `metadata`.')
+pprf_dists = ('The distributions for the PPRF measure, grouped by the selected'
+              ' `time_column`. Also contains the numerator and denominator for'
+              ' PEDF calulations. May also contain subject IDs, if'
+              ' `subject_column` is  provided in `metadata`.')
+prdf_dists = ('The distributions for the PRDF measure, grouped by the selected'
               ' `time_column`. Also contains the numerator and denominator for'
               ' PEDF calulations. May also contain subject IDs, if'
               ' `subject_column` is  provided in `metadata`.')
@@ -299,7 +309,7 @@ plugin.methods.register_function(
                 'num_resamples': Int % Range(0, 999),
                 'sampling_depth': Int % Range(1, None)},
     outputs=[('prdf_dists', Dist1D[Ordered, Matched] % Properties("prdf"))],
-    input_descriptions={'table': pedf_table},
+    input_descriptions={'table': prdf_table},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
@@ -310,7 +320,7 @@ plugin.methods.register_function(
         'sampling_depth': sampling_depth
     },
     output_descriptions={
-        'prdf_dists': pedf_dists
+        'prdf_dists': prdf_dists
     },
     name='Porportion of Recipients with Donor Feature',
     description='Calculates how many recipients recieved a given'
@@ -331,7 +341,7 @@ plugin.methods.register_function(
                 'sampling_depth': Int % Range(1, None)},
     outputs=[('pprf_dists', Dist1D[Ordered, Matched] % Properties("pprf"))],
     input_descriptions={
-        'table': 'The `table` to calculate PPRF on.'},
+        'table': pprf_table},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
@@ -342,9 +352,7 @@ plugin.methods.register_function(
         'sampling_depth': sampling_depth
     },
     output_descriptions={
-        'pprf_dists': 'The distributions for the PPRF measure, grouped by'
-                      ' the selected `time_column`. Also contains the'
-                      ' numerator and denominator for PPRF calulations.'
+        'pprf_dists': pprf_dists
     },
     name='Proportional Persistence of Recipient Features in each'
          ' recipient sample. This is adapted from aggarwala et al. 2021'
@@ -374,6 +382,7 @@ plugin.methods.register_function(
               Dist1D[Ordered, Matched] % Properties("pedf")),
              ('per_subject_stats', StatsTable[Pairwise]),
              ('global_stats', StatsTable[Pairwise])],
+    input_descriptions={'table': pedf_table},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
@@ -447,7 +456,7 @@ plugin.pipelines.register_function(
                                        ' and donor samples.',
                          'differentials': 'The calculated per-feature'
                                           ' differentials.'},
-    name='Detect Donor Indicators Features',
+    name='Detect Donor Indicator Features',
     description='Runs a pipeline to indentify differetial features between the'
                 ' donor and the baseline recipient. This is done by filtering'
                 ' the feature table to donor and baseline timepoints and'

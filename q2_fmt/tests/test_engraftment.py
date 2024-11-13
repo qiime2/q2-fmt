@@ -787,11 +787,11 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id',
+        pedf_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
-        pedf_df = _compute_proportion(df=pedf_df, type="Sample",
+        pedf_df = _compute_proportion(df=pedf_df, type="PEDF",
                                       time=np.nan,
                                       reference_series=reference_series,
                                       table=table_df, metadata=metadata_df,
@@ -818,12 +818,12 @@ class TestPeds(TestBase):
                    'donor1', 'donor2'],
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature3': [1, 1, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id',
+        pedf_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject',
                                         'group'])
-        pedf_df = _compute_proportion(df=pedf_df, type="Sample",
+        pedf_df = _compute_proportion(df=pedf_df, type="PEDF",
                                       time=np.nan,
                                       reference_series=reference_series,
                                       table=table_df, metadata=metadata_df,
@@ -851,11 +851,11 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id',
+        pedf_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
-        pedf_df = _compute_proportion(df=pedf_df, type="Sample",
+        pedf_df = _compute_proportion(df=pedf_df, type="PEDF",
                                       time=np.nan,
                                       reference_series=reference_series,
                                       table=table_df, metadata=metadata_df,
@@ -1186,12 +1186,12 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id', 'measure',
+        pedf_df = pd.DataFrame(columns=['id', 'measure',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
         with self.assertRaisesRegex(AssertionError, ".*['1' '2'].*"):
-            _compute_proportion(df=pedf_df, type="Sample",
+            _compute_proportion(df=pedf_df, type="PEDF",
                                 time=np.nan,
                                 reference_series=reference_series,
                                 table=table_df, metadata=metadata_df,

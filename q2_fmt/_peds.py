@@ -164,7 +164,7 @@ def pedf(table: pd.DataFrame, metadata: qiime2.Metadata,
                                         'group'])
         if sampling_depth:
             table = _subsample(table, sampling_depth)
-        pedf_df = _compute_proportion(df=pedf_df, type="Sample",
+        pedf_df = _compute_proportion(df=pedf_df, type="PEDF",
                                       time=np.nan,
                                       reference_series=used_references,
                                       table=table, metadata=metadata_df,
@@ -265,7 +265,7 @@ def prdf(table: pd.DataFrame, metadata: qiime2.Metadata,
             table = _subsample(table, sampling_depth)
 
         for time, time_metadata in metadata_df.groupby(time_column):
-            prdf_df = _compute_proportion(df=prdf_df, type="Feature",
+            prdf_df = _compute_proportion(df=prdf_df, type="PRDF",
                                           time=time,
                                           reference_series=used_references,
                                           table=table,
@@ -333,7 +333,7 @@ def _compute_proportion(df: pd.Series, type: str, time: int,
                                 recip_df=recip_df,
                                 reference_column=reference_column)
     maskedrecip = donormask & recip_df
-    if type == "Sample" or type == "PPRF":
+    if type == "PEDF" or type == "PPRF":
         num_sum = np.sum(maskedrecip, axis=1)
         donor_sum = np.sum(donormask, axis=1)
         for count, sample in enumerate(recip_df.index):
@@ -344,7 +344,7 @@ def _compute_proportion(df: pd.Series, type: str, time: int,
                                sample_row[subject_column],
                                sample_row[time_column]]
 
-    elif type == "Feature":
+    elif type == "PRDF":
         num_sum = np.sum(maskedrecip, axis=0)
         donor_sum = np.sum(donormask, axis=0)
         for count, feature in enumerate(recip_df.columns):
