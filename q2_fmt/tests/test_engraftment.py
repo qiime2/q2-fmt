@@ -1367,7 +1367,7 @@ class TestPeds(TestBase):
                  reference_column="Ref",
                  subject_column="subject")
 
-    def test_peds_no_donor_in_table_flag(self):
+    def test_pedf_no_donor_in_table_flag(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
