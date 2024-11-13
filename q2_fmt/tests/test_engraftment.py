@@ -957,7 +957,7 @@ class TestPeds(TestBase):
                        time_column="group",
                        reference_column="Ref",
                        subject_column="subject")
-        exp_peds_df = pd.DataFrame({
+        exp_pedf_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4'],
             'transfered_donor_features': [0.0, 1.0, 3.0, 3.0],
             'total_donor_features': [3.0, 3.0, 3.0, 3.0],
