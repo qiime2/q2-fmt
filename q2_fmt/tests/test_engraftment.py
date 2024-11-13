@@ -863,7 +863,7 @@ class TestPeds(TestBase):
                                       reference_column="Ref",
                                       subject_column="subject")
         pedf_df = pedf_df.set_index("id")
-        tp = peds_df.at["sample3", "group"]
+        tp = pedf_df.at["sample3", "group"]
         self.assertEqual(tp, 1)
 
     def test_no_donors(self):
