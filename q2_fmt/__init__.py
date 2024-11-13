@@ -9,14 +9,14 @@
 from ._version import get_versions
 
 from ._engraftment import cc, group_timepoints
-from ._peds import (sample_peds, feature_peds, peds, heatmap,
-                    peds_simulation, sample_pprs)
+from ._peds import (pedf, prdf, heatmap,
+                    pedf_permutation_test, pprf)
 from ._ancombc import detect_donor_indicators
 
 __version__ = get_versions()['version']
 del get_versions
 
 
-__all__ = ['cc', 'sample_peds', 'feature_peds',
-           'peds', 'heatmap', 'group_timepoints', 'peds_simulation',
-           'sample_pprs', 'detect_donor_indicators']
+__all__ = ['cc', 'pedf', 'prdf',
+           'heatmap', 'group_timepoints', 'pedf_permutation_test',
+           'pprf', 'detect_donor_indicators']

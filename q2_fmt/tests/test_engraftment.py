@@ -27,8 +27,8 @@ from q2_fmt._util import (_rename_features, _check_column_missing,
                           _check_column_type,
                           _drop_incomplete_timepoints,)
 from q2_fmt._engraftment import group_timepoints
-from q2_fmt._peds import (_compute_peds, sample_peds,
-                          feature_peds, peds_simulation, sample_pprs)
+from q2_fmt._peds import (_compute_proportion, pedf,
+                          prdf, pedf_permutation_test, pprf)
 from q2_fmt._ancombc import get_baseline_donor_md
 
 
@@ -787,18 +787,19 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id',
+        pedf_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
-        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
-                                peds_time=np.nan,
-                                reference_series=reference_series,
-                                table=table_df, metadata=metadata_df,
-                                time_column="group", reference_column="Ref",
-                                subject_column="subject")
-        peds_df = peds_df.set_index("id")
-        donor = peds_df.at["sample1", "donor"]
+        pedf_df = _compute_proportion(df=pedf_df, type="PEDF",
+                                      time=np.nan,
+                                      reference_series=reference_series,
+                                      table=table_df, metadata=metadata_df,
+                                      time_column="group",
+                                      reference_column="Ref",
+                                      subject_column="subject")
+        pedf_df = pedf_df.set_index("id")
+        donor = pedf_df.at["sample1", "donor"]
         self.assertEqual(donor, "donor1")
 
     def test_get_subject(self):
@@ -817,19 +818,20 @@ class TestPeds(TestBase):
                    'donor1', 'donor2'],
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature3': [1, 1, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id',
+        pedf_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject',
                                         'group'])
-        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
-                                peds_time=np.nan,
-                                reference_series=reference_series,
-                                table=table_df, metadata=metadata_df,
-                                time_column="group", reference_column="Ref",
-                                subject_column="subject")
-        peds_df = peds_df.set_index("id")
-        subject = peds_df.at["sample1", "subject"]
+        pedf_df = _compute_proportion(df=pedf_df, type="PEDF",
+                                      time=np.nan,
+                                      reference_series=reference_series,
+                                      table=table_df, metadata=metadata_df,
+                                      time_column="group",
+                                      reference_column="Ref",
+                                      subject_column="subject")
+        pedf_df = pedf_df.set_index("id")
+        subject = pedf_df.at["sample1", "subject"]
         self.assertEqual(subject, "sub1")
 
     def test_timepoint(self):
@@ -849,18 +851,19 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id',
+        pedf_df = pd.DataFrame(columns=['id',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
-        peds_df = _compute_peds(peds_df=peds_df, peds_type="Sample",
-                                peds_time=np.nan,
-                                reference_series=reference_series,
-                                table=table_df, metadata=metadata_df,
-                                time_column="group", reference_column="Ref",
-                                subject_column="subject")
-        peds_df = peds_df.set_index("id")
-        tp = peds_df.at["sample3", "group"]
+        pedf_df = _compute_proportion(df=pedf_df, type="PEDF",
+                                      time=np.nan,
+                                      reference_series=reference_series,
+                                      table=table_df, metadata=metadata_df,
+                                      time_column="group",
+                                      reference_column="Ref",
+                                      subject_column="subject")
+        pedf_df = pedf_df.set_index("id")
+        tp = pedf_df.at["sample3", "group"]
         self.assertEqual(tp, 1)
 
     def test_no_donors(self):
@@ -950,11 +953,11 @@ class TestPeds(TestBase):
             'Feature1': [0, 0, 1, 1, 1, 1],
             'Feature2': [0, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
-                                     time_column="group",
-                                     reference_column="Ref",
-                                     subject_column="subject")
-        exp_peds_df = pd.DataFrame({
+        pedf_df = pedf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        exp_pedf_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4'],
             'transfered_donor_features': [0.0, 1.0, 3.0, 3.0],
             'total_donor_features': [3.0, 3.0, 3.0, 3.0],
@@ -963,7 +966,7 @@ class TestPeds(TestBase):
             'group': [1.0, 2.0, 3.0, 2.0],
             'measure': [0, 0.333333, 1, 1]
             })
-        pd.testing.assert_frame_equal(sample_peds_df, exp_peds_df)
+        pd.testing.assert_frame_equal(pedf_df, exp_pedf_df)
 
     def test_feature_overlap(self):
         metadata_df = pd.DataFrame({
@@ -982,18 +985,18 @@ class TestPeds(TestBase):
             'Feature1': [0, 0, 1, 1, 1, 1],
             'Feature2': [0, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
-                                     time_column="group",
-                                     reference_column="Ref",
-                                     subject_column="subject")
-        TDFs1 = sample_peds_df.set_index("id").at['sample1',
-                                                  'transfered_donor_features']
-        TDFs2 = sample_peds_df.set_index("id").at['sample2',
-                                                  'transfered_donor_features']
-        TDFs3 = sample_peds_df.set_index("id").at['sample3',
-                                                  'transfered_donor_features']
-        TDFs4 = sample_peds_df.set_index("id").at['sample4',
-                                                  'transfered_donor_features']
+        pedf_df = pedf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        TDFs1 = pedf_df.set_index("id").at['sample1',
+                                           'transfered_donor_features']
+        TDFs2 = pedf_df.set_index("id").at['sample2',
+                                           'transfered_donor_features']
+        TDFs3 = pedf_df.set_index("id").at['sample3',
+                                           'transfered_donor_features']
+        TDFs4 = pedf_df.set_index("id").at['sample4',
+                                           'transfered_donor_features']
         self.assertEqual(TDFs2, 1)
         self.assertEqual(TDFs1, 0)
         self.assertEqual(TDFs3, 3)
@@ -1016,18 +1019,18 @@ class TestPeds(TestBase):
             'Feature1': [0, 0, 1, 1, 1, 1],
             'Feature2': [0, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
-                                     time_column="group",
-                                     reference_column="Ref",
-                                     subject_column="subject")
-        TDFs1 = sample_peds_df.set_index("id").at['sample1',
-                                                  'measure']
-        TDFs2 = sample_peds_df.set_index("id").at['sample2',
-                                                  'measure']
-        TDFs3 = sample_peds_df.set_index("id").at['sample3',
-                                                  'measure']
-        TDFs4 = sample_peds_df.set_index("id").at['sample4',
-                                                  'measure']
+        pedf_df = pedf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        TDFs1 = pedf_df.set_index("id").at['sample1',
+                                           'measure']
+        TDFs2 = pedf_df.set_index("id").at['sample2',
+                                           'measure']
+        TDFs3 = pedf_df.set_index("id").at['sample3',
+                                           'measure']
+        TDFs4 = pedf_df.set_index("id").at['sample4',
+                                           'measure']
         self.assertEqual(TDFs2, 1/3)
         self.assertEqual(TDFs1, 0)
         self.assertEqual(TDFs3, 1)
@@ -1052,12 +1055,12 @@ class TestPeds(TestBase):
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
         with self.assertRaisesRegex(ValueError, 'There is more than one'
                                     ' occurrence of.*Subject sub1.*[1,2,2]'):
-            sample_peds(table=table_df, metadata=metadata,
-                        time_column="group",
-                        reference_column="Ref",
-                        subject_column="subject")
+            pedf(table=table_df, metadata=metadata,
+                 time_column="group",
+                 reference_column="Ref",
+                 subject_column="subject")
 
-    def test_feature_peds_calc(self):
+    def test_prdf_calc(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
                    'donor1'],
@@ -1071,18 +1074,18 @@ class TestPeds(TestBase):
             'Feature1': [0, 0, 1, 1],
             'Feature2': [0, 1, 1, 1],
             'Feature3': [0, 0, 1, 0]}).set_index('id')
-        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
-        TDFs1 = feature_peds_df.set_index("id").at['Feature1',
-                                                   'measure']
-        TDFs2 = feature_peds_df.set_index("id").at['Feature2',
-                                                   'measure']
+        prdf_df = prdf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        TDFs1 = prdf_df.set_index("id").at['Feature1',
+                                           'measure']
+        TDFs2 = prdf_df.set_index("id").at['Feature2',
+                                           'measure']
         self.assertEqual(TDFs1, 1/3)
         self.assertEqual(TDFs2, 2/3)
 
-    def test_feature_peds_calc_2_tp(self):
+    def test_prdf_calc_2_tp(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3',
                    'donor1'],
@@ -1096,14 +1099,14 @@ class TestPeds(TestBase):
             'Feature1': [0, 0, 1, 1],
             'Feature2': [0, 1, 1, 1],
             'Feature3': [0, 0, 1, 0]}).set_index('id')
-        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
-        TDFs1 = feature_peds_df.set_index("id").at['Feature1',
-                                                   'measure'].values
-        TDFs2 = feature_peds_df.set_index("id").at['Feature2',
-                                                   'measure'].values
+        prdf_df = prdf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        TDFs1 = prdf_df.set_index("id").at['Feature1',
+                                           'measure'].values
+        TDFs2 = prdf_df.set_index("id").at['Feature2',
+                                           'measure'].values
         np.testing.assert_array_equal(TDFs1, [.5, 0.])
         np.testing.assert_array_equal(TDFs2, [.5, 1.])
 
@@ -1127,10 +1130,10 @@ class TestPeds(TestBase):
         with self.assertRaisesRegex(ValueError, "The following IDs are not"
                                     " present in the metadata: 'd1', 'd2',"
                                     " 's1', 's2', 's3', 's4'"):
-            feature_peds(table=table_df, metadata=metadata,
-                         time_column="group",
-                         reference_column="Ref",
-                         subject_column="subject")
+            prdf(table=table_df, metadata=metadata,
+                 time_column="group",
+                 reference_column="Ref",
+                 subject_column="subject")
 
     def test_column_type_nonnumeric(self):
         metadata_df = pd.DataFrame({
@@ -1183,17 +1186,17 @@ class TestPeds(TestBase):
             'Feature1': [1, 0, 1, 1, 1, 1],
             'Feature2': [1, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        peds_df = pd.DataFrame(columns=['id', 'measure',
+        pedf_df = pd.DataFrame(columns=['id', 'measure',
                                         'transfered_donor_features',
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
         with self.assertRaisesRegex(AssertionError, ".*['1' '2'].*"):
-            _compute_peds(peds_df=peds_df, peds_type="Sample",
-                          peds_time=np.nan,
-                          reference_series=reference_series,
-                          table=table_df, metadata=metadata_df,
-                          time_column="group", reference_column="Ref",
-                          subject_column="subject")
+            _compute_proportion(df=pedf_df, type="PEDF",
+                                time=np.nan,
+                                reference_series=reference_series,
+                                table=table_df, metadata=metadata_df,
+                                time_column="group", reference_column="Ref",
+                                subject_column="subject")
 
     def test_column_name_is_ID(self):
         metadata_df = pd.DataFrame({
@@ -1224,15 +1227,15 @@ class TestPeds(TestBase):
                 'Feature;1': [0, 0, 1, 1],
                 'Feature;2': [0, 1, 1, 1],
                 'Feature;3': [0, 0, 1, 0]}).set_index('id')
-        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
-        _rename_features(data=feature_peds_df, level_delimiter=";")
-        Fs1 = feature_peds_df.set_index("id").at['Feature 1',
-                                                 'subject']
-        Fs2 = feature_peds_df.set_index("id").at['Feature 2',
-                                                 'subject']
+        prdf_df = prdf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        _rename_features(data=prdf_df, level_delimiter=";")
+        Fs1 = prdf_df.set_index("id").at['Feature 1',
+                                         'subject']
+        Fs2 = prdf_df.set_index("id").at['Feature 2',
+                                         'subject']
         self.assertEqual("1", Fs1)
         self.assertEqual("2", Fs2)
 
@@ -1250,15 +1253,15 @@ class TestPeds(TestBase):
                 'Feature1': [0, 0, 1, 1],
                 'Feature2': [0, 1, 1, 1],
                 'Feature3': [0, 0, 1, 0]}).set_index('id')
-        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
-        _rename_features(data=feature_peds_df, level_delimiter=None)
-        Fs1 = feature_peds_df.set_index("id").at['Feature1',
-                                                 'subject']
-        Fs2 = feature_peds_df.set_index("id").at['Feature2',
-                                                 'subject']
+        prdf_df = prdf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        _rename_features(data=prdf_df, level_delimiter=None)
+        Fs1 = prdf_df.set_index("id").at['Feature1',
+                                         'subject']
+        Fs2 = prdf_df.set_index("id").at['Feature2',
+                                         'subject']
         self.assertEqual("Feature1", Fs1)
         self.assertEqual("Feature2", Fs2)
 
@@ -1276,15 +1279,15 @@ class TestPeds(TestBase):
                 'Feature;1': [0, 0, 1, 1],
                 'Feature;2': [0, 1, 1, 1],
                 'Feature;3': [0, 0, 1, 0]}).set_index('id')
-        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
-        _rename_features(data=feature_peds_df, level_delimiter=":")
-        Fs1 = feature_peds_df.set_index("id").at['Feature;1',
-                                                 'subject']
-        Fs2 = feature_peds_df.set_index("id").at['Feature;2',
-                                                 'subject']
+        prdf_df = prdf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        _rename_features(data=prdf_df, level_delimiter=":")
+        Fs1 = prdf_df.set_index("id").at['Feature;1',
+                                         'subject']
+        Fs2 = prdf_df.set_index("id").at['Feature;2',
+                                         'subject']
         self.assertEqual("Feature;1", Fs1)
         self.assertEqual("Feature;2", Fs2)
 
@@ -1302,15 +1305,15 @@ class TestPeds(TestBase):
                 'Feature;1;__': [0, 0, 1, 1],
                 'Feature;2': [0, 1, 1, 1],
                 'Feature;3': [0, 0, 1, 0]}).set_index('id')
-        feature_peds_df = feature_peds(table=table_df, metadata=metadata,
-                                       time_column="group",
-                                       reference_column="Ref",
-                                       subject_column="subject")
-        _rename_features(data=feature_peds_df, level_delimiter=";")
-        Fs1 = feature_peds_df.set_index("id").at['Feature 1 __',
-                                                 'subject']
-        Fs2 = feature_peds_df.set_index("id").at['Feature 2',
-                                                 'subject']
+        prdf_df = prdf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        _rename_features(data=prdf_df, level_delimiter=";")
+        Fs1 = prdf_df.set_index("id").at['Feature 1 __',
+                                         'subject']
+        Fs2 = prdf_df.set_index("id").at['Feature 2',
+                                         'subject']
         self.assertEqual("1", Fs1)
         self.assertEqual("2", Fs2)
 
@@ -1331,11 +1334,11 @@ class TestPeds(TestBase):
             'Feature1': [0, 0, 1, 1, 1, 1],
             'Feature2': [0, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
-                                     time_column="group",
-                                     reference_column="Ref",
-                                     subject_column="subject")
-        obs_samples = sample_peds_df['id'].to_list()
+        pedf_df = pedf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject")
+        obs_samples = pedf_df['id'].to_list()
         exp_sample = ['sample1', 'sample2', 'sample4']
         self.assertEqual(obs_samples, exp_sample)
 
@@ -1359,12 +1362,12 @@ class TestPeds(TestBase):
         with self.assertRaisesRegex(KeyError, "References included in the"
                                     " metadata are missing from the feature"
                                     " table.*"):
-            sample_peds(table=table_df, metadata=metadata,
-                        time_column="group",
-                        reference_column="Ref",
-                        subject_column="subject")
+            pedf(table=table_df, metadata=metadata,
+                 time_column="group",
+                 reference_column="Ref",
+                 subject_column="subject")
 
-    def test_peds_no_donor_in_table_flag(self):
+    def test_pedf_no_donor_in_table_flag(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -1381,12 +1384,12 @@ class TestPeds(TestBase):
             'Feature1': [0, 0, 1, 1, 1],
             'Feature2': [0, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1]}).set_index('id')
-        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
-                                     time_column="group",
-                                     reference_column="Ref",
-                                     subject_column="subject",
-                                     filter_missing_references=True)
-        obs_samples = sample_peds_df['id'].to_list()
+        pedf_df = pedf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject",
+                       filter_missing_references=True)
+        obs_samples = pedf_df['id'].to_list()
         exp_sample = ['sample1', 'sample2']
         self.assertEqual(obs_samples, exp_sample)
 
@@ -1402,13 +1405,13 @@ class TestPeds(TestBase):
                    'sample5', 'sample6'],
             'Feature1': [1, 0, 1, 0, 0, 0],
             'Feature2': [0, 0, 1, 1, 0, 1]}).set_index('id')
-        sample_pprs_df = sample_pprs(table=table_df, metadata=metadata,
-                                     time_column="group",
-                                     subject_column="subject",
-                                     baseline_timepoint="1",
-                                     filter_missing_references=False)
+        pprf_df = pprf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       subject_column="subject",
+                       baseline_timepoint="1",
+                       filter_missing_references=False)
 
-        exp_pprs_df = pd.DataFrame({
+        exp_pprf_df = pd.DataFrame({
             'id': ['sample2', 'sample3',  'sample5', 'sample6'],
             'transfered_baseline_features': [0.0, 1.0, 0.0, 1.0],
             'total_baseline_features': [1.0, 1.0, 1.0, 1.0],
@@ -1417,9 +1420,9 @@ class TestPeds(TestBase):
             'group': [2.0, 3.0, 2.0, 3.0],
             'measure': [0.0, 1.0, 0.0, 1.0]
             })
-        pd.testing.assert_frame_equal(sample_pprs_df, exp_pprs_df)
+        pd.testing.assert_frame_equal(pprf_df, exp_pprf_df)
 
-    def test_pprs_baseline_sub(self):
+    def test_pprf_baseline_sub(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'pre1', 'pre2'],
@@ -1436,11 +1439,11 @@ class TestPeds(TestBase):
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
         with self.assertRaisesRegex(AssertionError, "No baseline samples"
                                     " were connected via subject. .*"):
-            sample_pprs(table=table_df, metadata=metadata,
-                        time_column="group",
-                        baseline_timepoint="0",
-                        subject_column="subject",
-                        filter_missing_references=False)
+            pprf(table=table_df, metadata=metadata,
+                 time_column="group",
+                 baseline_timepoint="0",
+                 subject_column="subject",
+                 filter_missing_references=False)
 
     def test_create_used_references(self):
         reference_series = pd.Series(data=['donor1', 'donor1'],
@@ -1476,11 +1479,11 @@ class TestPeds(TestBase):
             'Feature2': [0, 0, 1, 1, 0, 1]}).set_index('id')
         with self.assertRaisesRegex(KeyError, "Missing references for the"
                                     " associated sample data. .*"):
-            sample_pprs(table=table_df, metadata=metadata,
-                        time_column="group",
-                        subject_column="subject",
-                        baseline_timepoint="1",
-                        filter_missing_references=False)
+            pprf(table=table_df, metadata=metadata,
+                 time_column="group",
+                 subject_column="subject",
+                 baseline_timepoint="1",
+                 filter_missing_references=False)
 
     def test_median(self):
         df = pd.DataFrame({
@@ -1567,17 +1570,17 @@ class TestPeds(TestBase):
             'Feature1': [0, 0, 1, 1, 1, 1],
             'Feature2': [0, 1, 1, 1, 1, 1],
             'Feature3': [0, 0, 1, 1, 1, 1]}).set_index('id')
-        sample_peds_df = sample_peds(table=table_df, metadata=metadata,
-                                     time_column="group",
-                                     reference_column="Ref",
-                                     subject_column="subject",
-                                     num_resamples=1,
-                                     sampling_depth=3)
+        pedf_df = pedf(table=table_df, metadata=metadata,
+                       time_column="group",
+                       reference_column="Ref",
+                       subject_column="subject",
+                       num_resamples=1,
+                       sampling_depth=3)
 
-        TDFs3 = sample_peds_df.set_index("id").at['sample3',
-                                                  'measure']
-        TDFs4 = sample_peds_df.set_index("id").at['sample4',
-                                                  'measure']
+        TDFs3 = pedf_df.set_index("id").at['sample3',
+                                           'measure']
+        TDFs4 = pedf_df.set_index("id").at['sample4',
+                                           'measure']
 
         self.assertEqual(TDFs3, 1)
         self.assertEqual(TDFs4, 1)
@@ -1645,13 +1648,13 @@ class TestSim(TestBase):
             'Feature3': [0, 0, 10, 0, 0, 10]}).set_index('id')
         metadata = Metadata(metadata_df)
 
-        _, stats, _ = peds_simulation(metadata=metadata,
-                                      table=table_df,
-                                      time_column="group",
-                                      reference_column="Ref",
-                                      subject_column="subject",
-                                      num_resamples=999,
-                                      sampling_depth=9)
+        _, stats, _ = pedf_permutation_test(metadata=metadata,
+                                            table=table_df,
+                                            time_column="group",
+                                            reference_column="Ref",
+                                            subject_column="subject",
+                                            num_resamples=999,
+                                            sampling_depth=9)
         real_median = np.median(stats["A:measure"].values)
         fake_median = np.median(stats["B:measure"].values)
         self.assertGreater(real_median, fake_median)
@@ -1681,13 +1684,13 @@ class TestSim(TestBase):
             'Feature3': [0, 0, 10, 10, 10, 0]}).set_index('id')
         metadata = Metadata(metadata_df)
 
-        _, stats, _ = peds_simulation(metadata=metadata,
-                                      table=table_df,
-                                      time_column="group",
-                                      reference_column="Ref",
-                                      subject_column="subject",
-                                      num_resamples=999,
-                                      sampling_depth=9)
+        _, stats, _ = pedf_permutation_test(metadata=metadata,
+                                            table=table_df,
+                                            time_column="group",
+                                            reference_column="Ref",
+                                            subject_column="subject",
+                                            num_resamples=999,
+                                            sampling_depth=9)
 
         real_median = np.median(stats["A:measure"].values)
         fake_median = np.median(stats["B:measure"].values)
@@ -1713,13 +1716,13 @@ class TestSim(TestBase):
 
         with self.assertRaisesRegex(AssertionError, "There is only one"
                                     " donated microbiome in your data. *"):
-            peds_simulation(metadata=metadata,
-                            table=table_df,
-                            time_column="group",
-                            reference_column="Ref",
-                            subject_column="subject",
-                            num_resamples=999,
-                            sampling_depth=1)
+            pedf_permutation_test(metadata=metadata,
+                                  table=table_df,
+                                  time_column="group",
+                                  reference_column="Ref",
+                                  subject_column="subject",
+                                  num_resamples=999,
+                                  sampling_depth=1)
 
     def test_create_mismatched_pairs(self):
         metadata_df = pd.DataFrame({
