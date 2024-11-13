@@ -240,7 +240,7 @@ plugin.visualizers.register_function(
             Dist1D[Ordered, Matched] % Properties("prdf"),
             'per_subject_stats': StatsTable[Pairwise],
             'global_stats': StatsTable[Pairwise]},
-    input_descriptions={'data': 'PEDF or PPRS output to plot',
+    input_descriptions={'data': 'PEDF or PPRF output to plot',
                         'per_subject_stats': per_subject_stats,
                         'global_stats': global_stats},
     parameters={'level_delimiter': Str,
