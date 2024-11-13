@@ -333,7 +333,7 @@ def _compute_proportion(df: pd.Series, type: str, time: int,
                                 recip_df=recip_df,
                                 reference_column=reference_column)
     maskedrecip = donormask & recip_df
-    if type == "Sample" or type == "PPRS":
+    if type == "Sample" or type == "PPRF":
         num_sum = np.sum(maskedrecip, axis=1)
         donor_sum = np.sum(donormask, axis=1)
         for count, sample in enumerate(recip_df.index):
