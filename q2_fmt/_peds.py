@@ -297,7 +297,7 @@ def prdf(table: pd.DataFrame, metadata: qiime2.Metadata,
         'description': ''
     })
     prdf_df['measure'].attrs.update({
-        'title': "Feature PEDS",
+        'title': "Feature PRDF",
         'description': 'Proportional Engraftment of Donor Strains'
     })
     prdf_df['group'].attrs.update({
