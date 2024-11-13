@@ -251,7 +251,7 @@ plugin.visualizers.register_function(
         'drop_incomplete_timepoints': drop_incomplete_timepoints,
         'drop_incomplete_subjects': drop_incomplete_subjects},
     name=' Proportional Features Heatmap',
-    description='Plot heatmap for PEDF, PRDF or PPRS value over time',
+    description='Plot heatmap for PEDF, PRDF or PPRF value over time',
     examples={
         'heatmap': ex.heatmap}
 )
