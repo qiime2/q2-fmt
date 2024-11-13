@@ -1420,7 +1420,7 @@ class TestPeds(TestBase):
             'group': [2.0, 3.0, 2.0, 3.0],
             'measure': [0.0, 1.0, 0.0, 1.0]
             })
-        pd.testing.assert_frame_equal(pprf_df, exp_pprs_df)
+        pd.testing.assert_frame_equal(pprf_df, exp_pprf_df)
 
     def test_pprf_baseline_sub(self):
         metadata_df = pd.DataFrame({
