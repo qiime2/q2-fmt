@@ -1411,7 +1411,7 @@ class TestPeds(TestBase):
                        baseline_timepoint="1",
                        filter_missing_references=False)
 
-        exp_pprs_df = pd.DataFrame({
+        exp_pprf_df = pd.DataFrame({
             'id': ['sample2', 'sample3',  'sample5', 'sample6'],
             'transfered_baseline_features': [0.0, 1.0, 0.0, 1.0],
             'total_baseline_features': [1.0, 1.0, 1.0, 1.0],
