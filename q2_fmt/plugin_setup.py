@@ -389,7 +389,7 @@ plugin.methods.register_function(
                             ' This will make it faster to run this method but'
                             ' the actual values may be slightly less'
                             ' comparable to the simulated values which will'
-                            ' be undergo rarefaction `num_resamples` of times',
+                            ' undergo rarefaction `num_resamples` of times',
     },
     output_descriptions={
         'actual_sample_pedf': pedf_dists,
