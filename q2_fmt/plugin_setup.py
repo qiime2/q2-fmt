@@ -312,7 +312,7 @@ plugin.methods.register_function(
     output_descriptions={
         'prdf_dists': pedf_dists
     },
-    name='Porportion of Recipient with Donor Feature',
+    name='Porportion of Recipients with Donor Feature',
     description='Calculates how many recipients recieved a given'
                 ' donated microbiome feature ',
     examples={
