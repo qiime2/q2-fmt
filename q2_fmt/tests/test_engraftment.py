@@ -1422,7 +1422,7 @@ class TestPeds(TestBase):
             })
         pd.testing.assert_frame_equal(pprf_df, exp_pprs_df)
 
-    def test_pprs_baseline_sub(self):
+    def test_pprf_baseline_sub(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'pre1', 'pre2'],
