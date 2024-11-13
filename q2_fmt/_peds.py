@@ -352,7 +352,7 @@ def _compute_proportion(df: pd.Series, type: str, time: int,
                                donor_sum[count], time, feature]
             df = df.dropna()
     else:
-        raise KeyError('There was an error finding which PEDS methods to use')
+        raise KeyError('There was an error finding which proportion method to use')
     return df
 
 
