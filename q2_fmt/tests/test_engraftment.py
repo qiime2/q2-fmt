@@ -1191,7 +1191,7 @@ class TestPeds(TestBase):
                                         'total_donor_features', 'donor',
                                         'subject', 'group'])
         with self.assertRaisesRegex(AssertionError, ".*['1' '2'].*"):
-            _compute_proportion(df=peds_df, type="Sample",
+            _compute_proportion(df=pedf_df, type="Sample",
                                 time=np.nan,
                                 reference_series=reference_series,
                                 table=table_df, metadata=metadata_df,
