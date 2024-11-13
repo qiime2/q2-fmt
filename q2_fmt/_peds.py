@@ -197,7 +197,7 @@ def pedf(table: pd.DataFrame, metadata: qiime2.Metadata,
     })
     pedf_df['measure'].attrs.update({
         'title': "PEDF",
-        'description': 'Proportional Engraftment of Donor Strains'
+        'description': 'Proportional Engraftment of Donor Features'
     })
     pedf_df['group'].attrs.update({
         'title': time_column,
@@ -298,7 +298,7 @@ def prdf(table: pd.DataFrame, metadata: qiime2.Metadata,
     })
     prdf_df['measure'].attrs.update({
         'title': "PRDF",
-        'description': 'Proportional Engraftment of Donor Strains'
+        'description': 'Proportion of Recipients with Donor Feature'
     })
     prdf_df['group'].attrs.update({
         'title': time_column,
@@ -352,7 +352,8 @@ def _compute_proportion(df: pd.Series, type: str, time: int,
                                donor_sum[count], time, feature]
             df = df.dropna()
     else:
-        raise KeyError('There was an error finding which proportion method to use')
+        raise KeyError('There was an error finding which proportion method to'
+                       ' use')
     return df
 
 
