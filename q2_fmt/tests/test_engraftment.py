@@ -966,7 +966,7 @@ class TestPeds(TestBase):
             'group': [1.0, 2.0, 3.0, 2.0],
             'measure': [0, 0.333333, 1, 1]
             })
-        pd.testing.assert_frame_equal(pedf_df, exp_peds_df)
+        pd.testing.assert_frame_equal(pedf_df, exp_pedf_df)
 
     def test_feature_overlap(self):
         metadata_df = pd.DataFrame({
