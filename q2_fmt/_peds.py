@@ -402,7 +402,7 @@ def pprf(table: pd.DataFrame, metadata: qiime2.Metadata,
                                         'group'])
         if sampling_depth:
             table = _subsample(table, sampling_depth)
-        pprf_df = _compute_proportion(df=pprf_df, type='PPRS',
+        pprf_df = _compute_proportion(df=pprf_df, type='PPRF',
                                       time=np.nan,
                                       reference_series=used_references,
                                       table=table, metadata=baseline_metadata,
