@@ -799,7 +799,7 @@ class TestPeds(TestBase):
                                       reference_column="Ref",
                                       subject_column="subject")
         pedf_df = pedf_df.set_index("id")
-        donor = peds_df.at["sample1", "donor"]
+        donor = pedf_df.at["sample1", "donor"]
         self.assertEqual(donor, "donor1")
 
     def test_get_subject(self):
