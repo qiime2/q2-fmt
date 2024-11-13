@@ -435,7 +435,7 @@ def pprf(table: pd.DataFrame, metadata: qiime2.Metadata,
         'description': 'Sample IDs'
     })
     pprf_df['measure'].attrs.update({
-        'title': 'PPRS',
+        'title': 'PPRF',
         'description': 'Proportional Persistence of Recipient Features'
     })
     pprf_df['group'].attrs.update({
