@@ -436,7 +436,7 @@ def pprf(table: pd.DataFrame, metadata: qiime2.Metadata,
     })
     pprf_df['measure'].attrs.update({
         'title': 'PPRS',
-        'description': 'Proportional Persistence of Recipient Strains'
+        'description': 'Proportional Persistence of Recipient Features'
     })
     pprf_df['group'].attrs.update({
         'title': time_column,
