@@ -280,7 +280,7 @@ plugin.methods.register_function(
     },
     name='Proportional Engraftment of Donor Features in each'
          ' recipient sample. This is adapted from aggarwala et al. 2021'
-         ' stainer manuscript, which coined the term PEDS, PEDF uses the same'
+         ' stainer manuscript, which coined the term PEDS. PEDF uses the same'
          ' ideas but is applied to features generally.',
     description='Calculates percentage of microbes that where found in the '
     'donated material that are found in the recipient.',
