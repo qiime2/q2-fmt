@@ -70,7 +70,7 @@ def heatmap(output_dir: str, data: pd.DataFrame,
     gradient = "measure"
     if "all possible recipients with feature" in data.columns:
         if drop_incomplete_subjects or drop_incomplete_timepoints:
-            warnings.warn('PRDF was selected as the porportion metric, which'
+            warnings.warn('PRDF was selected as the proportion metric, which'
                           ' does not accept `drop_incomplete_subjects` or'
                           ' `drop_incomplete_timepoints` as parameters. One'
                           ' (or both) of these parameters were detected in'
