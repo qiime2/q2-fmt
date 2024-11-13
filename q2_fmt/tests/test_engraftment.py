@@ -831,7 +831,7 @@ class TestPeds(TestBase):
                                       reference_column="Ref",
                                       subject_column="subject")
         pedf_df = pedf_df.set_index("id")
-        subject = peds_df.at["sample1", "subject"]
+        subject = pedf_df.at["sample1", "subject"]
         self.assertEqual(subject, "sub1")
 
     def test_timepoint(self):
