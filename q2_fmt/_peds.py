@@ -549,7 +549,7 @@ def pedf_permutation_test(table: pd.DataFrame, metadata: qiime2.Metadata,
     recip_mask = _mask_recipient(donor_mask, rarefied_recip_simulated_table)
     # Numerator for PEDS Calc. (Number of Donor features in the Recipient)
     num_engrafted_donor_features = np.sum(recip_mask.values, axis=1)
-    # Denominator for PEDS Calc. (Number of unique features in the Donor)
+    # Denominator for PEDF Calc. (Number of unique features in the Donor)
     num_donor_features = np.sum(donor_mask, axis=1)
     # This ignores warnings that come from dividing by 0.
     # mismatched_pedf will be Nan if the denominator is 0 and thats reasonable.
