@@ -263,78 +263,75 @@ use.action(
 Now lets look at the distance to their baseline. This will help us identify if the microbiome that emerges after FMT intervention is a unique personalized microbiome or if it is reverting to their baseline. Looking at this raincloud plot it looks like the microbiome always looks distinct from the baseline microbiome and that pattern continues all the way to the last timepoint. This probably indicates that the recipient microbiome following FMT is unique! 
 
 
-### Proportional Engraftment of Donor Strains(PEDS)
+### Proportional Engraftment of Donor Features (PEDF)
 
-If you are interested in how many microbes from the donor engrafted in the recipient, Proportional Engraftment of Donor Strains helps capture just that. 
+If you are interested in how many microbes from the donor engrafted in the recipient, Proportional Engraftment of Donor Features helps capture just that. 
 
-The above metrics capture how similar the recipient and donor microbiomes are. However, We want these microbiome to coalesce asymmetrically meaning that we want the donor's features to be more prominment in the recipeint following FMT than baseline features. This metrics investigates this asymmetric colescence and captures how many donated features engrafted. Note that Drop incomplete timepoints will be run before drop incomplete subjects. 
+The above metrics capture how similar the recipient and donor microbiomes are. However, We want these microbiome to coalesce asymmetrically meaning that we want the donor's features to be more prominment in the recipeint following FMT than baseline features. This metrics investigates this asymmetric colescence and captures how many donated features engrafted. 
 
 ```{usage}
-sample_peds_dists, = use.action(
-        use.UsageAction('fmt', 'sample_peds'),
+pedf_dists, = use.action(
+        use.UsageAction('fmt', 'pedf'),
         use.UsageInputs(
             table=core_metrics_results.rarefied_table,
             metadata=sample_metadata,
             time_column='timepoints',
             reference_column='DonorSampleID',
             filter_missing_references=True,
-            subject_column='PatientID', 
-            drop_incomplete_timepoints = ["2","5","6"],
-            drop_incomplete_subjects=True
+            subject_column='PatientID'
         ),
         use.UsageOutputNames(
-            peds_dists='sample_peds_dist'
+            pedf_dists='pedf_dist'
         )
 
     )
 ```
-Now, we have our PEDS metrics and we want to visualize them. Lets use `qiime fmt peds-heatmap`. 
+Now, we have our PEDF metrics and we want to visualize them. 
+Lets use `qiime fmt heatmap`. 
 
 ```{usage}
 use.action(
     use.UsageAction('fmt', 'heatmap'),
     use.UsageInputs(
-        data=sample_peds_dists,
+        data=pedf_dists,
     ),
     use.UsageOutputNames(
-        visualization='sample-heatmap',
+        visualization='pedf-heatmap',
 
     )
 )
 ```
-This can also be run using `qiime fmt peds`. Run `qiime fmt ped --help` for more info! 
 
 Looking at this output, timepoint 0 seems to have very low  proportional engraftment of donor strains. However, we can see that there is a a kind of bi-modal distribution at timepoint 1. Some of the samples have a relatively proportional engraftment of donor strains and some of them have a relatively low proportional engraftment of donor strains . At timepoint 3, we can see that there is less variation between recipients. This lines up pretty well with what we were seeing with the raincloud plot. This makes sense because they both are investigating Community Coalesense! 
 
 Note: you can also use `qiime stats plot-rainclouds` to visualize this data! This will create plots more similar to the ouput of `qiime fmt cc` above. 
 
-### Monte Carlo Simulation of PEDS
+### Permutation Test of PEDF
 
 Now an important question to ask is: 
 "Is the overlap between features due to the FMT or are the similarities between these 2 microbiome by random chance". 
-That's where `peds-simulation` comes in! 
+That's where `pedf-permutation-test` comes in! 
 
-PEDS simulations is a Monte Carlo simulation that randomizes the relationships between donors and recipients, to test whether the PEDS score between a recipient and their actual donor is significantly higher than PEDS scores between other recipients paired with random donors.
+PEDF permutation testrandomizes the relationships between donors and recipients, to test whether the PEDS score between a recipient and their actual donor is significantly higher than PEDS scores between other recipients paired with random donors.
 
-Note that we are testing this on an equally amount of pre-fmt and post FMT samples and this will likely lead to a more conservative
-global test results. 
+Note that we are testing this on an equal amount of pre-fmt and post FMT samples and this will likely lead to a more conservative global test results. 
 
 Alright, Lets take a look 👀.
 
 ```{usage}
-per_subject_stats, global_stats = use.action(
-        use.UsageAction('fmt', 'peds_simulation'),
+actual_sample_pedf, per_subject_stats, global_stats = use.action(
+        use.UsageAction('fmt', 'pedf_permutation_test'),
         use.UsageInputs(
             table=core_metrics_results.rarefied_table,
             metadata=sample_metadata,
             time_column='timepoints',
             reference_column='DonorSampleID',
             filter_missing_references=True,
-            subject_column='PatientID', 
-            drop_incomplete_timepoints = ["2","5","6"],
-            drop_incomplete_subjects=True
+            subject_column='PatientID',
+            sampling_depth=10000
         ),
         use.UsageOutputNames(
+            actual_sample_pedf='actual_sample_pedf',
             per_subject_stats='per-subject-stats',
             global_stats='global-stats'
         )
@@ -346,42 +343,40 @@ We can now re-vizualize our heatmap and include these new stats that we created.
 use.action(
     use.UsageAction('fmt', 'heatmap'),
     use.UsageInputs(
-        data=sample_peds_dists,
+        data=actual_sample_pedf,
         per_subject_stats=per_subject_stats,
         global_stats=global_stats
     ),
     use.UsageOutputNames(
-        visualization='peds-stats-heatmap',
+        visualization='pedf-stats-heatmap',
 
     )
 )
 ```
-We can see that there are many per-subject stats that where the simulated data(randomly paired recipients and donors) have higher PEDS than the true donor recipient pair but the majority of our comparisons are significant and globally are true pairs are significantly higher than our simulated donor recipient pairs. 
+We can see that there are many per-subject stats that where the simulated data(randomly paired recipients and donors) have higher PEDF than the true donor recipient pair but the majority of our comparisons are significant and globally are true pairs are significantly higher than our simulated donor recipient pairs. 
 
 Thats good news! 
 
 
-### Proportional Persistence of Recipient Strains(PPRS)
+### Proportional Persistence of Recipient Features (PPRF)
 
-Proportional Persistence of Recipient Strains (PPRS) investigates if there are any features from the recipients baseline that stick around after FMT intervention.
+Proportional Persistence of Recipient Features (PPRF) investigates if there are any features from the recipients baseline that stick around after FMT intervention.
 
 It is a very similar investigation to using `fmt cc` with the distance-to parameter set to baseline. This will again help us evaluate if a uniquew personalized microbiome is emerging or if the microbiome is reverting back to baseline.
 
 ```{usage}
-sample_pprs_dists, = use.action(
-        use.UsageAction('fmt', 'sample_pprs'),
+pprf_dists, = use.action(
+        use.UsageAction('fmt', 'pprf'),
         use.UsageInputs(
             table=core_metrics_results.rarefied_table,
             metadata=sample_metadata,
             time_column='timepoints',
             baseline_timepoint='0',
             filter_missing_references=True,
-            subject_column='PatientID', 
-            drop_incomplete_timepoints = ["2","5","6"],
-            drop_incomplete_subjects=True
+            subject_column='PatientID'
         ),
         use.UsageOutputNames(
-            pprs_dists='sample_pprs_dist'
+            pprf_dists='pprf_dist'
         )
 
     )
@@ -392,10 +387,10 @@ This can also be viewed using `fmt heatmap`!
 use.action(
     use.UsageAction('fmt', 'heatmap'),
     use.UsageInputs(
-        data=sample_pprs_dists
+        data=pprf_dists
     ),
     use.UsageOutputNames(
-        visualization='pprs-heatmap',
+        visualization='pprf-heatmap',
 
     )
 )
@@ -490,8 +485,8 @@ Since we previously looked at the Clostrida, lets continue look at how our class
 Let's take a look now and see if we have any features that are sucessfully engrafting accross subjects.
 
 ```{usage}
-feature_peds_dist, = use.action(
-    use.UsageAction('fmt', 'feature_peds'),
+prdf_dist, = use.action(
+    use.UsageAction('fmt', 'prdf'),
     use.UsageInputs(
         table=collapsed3_table,
         metadata=sample_metadata,
@@ -501,7 +496,7 @@ feature_peds_dist, = use.action(
         filter_missing_references=True
     ),
     use.UsageOutputNames(
-        peds_dists='feature_peds_dist'
+        prdf_dists='pfdf_dist'
     )
 
 )
@@ -513,7 +508,7 @@ We are using the `level-delimiter` parameter here so that the taxonomic strings 
 use.action(
     use.UsageAction('fmt', 'heatmap'),
     use.UsageInputs(
-        data=feature_peds_dist,
+        data=prdf_dist,
         level_delimiter = ';',
     ),
     use.UsageOutputNames(
