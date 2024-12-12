@@ -7,7 +7,7 @@ dependencies:
   - qiime2-amplicon
   - jupyter-book
   - pip:
-    - https://github.com/qiime2/q2-fmt/archive/refs/tags/2024.11.0.zip
+    - https://github.com/qiime2/q2-fmt/archive/refs/tags/2024.11.1.zip
     - frictionless
     - q2doc @ git+https://github.com/qiime2/sphinx-ext-qiime2.git@master
     - sphinx-exercise

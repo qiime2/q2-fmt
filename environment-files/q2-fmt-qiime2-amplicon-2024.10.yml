@@ -6,4 +6,4 @@ dependencies:
   - qiime2-amplicon
   - pip
   - pip:
-    - https://github.com/qiime2/q2-fmt/archive/refs/tags/2024.11.0.zip
+    - https://github.com/qiime2/q2-fmt/archive/refs/tags/2024.11.1.zip
