@@ -516,6 +516,10 @@ def pedf_permutation_test(table: pd.DataFrame, metadata: qiime2.Metadata,
     actual_pedf = pedf_df[['id', 'measure']].set_index('id')['measure']
 
     # Mismatch simulation:
+
+    # Filtering out any samples that are going to be dropped by rarfying before
+    # we assign donor-receipent mismatches.
+    table = table[table.sum(axis=1) >= sampling_depth]
     recip_df = _create_recipient_table(used_references, metadata_df, table)
     donor_df = table[table.index.isin(used_references)]
     mismatched_series = \
@@ -529,10 +533,12 @@ def pedf_permutation_test(table: pd.DataFrame, metadata: qiime2.Metadata,
     simulated_recip_table, simulated_donor_table =\
         _create_duplicated_tables(simulated_mismatched_series, recip_df,
                                   donor_df)
+
     # concating or recip and donor tables so column number stays the same after
     # subsampling
     simulated_table = pd.concat([simulated_recip_table,
                                  simulated_donor_table])
+
     rarefied_simulated_table = _subsample(table=simulated_table,
                                           sampling_depth=sampling_depth)
 

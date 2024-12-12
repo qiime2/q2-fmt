@@ -2014,6 +2014,41 @@ class TestSim(TestBase):
         self.assertEqual(count_less, exp_count_less)
         self.assertEqual(per_subject_p, exp_per_subject_p)
 
+    def test_samples_drop(self):
+        # This tests has a very small chance of failing by random chance if
+        # out of the 9 random samples, the present feature doesnt subsample
+        # at least one time but that is pretty unlikely.
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2', 'donor3'],
+            'Ref': ['donor1', 'donor2', 'donor3', np.nan, np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub2', 'sub3', np.nan, np.nan,
+                        np.nan],
+            'group': [1, 1, 1, np.nan, np.nan,
+                      np.nan],
+            "Location": [np.nan, np.nan,
+                         np.nan, 'test', 'test',
+                         'test']}).set_index('id')
+
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3',
+                   'donor1', 'donor2', 'donor3'],
+            'Feature1': [10, 0, 0, 10, 0, 0],
+            'Feature2': [0, 1, 0, 0, 10, 0],
+            'Feature3': [0, 0, 10, 0, 0, 10]}).set_index('id')
+        metadata = Metadata(metadata_df)
+
+        peds, _, _ = pedf_permutation_test(metadata=metadata,
+                                           table=table_df,
+                                           time_column="group",
+                                           reference_column="Ref",
+                                           subject_column="subject",
+                                           num_resamples=999,
+                                           sampling_depth=9)
+
+        self.assertFalse(peds['id'].isin(['sample2']).any())
+
 
 class detect(TestBase):
     def test_baseline_donor_md(self):
