@@ -466,4 +466,30 @@ plugin.pipelines.register_function(
     }
 )
 
+plugin.methods.register_function(
+    function=q2_fmt.indicator_tracking_prep,
+    inputs={'table': FeatureTable[RelativeFrequency]},
+    parameters={'metadata': Metadata, 'time_column': Str,
+                'reference_column': Str, 'subject_column': Str},
+    outputs=[('indicator_dists', Dist1D[Ordered, Matched])],
+    input_descriptions={'table': 'Relative Frequency Table that contains'
+                        ' feature of interest to track across time'},
+    parameter_descriptions={
+        'metadata': metadata,
+        'time_column': time_column,
+        'reference_column': reference_column,
+        'subject_column': subject_column,
+        'filter_missing_references': filter_missing_references},
+    output_descriptions={
+        'indicator_dists': ('The distributions for the indicator feature of'
+                            ' interest measure, grouped by the selected'
+                            ' `time_column`. May also contain subject IDs, if'
+                            ' `subject_column` is  provided in `metadata`.')
+    },
+    name='Indicator Feature Tracking Prep Method',
+    description=('This methods tracks an indicator feature of interest across'
+                 ' time')
+)
+
+
 importlib.import_module('q2_fmt._transformer')

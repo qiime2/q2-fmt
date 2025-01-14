@@ -8,7 +8,12 @@
 import pandas as pd
 from qiime2 import Metadata
 
-from q2_fmt._util import _check_for_time_column, _check_reference_column
+from q2_fmt._util import (_check_for_time_column, _check_reference_column,
+                          _check_column_type, _check_subject_column,
+                          _check_duplicate_subject_timepoint,
+                          _create_used_references,
+                          _filter_associated_reference
+                          )
 
 
 def detect_donor_indicators(ctx, table, reference_column, time_column,
@@ -83,3 +88,49 @@ def get_baseline_donor_md(metadata, reference_column, time_column,
     ids_to_keep.index.name = 'id'
     ids_to_keep = ids_to_keep.rename({0: "type"}, axis=1)
     return ids_to_keep
+
+
+def indicator_tracking_prep(
+    table: pd.DataFrame, metadata: Metadata, time_column: str,
+    reference_column: str,
+    subject_column: str, indicator_name: str,
+    filter_missing_references: bool = False
+):
+    # making sure that samples exist in the table
+    ids_with_data = table.index
+    metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
+    column_properties = metadata.columns
+    metadata_df = metadata.to_dataframe()
+
+    time_col = _check_for_time_column(metadata_df, time_column)
+    _check_column_type(column_properties, "time",
+                       time_column, "numeric")
+    metadata_df = metadata_df.filter(items=time_col.index, axis=0)
+    subject_series = _check_subject_column(metadata_df, subject_column)
+    _check_column_type(column_properties, "subject",
+                       subject_column, "categorical")
+    _check_duplicate_subject_timepoint(subject_series, metadata_df,
+                                       subject_column, time_column)
+    reference_series = _check_reference_column(metadata_df, reference_column)
+    _check_column_type(column_properties, "reference",
+                       reference_column, "categorical")
+    used_references = _create_used_references(reference_series, metadata_df,
+                                              time_column)
+    # return things that should be removed
+    metadata_df, used_references = \
+        _filter_associated_reference(used_references, metadata_df,
+                                     filter_missing_references, ids_with_data)
+    try:
+        measure = table[indicator_name]
+    except KeyError:
+        raise KeyError(f'{indicator_name} was not found in feature-table.'
+                       ' Please check input feature-table and confirm that'
+                       ' the feature of interest is in the feature table.'
+                       ' This is commonly caused because the provided'
+                       ' feature-table was not collapsed but a taxon string'
+                       ' was provided as the indicator name')
+    ordinal_dist = pd.DataFrame(data={'measure': measure,
+                                      'group': time_col,
+                                      'subject': subject_series},
+                                index=used_references.index)
+    return ordinal_dist.reset_index()
