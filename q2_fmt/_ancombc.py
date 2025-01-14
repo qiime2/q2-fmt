@@ -93,9 +93,9 @@ def get_baseline_donor_md(metadata, reference_column, time_column,
 def indicator_tracking_prep(
     table: pd.DataFrame, metadata: Metadata, time_column: str,
     reference_column: str,
-    subject_column: str, indicator_name: str,
+    subject_column: str, indicator_id: str,
     filter_missing_references: bool = False
-):
+) -> (pd.DataFrame):
     # making sure that samples exist in the table
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
@@ -121,9 +121,9 @@ def indicator_tracking_prep(
         _filter_associated_reference(used_references, metadata_df,
                                      filter_missing_references, ids_with_data)
     try:
-        measure = table[indicator_name]
+        measure = table[indicator_id]
     except KeyError:
-        raise KeyError(f'{indicator_name} was not found in feature-table.'
+        raise KeyError(f'{indicator_id} was not found in feature-table.'
                        ' Please check input feature-table and confirm that'
                        ' the feature of interest is in the feature table.'
                        ' This is commonly caused because the provided'

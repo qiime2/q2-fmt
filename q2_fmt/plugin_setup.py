@@ -470,7 +470,8 @@ plugin.methods.register_function(
     function=q2_fmt.indicator_tracking_prep,
     inputs={'table': FeatureTable[RelativeFrequency]},
     parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': Str},
+                'reference_column': Str, 'subject_column': Str,
+                'indicator_id': Str, 'filter_missing_references': Bool},
     outputs=[('indicator_dists', Dist1D[Ordered, Matched])],
     input_descriptions={'table': 'Relative Frequency Table that contains'
                         ' feature of interest to track across time'},
@@ -479,6 +480,7 @@ plugin.methods.register_function(
         'time_column': time_column,
         'reference_column': reference_column,
         'subject_column': subject_column,
+        'indicator_id': 'ID of Feature or Taxon of interest to track',
         'filter_missing_references': filter_missing_references},
     output_descriptions={
         'indicator_dists': ('The distributions for the indicator feature of'
