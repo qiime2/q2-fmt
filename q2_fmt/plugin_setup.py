@@ -6,8 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import importlib
-
 from qiime2.plugin import (Str, Plugin, Metadata, TypeMap,
                            Bool, Choices, Visualization, Properties, Citations,
                            Int, Range, List)
@@ -465,5 +463,3 @@ plugin.pipelines.register_function(
         'detect_methods': ex.detect_donor_indicators_method
     }
 )
-
-importlib.import_module('q2_fmt._transformer')
