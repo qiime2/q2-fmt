@@ -319,7 +319,12 @@ def _filter_associated_reference(used_references, metadata_df,
     """
     if used_references.isna().any():
         if filter_missing_references:
+            print("before")
+            print(used_references)
             used_references = used_references.dropna()
+            print("After")
+            print(used_references)
+
         else:
             nan_references = used_references.index[used_references.isna()]
             raise KeyError('Missing references for the associated sample data.'
@@ -328,6 +333,8 @@ def _filter_associated_reference(used_references, metadata_df,
                            ' IDs where missing references were found:'
                            ' %s' % (tuple(nan_references),))
     available_references = (used_references.isin(ids_with_data))
+    print("available_references")
+    print(available_references)
     if not available_references.all():
         if filter_missing_references:
             used_references = used_references[available_references]

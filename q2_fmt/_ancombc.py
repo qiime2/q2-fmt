@@ -6,6 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
+import numpy as np
+
 from qiime2 import Metadata
 
 from q2_fmt._util import (_check_for_time_column, _check_reference_column,
@@ -111,15 +113,19 @@ def indicator_tracking_prep(
                        subject_column, "categorical")
     _check_duplicate_subject_timepoint(subject_series, metadata_df,
                                        subject_column, time_column)
+
     reference_series = _check_reference_column(metadata_df, reference_column)
     _check_column_type(column_properties, "reference",
                        reference_column, "categorical")
+
     used_references = _create_used_references(reference_series, metadata_df,
                                               time_column)
     # return things that should be removed
     metadata_df, used_references = \
         _filter_associated_reference(used_references, metadata_df,
                                      filter_missing_references, ids_with_data)
+    print(used_references)
+    print(table[indicator_id])
     try:
         measure = table[indicator_id]
     except KeyError:
@@ -131,6 +137,26 @@ def indicator_tracking_prep(
                        ' was provided as the indicator name')
     ordinal_dist = pd.DataFrame(data={'measure': measure,
                                       'group': time_col,
-                                      'subject': subject_series},
-                                index=used_references.index)
-    return ordinal_dist.reset_index()
+                                      'subject': subject_series,
+                                      'reference': used_references}
+                                )
+    ordinal_dist = ordinal_dist.dropna(subset=['reference'])
+    ordinal_dist.index.name = 'id'
+    ordinal_dist = ordinal_dist.reset_index()
+    ordinal_dist['id'].attrs.update({
+        'title': metadata_df.index.name,
+        'description': 'Sample IDs'
+    })
+    ordinal_dist['measure'].attrs.update({
+        'title': f"Rel. Freq. of {indicator_id}",
+        'description': f"Rel. Freq. of {indicator_id}"
+    })
+    ordinal_dist['group'].attrs.update({
+        'title': time_column,
+        'description': 'Time'
+    })
+    ordinal_dist['subject'].attrs.update({
+        'title': subject_column,
+        'description': 'Subject IDs linking samples across time'
+    })
+    return ordinal_dist
