@@ -8,11 +8,14 @@
 
 import pandas as pd
 import numpy as np
+import biom 
+
 from skbio.stats.distance import DistanceMatrix
 from scipy.stats import false_discovery_control
 
 from qiime2.plugin.testing import TestPluginBase
 from qiime2 import Metadata
+
 
 from q2_fmt._util import (_rename_features, _check_column_missing,
                           _check_reference_column, _check_for_time_column,
@@ -29,7 +32,9 @@ from q2_fmt._util import (_rename_features, _check_column_missing,
 from q2_fmt._engraftment import group_timepoints
 from q2_fmt._peds import (_compute_proportion, pedf,
                           prdf, pedf_permutation_test, pprf)
-from q2_fmt._ancombc import get_baseline_donor_md, indicator_tracking_prep
+from q2_fmt._ancombc import get_baseline_donor_md, track_donor_indicators
+
+from q2_feature_table import relative_frequency
 
 
 class TestBase(TestPluginBase):
@@ -2067,7 +2072,7 @@ class detect(TestBase):
                                             'baseline']}).set_index('id')
         pd.testing.assert_frame_equal(b_d_md, exp_b_d_md)
 
-    def test_indicator_tracking(self):
+    def test_indicator_tracking_relative_abundance(self):
         metadata_df = pd.DataFrame({
             'id': ['sample1', 'sample2', 'sample3', 'sample4',
                    'donor1', 'donor2'],
@@ -2084,28 +2089,110 @@ class detect(TestBase):
             'Feature1': [0, 1, 0, 1, 1, 1],
             'Feature2': [0, 10, 14, 5, 1, 1],
             'Feature3': [0, 1, 0, 1, 1, 1]}).set_index('id')
-        indicator_df = indicator_tracking_prep(table=table_df,
-                                               metadata=metadata,
-                                               time_column="group",
-                                               reference_column="Ref",
-                                               subject_column="subject",
-                                               indicator_id="Feature2")
-        TDFs1 = indicator_df.set_index("id").at['sample1',
-                                                'measure']
-        TDFs2 = indicator_df.set_index("id").at['sample2',
-                                                'measure']
-        TDFs3 = indicator_df.set_index("id").at['sample3',
-                                                'measure']
-        TDFs4 = indicator_df.set_index("id").at['sample4',
-                                                'measure']
+
+        # Make recipient table
+        recipient_ids = ['sample1', 'sample2', 'sample3', 'sample4']
+        recipient_table_df = table_df[table_df.index.isin(recipient_ids)]
+        table_rf = \
+            relative_frequency(
+                biom.Table(data=recipient_table_df.T.values,
+                           observation_ids=recipient_table_df.columns,
+                           sample_ids=recipient_table_df.index)
+                               ).to_dataframe().T
+        indicator_df = \
+            track_donor_indicators(table=table_df,
+                                   metadata=metadata,
+                                   time_column='group',
+                                   reference_column='Ref',
+                                   subject_column='subject',
+                                   indicator_id='Feature2',
+                                   transformation='relative-abundance'
+                                   ).set_index('id')
         exp_df = pd.DataFrame({
-            'id': ['sample1', 'sample2',  'sample3', 'sample4'],
-            'measure': [0, 10, 14, 5],
+            'id': recipient_ids,
+            'measure': table_rf['Feature2'].values,
             'group': [1.0, 2.0, 1.0, 2.0],
             'subject': ["sub1", "sub1", "sub2", "sub2"]
-            })
-        self.assertEqual(TDFs2, 10)
-        self.assertEqual(TDFs1, 0)
-        self.assertEqual(TDFs3, 14)
-        self.assertEqual(TDFs4, 5)
+        }).set_index('id')
+
+        pd.testing.assert_frame_equal(indicator_df, exp_df)
+
+    def test_indicator_tracking_sqrt(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Feature1': [0, 1, 0, 1, 1, 1],
+            'Feature2': [0, 10, 14, 5, 1, 1],
+            'Feature3': [0, 1, 0, 1, 1, 1]}).set_index('id')
+
+        recipient_ids = ['sample1', 'sample2', 'sample3', 'sample4']
+        recipient_table_df = table_df[table_df.index.isin(recipient_ids)]
+        sqrt_table = np.sqrt(recipient_table_df)
+
+        indicator_df = \
+            track_donor_indicators(table=table_df,
+                                   metadata=metadata,
+                                   time_column='group',
+                                   reference_column='Ref',
+                                   subject_column='subject',
+                                   indicator_id='Feature2',
+                                   transformation='hellingers'
+                                   ).set_index('id')
+        exp_df = pd.DataFrame({
+            'id': recipient_ids,
+            'measure': sqrt_table['Feature2'].values,
+            'group': [1.0, 2.0, 1.0, 2.0],
+            'subject': ["sub1", "sub1", "sub2", "sub2"]
+        }).set_index('id')
+
+        pd.testing.assert_frame_equal(indicator_df, exp_df)
+
+    def test_indicator_tracking_log(self):
+        metadata_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Ref': ['donor1', 'donor1', 'donor1', 'donor2', np.nan,
+                    np.nan],
+            'subject': ['sub1', 'sub1', 'sub2', 'sub2', np.nan,
+                        np.nan],
+            'group': [1, 2, 1, 2, np.nan,
+                      np.nan]}).set_index('id')
+        metadata = Metadata(metadata_df)
+        table_df = pd.DataFrame({
+            'id': ['sample1', 'sample2', 'sample3', 'sample4',
+                   'donor1', 'donor2'],
+            'Feature1': [0, 1, 0, 1, 1, 1],
+            'Feature2': [0, 10, 14, 5, 1, 1],
+            'Feature3': [0, 1, 0, 1, 1, 1]}).set_index('id')
+
+        recipient_ids = ['sample1', 'sample2', 'sample3', 'sample4']
+        recipient_table_df = table_df[table_df.index.isin(recipient_ids)]
+        sqrt_table = np.log2(recipient_table_df)
+
+        indicator_df = \
+            track_donor_indicators(table=table_df,
+                                   metadata=metadata,
+                                   time_column='group',
+                                   reference_column='Ref',
+                                   subject_column='subject',
+                                   indicator_id='Feature2',
+                                   transformation='log'
+                                   ).set_index('id')
+        exp_df = pd.DataFrame({
+            'id': recipient_ids,
+            'measure': sqrt_table['Feature2'].values,
+            'group': [1.0, 2.0, 1.0, 2.0],
+            'subject': ["sub1", "sub1", "sub2", "sub2"]
+        }).set_index('id')
+
         pd.testing.assert_frame_equal(indicator_df, exp_df)

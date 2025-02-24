@@ -11,7 +11,7 @@ from ._version import get_versions
 from ._engraftment import cc, group_timepoints
 from ._peds import (pedf, prdf, heatmap,
                     pedf_permutation_test, pprf)
-from ._ancombc import detect_donor_indicators, indicator_tracking_prep
+from ._ancombc import detect_donor_indicators, track_donor_indicators
 
 __version__ = get_versions()['version']
 del get_versions
@@ -19,4 +19,4 @@ del get_versions
 
 __all__ = ['cc', 'pedf', 'prdf',
            'heatmap', 'group_timepoints', 'pedf_permutation_test',
-           'pprf', 'detect_donor_indicators', 'indicator_tracking_prep']
+           'pprf', 'detect_donor_indicators', 'track_donor_indicators']

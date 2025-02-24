@@ -6,6 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import pandas as pd
+import numpy as np
+
 from qiime2 import Metadata
 
 from q2_fmt._util import (_check_for_time_column, _check_reference_column,
@@ -14,6 +16,10 @@ from q2_fmt._util import (_check_for_time_column, _check_reference_column,
                           _create_used_references,
                           _filter_associated_reference
                           )
+
+from q2_feature_table import relative_frequency
+
+import biom
 
 
 def detect_donor_indicators(ctx, table, reference_column, time_column,
@@ -90,12 +96,17 @@ def get_baseline_donor_md(metadata, reference_column, time_column,
     return ids_to_keep
 
 
-def indicator_tracking_prep(
-    table: pd.DataFrame, metadata: Metadata, time_column: str,
+def track_donor_indicators(
+    table: pd.DataFrame,
+    metadata: Metadata,
+    time_column: str,
     reference_column: str,
-    subject_column: str, indicator_id: str,
+    subject_column: str,
+    indicator_id: str,
+    transformation: str = "relative-abundance",
     filter_missing_references: bool = False
 ) -> (pd.DataFrame):
+
     # making sure that samples exist in the table
     ids_with_data = table.index
     metadata = metadata.filter_ids(ids_to_keep=ids_with_data)
@@ -120,8 +131,19 @@ def indicator_tracking_prep(
     metadata_df, used_references = \
         _filter_associated_reference(used_references, metadata_df,
                                      filter_missing_references, ids_with_data)
+
+    if transformation == 'relative-abundance':
+        transformed_table = relative_frequency(
+            biom.Table(table.T.values,
+                       table.columns,
+                       table.index)).to_dataframe().T
+    elif transformation == "hellingers":
+        transformed_table = np.sqrt(table)
+    elif transformation == "log":
+        transformed_table = np.log2(table)
+
     try:
-        measure = table[indicator_id]
+        measure = transformed_table[indicator_id]
     except KeyError:
         raise KeyError(f'{indicator_id} was not found in feature-table.'
                        ' Please check input feature-table and confirm that'

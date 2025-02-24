@@ -467,20 +467,32 @@ plugin.pipelines.register_function(
 )
 
 plugin.methods.register_function(
-    function=q2_fmt.indicator_tracking_prep,
-    inputs={'table': FeatureTable[RelativeFrequency]},
-    parameters={'metadata': Metadata, 'time_column': Str,
-                'reference_column': Str, 'subject_column': Str,
-                'indicator_id': Str, 'filter_missing_references': Bool},
+    function=q2_fmt.track_donor_indicators,
+    inputs={'table': FeatureTable[Frequency]},
+    parameters={'metadata': Metadata,
+                'time_column': Str,
+                'reference_column': Str,
+                'subject_column': Str,
+                'indicator_id': Str,
+                'transformation': Str % Choices('relative-abundance',
+                                                'hellingers',
+                                                'log'),
+                'filter_missing_references': Bool},
     outputs=[('indicator_dists', Dist1D[Ordered, Matched])],
     input_descriptions={'table': 'Relative Frequency Table that contains'
-                        ' feature of interest to track across time'},
+                        ' feature of interest to track across time.'},
     parameter_descriptions={
         'metadata': metadata,
         'time_column': time_column,
         'reference_column': reference_column,
         'subject_column': subject_column,
-        'indicator_id': 'ID of Feature or Taxon of interest to track',
+        'indicator_id': 'ID of Feature or Taxon of interest to track.',
+        'transformation': ('Tranformation to be applied to feature abundance.'
+                           ' relative-abundance will transform the feature'
+                           ' counts into the percent composition. hellinger`s'
+                           ' transformation will square root the feature'
+                           ' count. log will preform a base 2 logarithmic'
+                           ' tranformation on the feature count.'),
         'filter_missing_references': filter_missing_references},
     output_descriptions={
         'indicator_dists': ('The distributions for the indicator feature of'
