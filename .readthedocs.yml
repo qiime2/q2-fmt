@@ -1,20 +1,21 @@
 version: 2
 
 build:
-  os: ubuntu-22.04
+  os: ubuntu-24.04
   tools:
-    python: "mambaforge-22.9"
+    python: "mambaforge-lastest"
   jobs:
-    pre_build:
-      # Generate the Sphinx configuration for this Jupyter Book so it builds.
-      - "jupyter-book config sphinx book/q2_fmt_book/"
+    create_environment:
+      - conda env create -p .env/ --file environment-files/q2-fmt-dev.yml
+      - conda install -p .env/ -c conda-forge nodejs
+      - conda run -p .env/ pip install 'q2doc@git+https://github.com/qiime2/q2doc@dev'
+      - conda run -p .env/ pip install 'jupyter-book==2.0.0a1'
+      - conda run -p .env/ pip install .
+    build:
+      html:
+        - PATH=$(pwd)/.env/bin/:$PATH make html
+        - mkdir -p $READTHEDOCS_OUTPUT
+        - cp -a docs/_build/* $READTHEDOCS_OUTPUT/
 
 conda:
-  environment: environment-files/jupyter-book-build-env.yml
-
-sphinx:
-  builder: html
-  configuration: book/q2_fmt_book/conf.py
-
-formats:
-  - pdf
+  environment: ""

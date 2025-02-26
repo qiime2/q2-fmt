@@ -1,4 +1,4 @@
-.PHONY: all lint test test-cov install dev clean distclean
+.PHONY: all lint test test-cov install dev clean distclean html serve
 
 PYTHON ?= python
 
@@ -20,6 +20,16 @@ install: all
 dev: all
 	pip install -e .
 
-clean: distclean
 
 distclean: ;
+
+html:
+	cd book/q2_fmt_book && q2doc autodoc --plugin fmt --output reference .
+	cd book/q2_fmt_book && jupyter book build --html
+	cp -r book/q2_fmt_book/data/ book/q2_fmt_book/_build/html/data/
+
+serve:
+	npx serve book/q2_fmt_book/_build/html/ -p 4000
+
+clean:
+	rm -rf book/q2_fmt_book/_build/html/

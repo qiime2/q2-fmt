@@ -2,18 +2,6 @@
 (exploring-the-data)=
 ## Exploring the data
 
-```{usage-scope}
----
-name: tutorial
----
-```
-
-```{usage-selector}
----
-default-interface: cli-usage
----
-```
-
 (access-metadata)=
 ### Access and summarize the study metadata
 
@@ -23,7 +11,9 @@ that summary.
 
 First, download the metadata.
 
-```{usage}
+```{describe-usage}
+:scope: tutorial
+
 md_url = 'https://qiime2-workshops.s3.us-west-2.amazonaws.com/itn-aug2024/sample-metadata-v3-q2-fmt.tsv'
 
 sample_metadata = use.init_metadata_from_url('sample_metadata', md_url)
@@ -31,7 +21,7 @@ sample_metadata = use.init_metadata_from_url('sample_metadata', md_url)
 
 Next, we’ll get a view of the study metadata using QIIME 2. This will allow you to assess whether the metadata that QIIME 2 is using is as you expect. You can do this using the tabulate action in QIIME 2’s q2-metadata plugin as follows.
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction(plugin_id='metadata', action_id='tabulate'),
     use.UsageInputs(input=sample_metadata),
@@ -49,14 +39,14 @@ included in the autoFMT randomized trial.
 
 Lets generate and explore a summary of the feature table we will be using.
 
-```{usage}
+```{describe-usage}
 
 feature_table_url = 'https://qiime2-workshops.s3.us-west-2.amazonaws.com/itn-aug2024/autofmt-table.qza'
 
 autofmt_table = use.init_artifact_from_url('feature-table', feature_table_url)
 ```
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction(plugin_id='feature_table', action_id='summarize'),
     use.UsageInputs(table=autofmt_table, sample_metadata=sample_metadata),
@@ -91,7 +81,7 @@ Open up the feature table summary that you previously created with either Galaxy
 After choosing an even sampling depth, it's helpful to see if your diversity metrics appear stable at that depth of coverage.
 You can do this for alpha diversity using an alpha rarefaction plot.
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction(plugin_id='diversity', action_id='alpha_rarefaction'),
     use.UsageInputs(table=autofmt_table, metrics={'observed_features'},
@@ -115,7 +105,7 @@ Determining what value to provide for this parameter is often one of the most co
 Refer to the previous chapter for details.
 Here we prioritize retaining samples and so we select a sampling depth of 10,000.
 
-```{usage}
+```{describe-usage}
 core_metrics_results = use.action(
     use.UsageAction(plugin_id='diversity', action_id='core_metrics'),
     use.UsageInputs(table=autofmt_table,
@@ -167,7 +157,7 @@ Should you expect a recipient's gut microbiome composition to become more or les
 How quickly would you expect to see that change?
 What do you expect would happen a few months or years after the transplant?
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction('fmt', 'cc'),
     use.UsageInputs(
@@ -212,7 +202,7 @@ When you're done, or if you get stuck, expand the following dropdown box for a c
 ```{admonition} Solution
 :class: dropdown, note
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction('fmt', 'cc'),
     use.UsageInputs(
@@ -238,7 +228,7 @@ The community richness at each timepoint seems to be considerably variable and i
 ### Distance to Baseline
 Developing a personalized microbiome following FMT intervention is expected. Although, there is no expected threshold for the length of time before personalization starts. It is important that the recipients microbiome doesn't return to their baseline composition. `qiime fmt cc` can help us investigate this! 
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction('fmt', 'cc'),
     use.UsageInputs(
@@ -269,7 +259,7 @@ If you are interested in how many microbes from the donor engrafted in the recip
 
 The above metrics capture how similar the recipient and donor microbiomes are. However, We want these microbiome to coalesce asymmetrically meaning that we want the donor's features to be more prominment in the recipeint following FMT than baseline features. This metrics investigates this asymmetric colescence and captures how many donated features engrafted. 
 
-```{usage}
+```{describe-usage}
 pedf_dists, = use.action(
         use.UsageAction('fmt', 'pedf'),
         use.UsageInputs(
@@ -289,7 +279,7 @@ pedf_dists, = use.action(
 Now, we have our PEDF metrics and we want to visualize them. 
 Lets use `qiime fmt heatmap`. 
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction('fmt', 'heatmap'),
     use.UsageInputs(
@@ -318,7 +308,7 @@ Note that we are testing this on an equal amount of pre-fmt and post FMT samples
 
 Alright, Lets take a look 👀.
 
-```{usage}
+```{describe-usage}
 actual_sample_pedf, per_subject_stats, global_stats = use.action(
         use.UsageAction('fmt', 'pedf_permutation_test'),
         use.UsageInputs(
@@ -339,7 +329,7 @@ actual_sample_pedf, per_subject_stats, global_stats = use.action(
 ```
 We can now re-vizualize our heatmap and include these new stats that we created. 
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction('fmt', 'heatmap'),
     use.UsageInputs(
@@ -364,7 +354,7 @@ Proportional Persistence of Recipient Features (PPRF) investigates if there are 
 
 It is a very similar investigation to using `fmt cc` with the distance-to parameter set to baseline. This will again help us evaluate if a uniquew personalized microbiome is emerging or if the microbiome is reverting back to baseline.
 
-```{usage}
+```{describe-usage}
 pprf_dists, = use.action(
         use.UsageAction('fmt', 'pprf'),
         use.UsageInputs(
@@ -383,7 +373,7 @@ pprf_dists, = use.action(
 ```
 This can also be viewed using `fmt heatmap`!
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction('fmt', 'heatmap'),
     use.UsageInputs(
@@ -411,7 +401,7 @@ However, some people investigate microbes that other papers reported as imported
 
 So here we are going to use q2-longitudinal to track the relative abunadnce of *Clostridia* over time. This will help us identify if the donated microbiome had the previously reported feature and if the recipients recieve this feature.
 
-```{usage}
+```{describe-usage}
 
 taxonomy_url = 'https://qiime2-workshops.s3.us-west-2.amazonaws.com/itn-aug2024/taxonomy.qza'
 
@@ -419,7 +409,7 @@ taxonomy = use.init_artifact_from_url('taxonomy', taxonomy_url)
 ```
 Lets use this Taxonomy to collapse our table at level three or Class. 
 
-```{usage}
+```{describe-usage}
 collapsed3_table,  = use.action(
     use.UsageAction('taxa', 'collapse'),
     use.UsageInputs(
@@ -435,7 +425,7 @@ collapsed3_table,  = use.action(
 
 Let's transform this feature-table into relative frequency feature table. This will allow us to look at relative frequency instead of raw counts that can be misleading. 
 
-```{usage}
+```{describe-usage}
 collapsed3_table_rf,  = use.action(
     use.UsageAction('feature_table', 'relative_frequency'),
     use.UsageInputs(
@@ -450,7 +440,7 @@ Now we are ready to use `q2-longitudinal` to track our previously identified fea
 
 ### Tracking Features with `q2-longitudinal`
 
-```{usage}
+```{describe-usage}
 md_collapsed3_table_rf= use.view_as_metadata(
     'md_collapsed3_table_rf',
      collapsed3_table_rf)
@@ -484,7 +474,7 @@ Since we previously looked at the Clostrida, lets continue look at how our class
 
 Let's take a look now and see if we have any features that are sucessfully engrafting accross subjects.
 
-```{usage}
+```{describe-usage}
 prdf_dist, = use.action(
     use.UsageAction('fmt', 'prdf'),
     use.UsageInputs(
@@ -504,7 +494,7 @@ prdf_dist, = use.action(
 And again, Visualize the data using `qiime fmt heatmap`. 
 We are using the `level-delimiter` parameter here so that the taxonomic strings will only show the lowest relevant taxonomic level! 
 
-```{usage}
+```{describe-usage}
 use.action(
     use.UsageAction('fmt', 'heatmap'),
     use.UsageInputs(
