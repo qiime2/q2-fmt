@@ -1,3 +1,6 @@
+--------------------
+description: Assessing Engraftment following an Auto-FMT using Amplicon Data. This tutorial was based on the publically available data from Taur et al. 2018
+--------------------
 # Assessing engraftment extent with q2-FMT
 (exploring-the-data)=
 ## Exploring the data
@@ -146,7 +149,12 @@ These are:
 1. Temporal Stability.
 
 q2-fmt is a QIIME 2 plugin that was designed to help you investigate all three of these criteria.
-For additional infomation, Here is a lecture video of Chloe Herman discussing the importance of assessing engraftment extent![](https://www.youtube.com/watch?v=5vTTDp-t0Bw). 
+For additional infomation, Here is a lecture video of Chloe Herman discussing the importance of assessing engraftment extent!
+
+:::{iframe} https://www.youtube.com/embed/5vTTDp-t0Bw?si=4b4rw6q4tDFVJeqJ
+:width: 100%
+Chloe Herman at NIH presenting on assessing engraftment with q2-fmt! 
+:::
 
 In this tutorial we will be using q2-fmt to investigating all of these criteron.
 ## Chimeric Asymmetric Community Coalescence
