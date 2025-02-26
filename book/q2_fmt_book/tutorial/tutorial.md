@@ -1,5 +1,7 @@
 --------------------
-description: Assessing Engraftment following an Auto-FMT using Amplicon Data. This tutorial was based on the publically available data from Taur et al. 2018
+description: Assessing Engraftment following an Auto-FMT using Amplicon Data. This tutorial was based on the publically available data from Taur et al. 2018. 
+author: Chloe Herman 
+thumbnail: _images/engraftment-extent.png
 --------------------
 # Assessing engraftment extent with q2-FMT
 (exploring-the-data)=
