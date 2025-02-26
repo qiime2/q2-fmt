@@ -15,7 +15,7 @@ build:
       html:
         - PATH=$(pwd)/.env/bin/:$PATH make html
         - mkdir -p $READTHEDOCS_OUTPUT
-        - cp -a docs/_build/* $READTHEDOCS_OUTPUT/
+        - cp -a book/q2_fmt_book/_build/* $READTHEDOCS_OUTPUT/
 
 conda:
   environment: environment-files/q2-fmt-dev.yml
