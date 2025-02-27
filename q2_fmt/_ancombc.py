@@ -155,4 +155,5 @@ def track_donor_indicators(
                                       'group': time_col,
                                       'subject': subject_series},
                                 index=used_references.index)
+    ordinal_dist.index.name = 'id'
     return ordinal_dist.reset_index()
