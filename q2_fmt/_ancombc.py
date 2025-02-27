@@ -156,4 +156,21 @@ def track_donor_indicators(
                                       'subject': subject_series},
                                 index=used_references.index)
     ordinal_dist.index.name = 'id'
-    return ordinal_dist.reset_index()
+    ordinal_dist = ordinal_dist.reset_index()
+    ordinal_dist['id'].attrs.update({
+        'title': metadata_df.index.name,
+        'description': 'Sample IDs'
+    })
+    ordinal_dist['measure'].attrs.update({
+        'title': f"Rel. Freq. of {indicator_id}",
+        'description': f"Rel. Freq. of {indicator_id}"
+    })
+    ordinal_dist['group'].attrs.update({
+        'title': time_column,
+        'description': 'Time'
+    })
+    ordinal_dist['subject'].attrs.update({
+        'title': subject_column,
+        'description': 'Subject IDs linking samples across time'
+    })
+    return ordinal_dist
