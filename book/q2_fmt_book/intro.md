@@ -41,8 +41,3 @@ This website is built with MyST Markdown and Jupyter Book, which are supported i
 
  You are free distribute, remix, adapt, and build upon the material in any medium or format, for noncommercial purposes only, as long as credit is given to the original creator. Adaptations must be shared under the same terms.
 
-
-## Table of Contents
-
-```{tableofcontents}
-```

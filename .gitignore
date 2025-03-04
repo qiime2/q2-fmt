@@ -76,3 +76,7 @@ target/
 
 # JupyterBook
 book/q2_fmt_book/_build
+book/q2_fmt_book/.locks/
+book/q2_fmt_book/reference/plugins
+book/q2_fmt_book/reference/artifacts
+book/q2_fmt_book/data

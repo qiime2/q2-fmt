@@ -1,0 +1,44 @@
+version: 1
+project:
+  title: q2-fmt book
+  authors:
+    - name: Chloe Herman
+  copyright: '2024'
+  github: qiime2/q2-fmt/book
+  references:
+    qiime2: https://develop.qiime2.org/en/latest/
+
+  plugins:
+    - type: executable
+      path: q2doc-plug.py
+  bibliography:
+    - q2doc.bib
+    - references.bib
+  exports:
+    - format: pdf
+      template: plain_latex_book
+      output: exports/book.pdf
+  toc:
+    - file: intro.md
+    - title: Tutorial
+      children:
+        - file: tutorial/tutorial.md
+    - title: How-To Guides
+      children:
+        - file: how-to-guides/installation.md
+    - title: Explanation
+      children:
+        - file: explanation/placeholder.md
+    - title: Reference
+      children:
+        - pattern: 'reference/**'
+    - title: Back Matter
+      children:
+        - file: works-cited.md
+site:
+  template: https://github.com/ebolyen/myst-book-theme-poc.git
+  options:
+    folders: true
+    pretty_urls: false
+    logo: _images/logo.png
+  

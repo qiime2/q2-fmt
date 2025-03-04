@@ -1,6 +1,5 @@
 # q2-fmt (fecal microbiota transplant)
 Note: This software is in **Beta release**. It is ready for users but interfaces are still subject to change.
-![](https://github.com/qiime2/q2-fmt/actions/workflows/ci-dev.yaml/badge.svg)
 
 q2-fmt is a [QIIME2](https://qiime2.org/) plugin providing all-in-one suite for assessing engraftment extent following Fecal Microbiota Transplants! 
 
