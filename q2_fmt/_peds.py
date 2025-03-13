@@ -13,7 +13,7 @@ import numpy as np
 import warnings
 
 import os
-import pkg_resources
+import importlib
 import jinja2
 import json
 
@@ -93,10 +93,9 @@ def heatmap(output_dir: str, data: pd.DataFrame,
     data = _drop_incomplete_subjects(data, drop_incomplete_subjects)
     index = J_ENV.get_template('index.html')
     data = json.loads(data.to_json(orient='records'))
-    spec_fp = pkg_resources.resource_filename(
-        'q2_fmt', os.path.join('assets', 'spec.json')
-    )
-    with open(spec_fp) as fh:
+    spec_fp = importlib.resources.open_text(
+        'q2_fmt.assets', 'spec.json')
+    with spec_fp as fh:
         json_obj = json.load(fh)
 
     order = {"order": "ascending"}
