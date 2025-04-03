@@ -6,7 +6,7 @@ project:
   copyright: '2024'
   github: qiime2/q2-fmt/book
   references:
-    qiime2: https://develop.qiime2.org/en/latest/
+    q2doc-api-target: https://develop.qiime2.org/en/latest/
 
   plugins:
     - type: executable
@@ -41,4 +41,4 @@ site:
     folders: true
     pretty_urls: false
     logo: _images/logo.png
-  
+
