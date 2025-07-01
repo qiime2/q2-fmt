@@ -1,7 +1,0 @@
-channels:
-- https://packages.qiime2.org/qiime2/2025.4/amplicon/passed
-- conda-forge
-- bioconda
-dependencies:
-  - qiime2-amplicon
-  - pip
