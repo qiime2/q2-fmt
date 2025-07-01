@@ -8,4 +8,4 @@ jobs:
     uses: qiime2/distributions/.github/workflows/lib-community-ci.yaml@dev
     with:
       github-repo: q2-fmt
-      env-file-name: development-q2-fmt-environment.yml
+      env-file-name: q2-fmt-qiime2-amplicon-dev.yml

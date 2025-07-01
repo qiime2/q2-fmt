@@ -1,0 +1,216 @@
+name: community-release-env
+permissions:
+  contents: write
+  pull-requests: write
+on:
+  release:
+    types: [published]
+
+jobs:
+  create-pr-and-install-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'checkout source'
+        uses: actions/checkout@v4
+
+      - name: Determine default branch
+        id: default-branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "DEFAULT_BRANCH=${{ github.event.repository.default_branch }}" >> $GITHUB_OUTPUT
+
+      - name: Get release info
+        id: get-release-name
+        run: |
+          echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+          echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+
+      - name: Get released_epoch from data.yaml
+        run: |
+          pip install --upgrade pyyaml
+          python - <<EOF
+          import os
+          import requests
+          import yaml
+
+          data_url = \
+            'https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/data.yaml'
+
+          try:
+            response = requests.get(data_url, allow_redirects=True)
+            response.raise_for_status()
+
+            content = response.content.decode('utf-8')
+            data_yaml = yaml.safe_load(content)
+            released_epoch = data_yaml['released_epoch']
+
+            with open(os.environ['GITHUB_ENV'], 'a') as envfile:
+              envfile.write(f'RELEASED_EPOCH={released_epoch}\n')
+
+          except requests.exceptions.RequestException as e:
+            print(f'Error fetching the URL: {e}')
+          except yaml.YAMLError as e:
+            print(f'Error parsing YAML: {e}')
+          EOF
+
+      - name: Hardcode env vars for q2-fmt
+        shell: bash
+        run: |
+          PACKAGE_NAME='q2-fmt'
+          TARGET_DISTRO='amplicon'
+
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> $GITHUB_ENV
+          echo "TARGET_DISTRO=$TARGET_DISTRO" >> $GITHUB_ENV
+
+      - name: Modify existing release env file
+        run: |
+          pip install --upgrade pyyaml
+          python - <<EOF
+          import os
+          import re
+          import yaml
+
+          pkg_name = os.environ['PACKAGE_NAME']
+          target_distro = os.environ['TARGET_DISTRO']
+          released_epoch = os.environ['RELEASED_EPOCH']
+
+          release_env_path = \
+            f'environment-files/{pkg_name}-qiime2-{target_distro}-release.yml'
+
+          if not os.path.exists(release_env_path):
+            raise Exception(f'{release_env_path} not found.')
+
+          with open(release_env_path, 'r') as fh:
+            env_data = yaml.safe_load(fh)
+
+          channels = env_data.get('channels', [])
+          for i, channel in enumerate(channels):
+            if 'https://packages.qiime2.org/qiime2/' in channel:
+              updated_channel = re.sub(
+                  r'(https://packages\.qiime2\.org/qiime2/)([^/]+)(/.+)',
+                  lambda m: f"{m.group(1)}{released_epoch}{m.group(3)}",
+                  channel
+              )
+
+              channels[i] = updated_channel
+              break
+
+            else:
+              raise ValueError('No QIIME 2 package channel found.')
+
+          # make sure that the dependency is both a dict obj AND 'pip'
+          pip_deps = None
+          for dep in env_data.get('dependencies', []):
+            if isinstance(dep, dict) and 'pip' in dep:
+              pip_deps = dep['pip']
+              break
+
+          if pip_deps is None:
+            raise ValueError('No pip section found under dependencies.')
+
+          updated = False
+          for i, entry in enumerate(pip_deps):
+            pattern = rf'^{pkg_name}@git\+https://github\.com/.+?\.git@[\w.-]+$'
+
+            if re.match(pattern, entry):
+              new_release = os.environ.get('RELEASE_TAG')
+
+              if not new_release:
+                raise ValueError('New Github release tag not found.')
+
+              pip_deps[i] = re.sub(r"(@git\+.+?\.git@)[\w.-]+",
+                  lambda m: f"{m.group(1)}{new_release}", entry
+              )
+              updated = True
+              break
+
+          if not updated:
+            raise ValueError(f'No pip install found for package {pkg_name}.')
+
+          new_env_path = f'environment-files/{pkg_name}-qiime2-{target_distro}-{released_epoch}-release-{os.environ['RELEASE_TAG']}.yml'
+          with open(new_env_path, 'w') as fh:
+            yaml.safe_dump(env_data, fh, sort_keys=False)
+
+          print(f'Created new release environment file: {new_env_path}.')
+          EOF
+
+      - name: Create pull request with updated release env file
+        uses: qiime2-cutlery/create-pull-request@v5
+        env:
+          RELEASE_TAG: ${{ steps.get-release-name.outputs.RELEASE_TAG }}
+          DEFAULT_BRANCH: ${{ steps.default-branch.outputs.DEFAULT_BRANCH }}
+        with:
+          token: ${{ github.token }}
+          branch: automated/release-${{ env.RELEASE_TAG }}-env-file-updates
+          base: ${{ env.DEFAULT_BRANCH }}
+          title: "[${{ env.RELEASE_TAG }}] Automated updates to release environment file"
+          body: |
+            <details>
+            <summary><i>What does this pull request do?</i></summary>
+
+            <br>
+
+            This pull request automatically updates your plugin's release environment file upon detection of a newly published GitHub release.
+
+            Once this pull request has been opened, an environment installation test is automatically triggered through Github Actions to ensure the updated environment is valid and installable.
+
+            </details>
+
+            ---
+
+            **‼️ PLEASE REVIEW THE COMMENT BELOW BEFORE MERGING ‼️**
+
+            After this pull request is opened, an environment installation test will run automatically. Once the test completes, a comment will be added to this pull request with the result.
+
+            - ✅ **If the test passes:** You’ll see a green checkmark comment indicating the environment is installable.
+            - ❌ **If the test fails:** You’ll see a red X comment with a link to the workflow logs to help troubleshoot.
+
+            If you run into issues and aren’t sure how to proceed, feel free to reach out on the [QIIME 2 Forum](https://forum.qiime2.org)!
+
+            Happy QIIMEing 🤓
+          author: 'q2d2 <q2d2.noreply@gmail.com>'
+          committer: 'q2d2 <q2d2.noreply@gmail.com>'
+          commit-message: |
+            automated update of release environment file for '${{ env.RELEASE_TAG }}'
+
+      - name: Set up conda
+        uses: qiime2-cutlery/setup-miniconda@v3
+        with:
+          activate-environment: test-env
+          miniforge-version: latest
+
+      - name: Try installing new release env file
+        shell: bash
+        run: |
+          git checkout automated/release-${{ env.RELEASE_TAG }}-env-file-updates
+          ENV_PATH='environment-files/${{ env.PACKAGE_NAME }}-qiime2-${{ env.TARGET_DISTRO }}-${{ env.RELEASED_EPOCH }}-release-${{ env.RELEASE_TAG }}.yml'
+          conda env create -n test-release-env -f $ENV_PATH
+
+      - name: Activate and check version info
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate test-release-env
+          conda list
+
+      - name: Get job ID
+        if: always()
+        id: get-job-id
+        uses: qiime2-cutlery/gha-jobid-action@v1.4.0
+        with:
+          job_name: create-pr-and-install-env
+
+      - name: Add comment to PR with env install result
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_URL: ${{ steps.get-job-id.outputs.html_url }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if conda env list | grep -q test-release-env; then
+            gh pr comment "$PR_NUMBER" \
+              --body ":white_check_mark: **Environment install test passed!**"
+          else
+            gh pr comment "$PR_NUMBER" \
+              --body ":x: **Environment install test failed.** Please check the [workflow logs]($JOB_URL) for details."
+          fi
