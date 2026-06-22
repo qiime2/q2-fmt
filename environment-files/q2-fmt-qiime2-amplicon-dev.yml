@@ -1,9 +1,9 @@
 channels:
-- https://packages.qiime2.org/qiime2/latest/amplicon/passed
+- https://packages.qiime2.org/qiime2/latest/qiime2/passed
 - conda-forge
 - bioconda
 dependencies:
-- qiime2-amplicon
+- rachis-qiime2
 - pip
 - pip:
   - q2-fmt@git+https://github.com/qiime2/q2-fmt.git@dev
