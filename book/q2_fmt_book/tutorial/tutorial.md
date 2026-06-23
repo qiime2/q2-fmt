@@ -1,6 +1,6 @@
 --------------------
-description: Assessing Engraftment following an Auto-FMT using Amplicon Data. This tutorial was based on the publically available data from Taur et al. 2018. 
-author: Chloe Herman 
+description: Assessing Engraftment following an Auto-FMT using Amplicon Data. This tutorial was based on the publically available data from Taur et al. 2018.
+author: Chloe Herman
 thumbnail: _images/engraftment-extent.png
 --------------------
 # Assessing engraftment extent with q2-FMT
@@ -54,8 +54,8 @@ autofmt_table = use.init_artifact_from_url('feature-table', feature_table_url)
 ```{describe-usage}
 use.action(
     use.UsageAction(plugin_id='feature_table', action_id='summarize'),
-    use.UsageInputs(table=autofmt_table, sample_metadata=sample_metadata),
-    use.UsageOutputNames(visualization='autofmt_table_summ'),
+    use.UsageInputs(table=autofmt_table, metadata=sample_metadata),
+    use.UsageOutputNames(feature_frequencies='autofmt_feature_frequencies', sample_frequencies='autofmt_sample_frequencies', summary='autofmt_table_summ'),
 )
 ```
 ## Selecting an Even Sampling Depth
@@ -155,7 +155,7 @@ For additional infomation, Here is a lecture video of Chloe Herman discussing th
 
 :::{iframe} https://www.youtube.com/embed/5vTTDp-t0Bw?si=4b4rw6q4tDFVJeqJ
 :width: 100%
-Chloe Herman at NIH presenting on assessing engraftment with q2-fmt! 
+Chloe Herman at NIH presenting on assessing engraftment with q2-fmt!
 :::
 
 In this tutorial we will be using q2-fmt to investigating all of these criteron.
@@ -202,7 +202,7 @@ Let's investigate this idea in an exercise.
 
 Above we tracked the *distance to donor* following FMT intervention.
 This is a beta diversity approach to assessing Chimeric Asymmetric Community Coalescence that tells us about the overall membership or composition of a microbiome.
-We can also directly investigate what happens to community richness, an alpha diversity metric, following FMT intervention. Retaining alpha diversity long term is an indicator of this emergence of "personalize microbiome" as opposed to reverting to their baseline. 
+We can also directly investigate what happens to community richness, an alpha diversity metric, following FMT intervention. Retaining alpha diversity long term is an indicator of this emergence of "personalize microbiome" as opposed to reverting to their baseline.
 
 Try to adapt your above command, and perhaps referring to other sections of the tutorial, to compute a raincloud plot that will allow you to investigate this using the *observed features* vector you computed earlier.
 When you're done, or if you get stuck, expand the following dropdown box for a command that will generate this plot for you.
@@ -232,11 +232,11 @@ use.action(
         raincloud_plot='obs_features_raincloud_plot'
     )
 )
-``` 
-The community richness at each timepoint seems to be considerably variable and is never sigificantly higher than the baseline. It does look like after FMT intervention the community richness of the recipients is less variable but again it is not significantly higher than baseline. The last timepoint has the lowest community richness but there are only 3 subjects that were sampled that long after FMT. This makes it hard to tell if that is representative of the whole population or if those individuals where sampled that long after FMT because of complications. 
+```
+The community richness at each timepoint seems to be considerably variable and is never sigificantly higher than the baseline. It does look like after FMT intervention the community richness of the recipients is less variable but again it is not significantly higher than baseline. The last timepoint has the lowest community richness but there are only 3 subjects that were sampled that long after FMT. This makes it hard to tell if that is representative of the whole population or if those individuals where sampled that long after FMT because of complications.
 
 ### Distance to Baseline
-Developing a personalized microbiome following FMT intervention is expected. Although, there is no expected threshold for the length of time before personalization starts. It is important that the recipients microbiome doesn't return to their baseline composition. `qiime fmt cc` can help us investigate this! 
+Developing a personalized microbiome following FMT intervention is expected. Although, there is no expected threshold for the length of time before personalization starts. It is important that the recipients microbiome doesn't return to their baseline composition. `qiime fmt cc` can help us investigate this!
 
 ```{describe-usage}
 use.action(
@@ -260,14 +260,14 @@ use.action(
 )
 
 ```
-Now lets look at the distance to their baseline. This will help us identify if the microbiome that emerges after FMT intervention is a unique personalized microbiome or if it is reverting to their baseline. Looking at this raincloud plot it looks like the microbiome always looks distinct from the baseline microbiome and that pattern continues all the way to the last timepoint. This probably indicates that the recipient microbiome following FMT is unique! 
+Now lets look at the distance to their baseline. This will help us identify if the microbiome that emerges after FMT intervention is a unique personalized microbiome or if it is reverting to their baseline. Looking at this raincloud plot it looks like the microbiome always looks distinct from the baseline microbiome and that pattern continues all the way to the last timepoint. This probably indicates that the recipient microbiome following FMT is unique!
 
 
 ### Proportional Engraftment of Donor Features (PEDF)
 
-If you are interested in how many microbes from the donor engrafted in the recipient, Proportional Engraftment of Donor Features helps capture just that. 
+If you are interested in how many microbes from the donor engrafted in the recipient, Proportional Engraftment of Donor Features helps capture just that.
 
-The above metrics capture how similar the recipient and donor microbiomes are. However, We want these microbiome to coalesce asymmetrically meaning that we want the donor's features to be more prominment in the recipeint following FMT than baseline features. This metrics investigates this asymmetric colescence and captures how many donated features engrafted. 
+The above metrics capture how similar the recipient and donor microbiomes are. However, We want these microbiome to coalesce asymmetrically meaning that we want the donor's features to be more prominment in the recipeint following FMT than baseline features. This metrics investigates this asymmetric colescence and captures how many donated features engrafted.
 
 ```{describe-usage}
 pedf_dists, = use.action(
@@ -286,8 +286,8 @@ pedf_dists, = use.action(
 
     )
 ```
-Now, we have our PEDF metrics and we want to visualize them. 
-Lets use `qiime fmt heatmap`. 
+Now, we have our PEDF metrics and we want to visualize them.
+Lets use `qiime fmt heatmap`.
 
 ```{describe-usage}
 use.action(
@@ -302,19 +302,19 @@ use.action(
 )
 ```
 
-Looking at this output, timepoint 0 seems to have very low  proportional engraftment of donor strains. However, we can see that there is a a kind of bi-modal distribution at timepoint 1. Some of the samples have a relatively proportional engraftment of donor strains and some of them have a relatively low proportional engraftment of donor strains . At timepoint 3, we can see that there is less variation between recipients. This lines up pretty well with what we were seeing with the raincloud plot. This makes sense because they both are investigating Community Coalesense! 
+Looking at this output, timepoint 0 seems to have very low  proportional engraftment of donor strains. However, we can see that there is a a kind of bi-modal distribution at timepoint 1. Some of the samples have a relatively proportional engraftment of donor strains and some of them have a relatively low proportional engraftment of donor strains . At timepoint 3, we can see that there is less variation between recipients. This lines up pretty well with what we were seeing with the raincloud plot. This makes sense because they both are investigating Community Coalesense!
 
-Note: you can also use `qiime stats plot-rainclouds` to visualize this data! This will create plots more similar to the ouput of `qiime fmt cc` above. 
+Note: you can also use `qiime stats plot-rainclouds` to visualize this data! This will create plots more similar to the ouput of `qiime fmt cc` above.
 
 ### Permutation Test of PEDF
 
-Now an important question to ask is: 
-"Is the overlap between features due to the FMT or are the similarities between these 2 microbiome by random chance". 
-That's where `pedf-permutation-test` comes in! 
+Now an important question to ask is:
+"Is the overlap between features due to the FMT or are the similarities between these 2 microbiome by random chance".
+That's where `pedf-permutation-test` comes in!
 
 PEDF permutation testrandomizes the relationships between donors and recipients, to test whether the PEDS score between a recipient and their actual donor is significantly higher than PEDS scores between other recipients paired with random donors.
 
-Note that we are testing this on an equal amount of pre-fmt and post FMT samples and this will likely lead to a more conservative global test results. 
+Note that we are testing this on an equal amount of pre-fmt and post FMT samples and this will likely lead to a more conservative global test results.
 
 Alright, Lets take a look 👀.
 
@@ -337,7 +337,7 @@ actual_sample_pedf, per_subject_stats, global_stats = use.action(
         )
     )
 ```
-We can now re-vizualize our heatmap and include these new stats that we created. 
+We can now re-vizualize our heatmap and include these new stats that we created.
 
 ```{describe-usage}
 use.action(
@@ -353,9 +353,9 @@ use.action(
     )
 )
 ```
-We can see that there are many per-subject stats that where the simulated data(randomly paired recipients and donors) have higher PEDF than the true donor recipient pair but the majority of our comparisons are significant and globally are true pairs are significantly higher than our simulated donor recipient pairs. 
+We can see that there are many per-subject stats that where the simulated data(randomly paired recipients and donors) have higher PEDF than the true donor recipient pair but the majority of our comparisons are significant and globally are true pairs are significantly higher than our simulated donor recipient pairs.
 
-Thats good news! 
+Thats good news!
 
 
 ### Proportional Persistence of Recipient Features (PPRF)
@@ -395,19 +395,19 @@ use.action(
     )
 )
 ```
-From this visualization we can see that there is a relatively low presentage of persistant recipient features. Generally that's a good sign of engraftment! 
+From this visualization we can see that there is a relatively low presentage of persistant recipient features. Generally that's a good sign of engraftment!
 
-However, It looks like FMT.0035 has many persistant recipient features by timepoint 4. For an extra challenge go through our previous visualizations and see if you can identify any other signs of low engraftment extent! 
+However, It looks like FMT.0035 has many persistant recipient features by timepoint 4. For an extra challenge go through our previous visualizations and see if you can identify any other signs of low engraftment extent!
 
 ## Donated Microbiome Indicator Features
 
 Another method that researchers commonly use to assess engraftment is donated microbiome indicator features
 
-Currently, we do this by running ANCOMBC comparing the recipient at baseline to their donor. However because ancombc can not be run on dependent samples (i.e. a patient over time), we are not able to compare the baseline recipient to their donor because in this case they are the same patient. 
+Currently, we do this by running ANCOMBC comparing the recipient at baseline to their donor. However because ancombc can not be run on dependent samples (i.e. a patient over time), we are not able to compare the baseline recipient to their donor because in this case they are the same patient.
 
-However, some people investigate microbes that other papers reported as imported. We will investigate if the feature was in the donated microbiome and if the recipient recieved the feature. 
+However, some people investigate microbes that other papers reported as imported. We will investigate if the feature was in the donated microbiome and if the recipient recieved the feature.
 
-[This review](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8436969/) reported that the class of *Clostridia* is correlated with positive health outcomes. 
+[This review](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8436969/) reported that the class of *Clostridia* is correlated with positive health outcomes.
 
 So here we are going to use q2-longitudinal to track the relative abunadnce of *Clostridia* over time. This will help us identify if the donated microbiome had the previously reported feature and if the recipients recieve this feature.
 
@@ -417,7 +417,7 @@ taxonomy_url = 'https://qiime2-workshops.s3.us-west-2.amazonaws.com/itn-aug2024/
 
 taxonomy = use.init_artifact_from_url('taxonomy', taxonomy_url)
 ```
-Lets use this Taxonomy to collapse our table at level three or Class. 
+Lets use this Taxonomy to collapse our table at level three or Class.
 
 ```{describe-usage}
 collapsed3_table,  = use.action(
@@ -428,12 +428,12 @@ collapsed3_table,  = use.action(
         level=3
     ),
     use.UsageOutputNames(
-        collapsed_table='collapsed3-table.qza'
+        collapsed_table='collapsed3-table'
     )
 )
 ```
 
-Let's transform this feature-table into relative frequency feature table. This will allow us to look at relative frequency instead of raw counts that can be misleading. 
+Let's transform this feature-table into relative frequency feature table. This will allow us to look at relative frequency instead of raw counts that can be misleading.
 
 ```{describe-usage}
 collapsed3_table_rf,  = use.action(
@@ -442,7 +442,7 @@ collapsed3_table_rf,  = use.action(
         table=collapsed3_table
     ),
     use.UsageOutputNames(
-        relative_frequency_table='collapsed3-table-rf.qza'
+        relative_frequency_table='collapsed3-table-rf'
     )
 )
 ```
@@ -470,17 +470,17 @@ use.action(
     use.UsageOutputNames(visualization='lme-clostridia-treatmentVScontrol')
 )
 ```
-Looking at this it looks like both the control and FMT groups had Clostrida in relatively low abundances. Both Groups seems to have in increase in Clostrida over time, which is good becuase we know thats correlated with postive treament outcomes. However, there is no significant change between groups. This suggests that Clostrida is not a great donor indicator for this group of patients. 
+Looking at this it looks like both the control and FMT groups had Clostrida in relatively low abundances. Both Groups seems to have in increase in Clostrida over time, which is good becuase we know thats correlated with postive treament outcomes. However, there is no significant change between groups. This suggests that Clostrida is not a great donor indicator for this group of patients.
 
-Check back soon for more updates on tracking donated microbiome indicator features using ANCOMBC2 which will allow for repeated sampling! 
+Check back soon for more updates on tracking donated microbiome indicator features using ANCOMBC2 which will allow for repeated sampling!
 
 ### Feature Engraftment
 
-Feature engraftment doesn't "assess engraftment" of a recipient but instead investigates if there are features that engraft across all subjects. This will help researchers understand which features are sucessfully engrafting and help them decide which successfully engrafted features correlate with postive clinical outcome. 
+Feature engraftment doesn't "assess engraftment" of a recipient but instead investigates if there are features that engraft across all subjects. This will help researchers understand which features are sucessfully engrafting and help them decide which successfully engrafted features correlate with postive clinical outcome.
 
 This could be utilized to help researchers decide on specified communities to donate (as opposed the black-box commmunity approach we have currently). This specified communities would be full of microbes that have successfully engraftment accross patients and are associated with postive clincal outcomes.
 
-Since we previously looked at the Clostrida, lets continue look at how our classes engraft accross subjects. 
+Since we previously looked at the Clostrida, lets continue look at how our classes engraft accross subjects.
 
 Let's take a look now and see if we have any features that are sucessfully engrafting accross subjects.
 
@@ -501,8 +501,8 @@ prdf_dist, = use.action(
 
 )
 ```
-And again, Visualize the data using `qiime fmt heatmap`. 
-We are using the `level-delimiter` parameter here so that the taxonomic strings will only show the lowest relevant taxonomic level! 
+And again, Visualize the data using `qiime fmt heatmap`.
+We are using the `level-delimiter` parameter here so that the taxonomic strings will only show the lowest relevant taxonomic level!
 
 ```{describe-usage}
 use.action(
@@ -518,6 +518,6 @@ use.action(
 )
 
 ```
-Oh look! Clostridia seems to be a feature that consistantly engrafts from our donor! It seems like it doesnt engraft "better" than spontanous recover but it is a consistant engrafter. Firmicutes also seems to pretty consistently engraft but it is important to note that our N for this study is quite small. Bacilli seems to engraft sucessfully too but its also present before the FMT so its hard to tell if thats from the donor or just a common gut 🐛 bug! 
+Oh look! Clostridia seems to be a feature that consistantly engrafts from our donor! It seems like it doesnt engraft "better" than spontanous recover but it is a consistant engrafter. Firmicutes also seems to pretty consistently engraft but it is important to note that our N for this study is quite small. Bacilli seems to engraft sucessfully too but its also present before the FMT so its hard to tell if thats from the donor or just a common gut 🐛 bug!
 
-Overall in this study it seems that we have Asymetric Chimeric Community Coalesense. We also have stability in our shift towards the donated microbiome as there are no signs that our subjects are reverting back to baseline. From these factors I would conclude that we have relatively high engraftment extent and clincal findings are probably due to FMT engraftment. I would love to see more donated microbiome indicator species to further support this claim! 
+Overall in this study it seems that we have Asymetric Chimeric Community Coalesense. We also have stability in our shift towards the donated microbiome as there are no signs that our subjects are reverting back to baseline. From these factors I would conclude that we have relatively high engraftment extent and clincal findings are probably due to FMT engraftment. I would love to see more donated microbiome indicator species to further support this claim!
